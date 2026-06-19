@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · دائرة التوزيع</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--div-color:#10B981;--div-glow:rgba(0,0,0,.3)}
+.sidebar{background:linear-gradient(180deg,#030F0A 0%,#061510 100%)}
+.nav-item.active{color:var(--div-color);background:rgba(0,0,0,.2)}
+.nav-item.active::after{background:var(--div-color)}
+.hero-div{background:linear-gradient(135deg,#030F0A,#061510);border:1px solid #10B98133;border-radius:var(--r);padding:22px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero-div::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,#10B98118,transparent 70%)}
+.hero-div h1{font-family:var(--font-hud);font-size:22px;font-weight:700;margin-bottom:4px}
+.hero-div .sub{font-size:13px;color:#10B981cc}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="se-logo-svg" id="logoSvg"></div>
+      <div class="brand-text"><div class="t1">se</div><div class="t2">دائرة التوزيع</div></div>
+    </div>
+    <div class="user-badge" id="userBadge"></div>
+    <nav class="nav-section" id="navSection"></nav>
+    <div class="sidebar-foot">
+      <button class="btn-logout" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lang" onclick="toggleLang()">EN/ع</button>
+    </div>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">لوحة المتابعة</div>
+      <div class="topbar-right">
+        <div class="clock-widget"><div class="clock-time" id="clockTime"></div><div class="clock-date" id="clockDate"></div><div class="clock-greeting" id="clockGreet"></div></div>
+        <button class="notif-btn">🔔<span class="notif-dot" id="notifDot" style="display:none"></span></button>
+        <div class="status-dot"><div class="dot"></div><span>LIVE</span></div>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const DIV_BL = 'distribution';
+const NAV = [
+  {key:'dashboard', ar:'لوحة المتابعة',         en:'Dashboard',           icon:'◧'},
+  {key:'daily',     ar:'يومي',                   en:'My Day',              icon:'☀️'},
+  {group:'التقييمات', groupEn:'ASSESSMENTS'},
+  {key:'assessments',ar:'التقييمات',             en:'Assessments',         icon:'▤'},
+  {key:'evidence',  ar:'رفع الأدلة',             en:'Evidence Upload',     icon:'📎'},
+  {group:'نقاط التحسين', groupEn:'AFIs'},
+  {key:'afis',      ar:'نقاط التحسين (AFIs)',    en:'AFIs',                icon:'▲'},
+  {group:'الأداء', groupEn:'PERFORMANCE'},
+  {key:'kpis',      ar:'مؤشرات الأداء',          en:'KPIs',                icon:'📈'},
+  {key:'alerts',    ar:'التنبيهات الفنية',        en:'Technical Alerts',    icon:'⚠️'},
+  {key:'initiatives',ar:'المبادرات',             en:'Initiatives',         icon:'✦'},
+  {key:'risks',     ar:'سجل المخاطر',            en:'Risk Register',       icon:'⛔'},
+  {group:'الفريق', groupEn:'TEAM'},
+  {key:'tasks',     ar:'مهام الفريق',            en:'Team Tasks',          icon:'✓'},
+  {key:'tickets',   ar:'التذاكر',                en:'Tickets',             icon:'🎫'},
+  {key:'weekly',    ar:'التحديث الأسبوعي',       en:'Weekly Update',       icon:'📊'},
+  {key:'evaluation',ar:'تقييم الموظفين',         en:'Evaluation',          icon:'⭐'},
+];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const found=NAV.find(i=>i.key===k);
+  document.getElementById('pageTitle').textContent=found?(App.lang==='ar'?found.ar:found.en):k;
+  buildSidebar(NAV,k);
+  const fn=PAGES[k];
+  const pc=document.getElementById('pageContent');
+  pc.innerHTML=`<div class="page-fade" id="pg"></div>`;
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML=`<p style="padding:40px;color:var(--text-2)">قيد البناء…</p>`;
+}
+
+reg('dashboard',async el=>{
+  el.innerHTML=`
+    <div class="hero-div"><h1>🏘️ دائرة التوزيع — التميز التشغيلي</h1><div class="sub">إدارة شبكة التوزيع · الموثوقية · خدمة العملاء · SAIDI</div></div>
+    <div class="grid g4 mb-3" id="stats4"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
+    <div class="grid g2 mb-3">
+      <div class="panel"><div class="panel-head"><h3>▲ نقاط التحسين المفتوحة</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div><div class="panel-body" id="afiD"><div class="skeleton sk-row"></div></div></div>
+      <div class="panel"><div class="panel-head"><h3>⚠ التنبيهات الفنية</h3><button class="btn sm" onclick="go('alerts')">عرض الكل</button></div><div class="panel-body" id="alertD"><div class="skeleton sk-row"></div></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="panel"><div class="panel-head"><h3>▤ التقييمات النشطة</h3><button class="btn sm" onclick="go('assessments')">عرض الكل</button></div><div class="panel-body" id="assmD"><div class="skeleton sk-row"></div></div></div>
+      <div class="panel"><div class="panel-head"><h3>✦ المبادرات</h3><button class="btn sm" onclick="go('initiatives')">عرض الكل</button></div><div class="panel-body" id="initD"><div class="skeleton sk-row"></div></div></div>
+    </div>`;
+  try{
+    const [totalAfis,overdueAfis,openAlerts,activeAssmt,openTasks]=await Promise.all([
+      dbCount('afis',{eq:{business_line:DIV_BL},neq:{status:'closed'}}),
+      dbCount('afis',{eq:{business_line:DIV_BL,status:'overdue'}}),
+      dbCount('technical_alerts',{eq:{source_division:DIV_BL},neq:{status:'resolved'}}),
+      dbCount('assessments',{eq:{business_line:DIV_BL},neq:{stage:'closed'}}),
+      dbCount('tasks',{eq:{division:DIV_BL},neq:{status:'closed'}}),
+    ]);
+    document.getElementById('stats4').innerHTML=[
+      {l:'AFIs مفتوحة',v:totalAfis,t:totalAfis>5?'danger':'blue'},
+      {l:'AFIs متأخرة',v:overdueAfis,t:overdueAfis?'danger':'success'},
+      {l:'تنبيهات فنية',v:openAlerts,t:openAlerts?'warning':'success'},
+      {l:'مهام الفريق',v:openTasks,t:'blue'},
+    ].map(s=>`<div class="stat-card"><div class="sc-label">${s.l}</div><div class="sc-value ${s.t}">${s.v}</div></div>`).join('');
+
+    const {data:afis}=await dbList('afis',{eq:{business_line:DIV_BL},neq:{status:'closed'},limit:5});
+    document.getElementById('afiD').innerHTML=afis.length?afis.map(a=>`<div class="alert-item"><div class="alert-dot" style="background:${a.status==='overdue'?'var(--danger)':'var(--blue)'}"></div>
+      <div class="alert-body"><div class="alert-title">${esc(a.title)}</div><div class="alert-meta">${a.afi_number||''} · ${priBadge(a.priority)}</div></div></div>`).join(''):emptyState('لا AFIs');
+
+    const {data:alerts}=await dbList('technical_alerts',{eq:{source_division:DIV_BL},neq:{status:'resolved'},limit:5});
+    document.getElementById('alertD').innerHTML=alerts.length?alerts.map(a=>`<div class="alert-item"><div class="alert-dot" style="background:${a.severity==='critical'?'var(--danger)':a.severity==='high'?'var(--warning)':'var(--blue)'}"></div>
+      <div class="alert-body"><div class="alert-title">${esc(a.title)}</div><div class="alert-meta">${a.alert_number||''} · ${a.severity}</div></div></div>`).join(''):emptyState('لا تنبيهات');
+
+    const {data:assmts}=await dbList('assessments',{eq:{business_line:DIV_BL},neq:{stage:'closed'},limit:4});
+    document.getElementById('assmD').innerHTML=assmts.length?`<div class="tbl-wrap"><table><thead><tr><th>التقييم</th><th>المرحلة</th><th>الإنجاز</th></tr></thead><tbody>${assmts.map(a=>`<tr><td style="font-weight:600">${esc(a.title)}</td><td>${stBadge(a.stage)}</td><td>${progBar(a.progress||0)}</td></tr>`).join('')}</tbody></table></div>`:emptyState('لا تقييمات');
+
+    const {data:inits}=await dbList('initiatives',{eq:{business_line:DIV_BL},limit:4});
+    document.getElementById('initD').innerHTML=inits.length?`<div class="tbl-wrap"><table><thead><tr><th>المبادرة</th><th>الحالة</th><th>الإنجاز</th></tr></thead><tbody>${inits.map(i=>`<tr><td style="font-weight:600">${esc(i.title)}</td><td>${stBadge(i.status)}</td><td>${progBar(i.progress||0)}</td></tr>`).join('')}</tbody></table></div>`:emptyState('لا مبادرات');
+  }catch(e){toast(e.message,'error');}
+});
+
+reg('daily',el=>{el.innerHTML=`<div class="hero-div"><h1>☀️ يومي</h1></div><p class="text-muted" style="padding:20px">راجع المهام والتنبيهات اليومية.</p>`;} );
+['assessments','afis','kpis','alerts','initiatives','risks','tasks','tickets','weekly','evidence','evaluation'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div class="page-header"><div><h1>${NAV.find(n=>n.key===k)?.ar||k}</h1></div>
+    <div class="header-actions"><a href="task-center.html" class="btn secondary sm">مركز المهام</a><a href="ticket-center.html" class="btn secondary sm">مركز التذاكر</a></div></div>
+    <p class="text-muted" style="padding:20px">يعمل بالكامل عند توصيل Supabase.</p>`;
+}));
+
+(async()=>{
+  const p=await initPage({role:['distribution_manager','admin','director','governance_manager']});
+  if(!p)return;
+  document.getElementById('logoSvg').innerHTML=SE_LOGO_SVG;
+  buildSidebar(NAV,'dashboard');go('dashboard');
+})();
+</script></body></html>

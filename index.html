@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SE · مركز قيادة التميز التشغيلي</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+body { overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
+#bg-canvas { position: fixed; inset: 0; z-index: 0; }
+.login-shell { position: relative; z-index: 1; display: flex; width: 100%; max-width: 1100px; min-height: 580px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0,0,0,.7); }
+/* LEFT — Digital Twin Visualization */
+.twin-panel {
+  flex: 1;
+  background: linear-gradient(135deg, #030B18 0%, #071224 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow: hidden;
+}
+.twin-panel::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(37,99,235,.08) 0%,transparent 70%); }
+.twin-canvas { position: absolute; inset: 0; z-index: 0; }
+.twin-content { position: relative; z-index: 1; text-align: center; }
+.twin-logo { margin-bottom: 20px; }
+.twin-title { font-family: var(--font-hud); font-size: 13px; letter-spacing: .18em; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; }
+.twin-name { font-family: var(--font-ar); font-size: 22px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
+.twin-name-en { font-family: var(--font-hud); font-size: 13px; color: var(--text-2); }
+/* Division orbit nodes */
+.orbit-wrap { position: relative; width: 260px; height: 260px; margin: 24px auto; }
+.orbit-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1E3A6E, #0C1E38);
+  border: 2px solid rgba(37,99,235,.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 30px rgba(37,99,235,.3);
+  z-index: 2;
+}
+.orbit-ring {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(37,99,235,.2);
+  animation: orbit-spin 20s linear infinite;
+}
+.orbit-ring-1 { width: 150px; height: 150px; animation-duration: 18s; }
+.orbit-ring-2 { width: 230px; height: 230px; animation-duration: 28s; animation-direction: reverse; }
+@keyframes orbit-spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
+.orbit-node {
+  position: absolute;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: .2s;
+  box-shadow: 0 0 12px currentColor;
+  animation: node-pulse 3s ease-in-out infinite;
+}
+.orbit-node:hover { transform: scale(1.15); }
+@keyframes node-pulse { 0%,100%{box-shadow:0 0 8px currentColor} 50%{box-shadow:0 0 20px currentColor} }
+/* RIGHT — Login form */
+.login-panel {
+  width: 400px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 36px;
+}
+.login-panel h2 { font-family: var(--font-hud); font-size: 20px; margin-bottom: 5px; }
+.login-panel .login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 28px; }
+.err-box {
+  background: var(--status-red-bg);
+  border: 1px solid var(--status-red-bd);
+  border-radius: var(--r-s);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--danger);
+  margin-bottom: 14px;
+  display: none;
+}
+.btn-sign-in {
+  width: 100%; padding: 13px;
+  border-radius: var(--r-s);
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  color: #fff; font-size: 15px; font-weight: 600;
+  border: none; cursor: pointer; transition: .18s;
+  font-family: var(--font-ar);
+  position: relative; overflow: hidden;
+  margin-top: 6px;
+}
+.btn-sign-in::after { content:''; position:absolute; inset:0; background:#fff; opacity:0; transition:.2s; }
+.btn-sign-in:hover::after { opacity:.07; }
+.btn-sign-in:disabled { opacity: .6; cursor: not-allowed; }
+.login-footer { margin-top: 28px; text-align: center; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+.lang-row { display: flex; gap: 6px; margin-bottom: 18px; }
+.lang-pill { padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg-3); color: var(--text-2); font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: .14s; }
+.lang-pill.active { border-color: var(--blue); color: var(--blue); background: rgba(37,99,235,.1); }
+@media(max-width:768px){.twin-panel{display:none}.login-panel{width:100%;padding:32px 24px}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="login-shell">
+  <!-- Digital Twin Visualization -->
+  <div class="twin-panel">
+    <canvas class="twin-canvas" id="twin-canvas"></canvas>
+    <div class="twin-content">
+      <div class="twin-logo" id="twin-logo-svg"></div>
+      <div class="twin-title">SAUDI ENERGY</div>
+      <div class="twin-name">مركز قيادة التميز التشغيلي</div>
+      <div class="twin-name-en">OE Digital Twin Command Center</div>
+      <!-- Division orbit -->
+      <div class="orbit-wrap" id="orbitWrap">
+        <div class="orbit-ring orbit-ring-1"></div>
+        <div class="orbit-ring orbit-ring-2"></div>
+        <div class="orbit-center">🏛️</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)">
+        إدارة التميز التشغيلي · Chief Engineer BU
+      </div>
+    </div>
+  </div>
+  <!-- Login Form -->
+  <div class="login-panel">
+    <div class="lang-row">
+      <button class="lang-pill active" id="lpAr" onclick="loginSetLang('ar')">العربية</button>
+      <button class="lang-pill" id="lpEn" onclick="loginSetLang('en')">English</button>
+    </div>
+    <h2 id="lh">تسجيل الدخول</h2>
+    <p class="login-sub" id="ls">أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى المنصة</p>
+    <div class="err-box" id="errBox" id="errBox"></div>
+    <div class="field"><label id="lEmail">البريد الإلكتروني</label>
+      <input type="email" id="email" autocomplete="email" placeholder="name@se.com.sa">
+    </div>
+    <div class="field"><label id="lPass">كلمة المرور</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn-sign-in" id="signInBtn" onclick="doSignIn()">
+      <span id="signInLbl">دخول</span>
+    </button>
+    <div class="login-footer" id="loginFooter">
+      SE · OE Command Center v2.0<br>
+      <span style="color:var(--text-muted)">إدارة التميز التشغيلي — قطاع الرئيس التنفيذي للشؤون الفنية</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+// ── Language ─────────────────────────────────────────────────────
+let LNG = localStorage.getItem('se_lang') || 'ar';
+const LT = {
+  ar: { lh:'تسجيل الدخول', ls:'أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى المنصة', lEmail:'البريد الإلكتروني', lPass:'كلمة المرور', signIn:'دخول', errBad:'البريد أو كلمة المرور غير صحيحة', errFill:'يرجى تعبئة جميع الحقول' },
+  en: { lh:'Sign In', ls:'Enter your email and password to access the platform', lEmail:'Email', lPass:'Password', signIn:'Sign In', errBad:'Invalid email or password', errFill:'Please fill all fields' },
+};
+function loginSetLang(l) {
+  LNG = l;
+  localStorage.setItem('se_lang', l);
+  const r = document.getElementById('root');
+  r.lang = l; r.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.getElementById('lpAr').classList.toggle('active', l==='ar');
+  document.getElementById('lpEn').classList.toggle('active', l==='en');
+  ['lh','ls','lEmail','lPass'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=LT[l][id]; });
+  document.getElementById('signInLbl').textContent = LT[l].signIn;
+}
+loginSetLang(LNG);
+
+// ── Check existing session ────────────────────────────────────────
+(async()=>{
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
+    if (p) window.location.href = ROLE_PORTALS[p.role] || 'employee.html';
+  }
+})();
+
+// ── Sign In ───────────────────────────────────────────────────────
+async function doSignIn() {
+  const email = document.getElementById('email').value.trim();
+  const pass  = document.getElementById('password').value;
+  const btn   = document.getElementById('signInBtn');
+  const err   = document.getElementById('errBox');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = LT[LNG].errFill; err.style.display='block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<span class="btn spin"></span>';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false;
+  btn.innerHTML = `<span id="signInLbl">${LT[LNG].signIn}</span>`;
+  if (error) { err.textContent = LT[LNG].errBad; err.style.display='block'; return; }
+  const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+  window.location.href = ROLE_PORTALS[profile?.role] || 'employee.html';
+}
+document.addEventListener('keydown', e => { if (e.key==='Enter') doSignIn(); });
+
+// ── Background canvas ─────────────────────────────────────────────
+(function(){
+  const c = document.getElementById('bg-canvas');
+  const cx = c.getContext('2d');
+  let W, H, pts=[];
+  function resize(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; init(); }
+  function init(){
+    pts=[];
+    const n=Math.floor(W*H/20000);
+    for(let i=0;i<n;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.5+.8});
+  }
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d>120)continue;
+      cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
+      cx.strokeStyle=`rgba(37,99,235,${(1-d/120)*.1})`;cx.lineWidth=.5;cx.stroke();
+    }
+    pts.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle='rgba(37,99,235,.3)';cx.fill();});
+    requestAnimationFrame(draw);
+  }
+  resize(); window.addEventListener('resize',resize); draw();
+})();
+
+// ── Twin canvas ───────────────────────────────────────────────────
+document.getElementById('twin-logo-svg').innerHTML = SE_LOGO_SVG.replace('44px','56px').replace('32px','40px');
+(function(){
+  const c=document.getElementById('twin-canvas'),cx=c.getContext('2d');
+  let W,H;
+  function resize(){
+    const r=c.parentElement.getBoundingClientRect();
+    W=c.width=r.width; H=c.height=r.height;
+  }
+  resize(); window.addEventListener('resize',resize);
+  let t=0;
+  function draw(){
+    t+=.008; cx.clearRect(0,0,W,H);
+    // Energy particles
+    for(let i=0;i<6;i++){
+      const ang=(t+i*Math.PI/3)*1.2, r=90;
+      const x=W/2+Math.cos(ang)*r, y=H/2+Math.sin(ang)*r;
+      cx.beginPath();cx.arc(x,y,2,0,Math.PI*2);
+      cx.fillStyle=`rgba(37,99,235,${.4+Math.sin(t+i)*.3})`;cx.fill();
+      cx.beginPath();cx.moveTo(W/2,H/2);cx.lineTo(x,y);
+      cx.strokeStyle=`rgba(37,99,235,${.06+Math.sin(t+i)*.04})`;cx.lineWidth=1;cx.stroke();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── Orbit nodes ───────────────────────────────────────────────────
+(function(){
+  const wrap = document.getElementById('orbitWrap');
+  const divs = [
+    { icon:'⚖️', color:'#7C3AED', label:'Governance' },
+    { icon:'⚡', color:'#F59E0B', label:'Generation' },
+    { icon:'🔌', color:'#0EA5E9', label:'Grid'       },
+    { icon:'🏘️', color:'#10B981', label:'Dist'       },
+    { icon:'⚠️', color:'#EF4444', label:'Alerts'     },
+  ];
+  divs.forEach((d,i)=>{
+    const ang = (i/divs.length)*Math.PI*2 - Math.PI/2;
+    const r   = 112;
+    const x   = 130 + Math.cos(ang)*r - 22;
+    const y   = 130 + Math.sin(ang)*r - 22;
+    const el  = document.createElement('div');
+    el.className = 'orbit-node';
+    el.style.cssText = `left:${x}px;top:${y}px;color:${d.color};border-color:${d.color}44;background:${d.color}18;animation-delay:${i*.4}s`;
+    el.innerHTML = d.icon;
+    el.title = d.label;
+    wrap.appendChild(el);
+  });
+})();
+</script>
+</body>
+</html>

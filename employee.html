@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · بوابة الموظف</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="se-logo-svg" id="logoSvg"></div>
+      <div class="brand-text"><div class="t1">se</div><div class="t2">بوابة الموظف</div></div>
+    </div>
+    <div class="user-badge" id="userBadge"></div>
+    <nav class="nav-section" id="navSection"></nav>
+    <div class="sidebar-foot">
+      <button class="btn-logout" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lang" onclick="toggleLang()">EN/ع</button>
+    </div>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">يومي</div>
+      <div class="topbar-right">
+        <div class="clock-widget"><div class="clock-time" id="clockTime"></div><div class="clock-date" id="clockDate"></div><div class="clock-greeting" id="clockGreet"></div></div>
+        <button class="notif-btn">🔔<span class="notif-dot" id="notifDot" style="display:none"></span></button>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV=[
+  {key:'myday',    ar:'يومي',                  en:'My Day',                icon:'☀️'},
+  {key:'mytasks',  ar:'مهامي',                 en:'My Tasks',              icon:'✓'},
+  {key:'mytickets',ar:'تذاكري',                en:'My Tickets',            icon:'🎫'},
+  {key:'myafis',   ar:'AFIs المكلّف بها',       en:'My AFIs',               icon:'▲'},
+  {key:'evidence', ar:'رفع الأدلة',            en:'Upload Evidence',       icon:'📎'},
+  {key:'meetact',  ar:'إجراءات الاجتماعات',    en:'Meeting Actions',       icon:'📅'},
+  {key:'notifs',   ar:'إشعاراتي',              en:'My Notifications',      icon:'🔔'},
+  {key:'update',   ar:'تحديث نهاية اليوم',    en:'Daily Update',          icon:'📝'},
+  {key:'signals',  ar:'مؤشرات الأداء',         en:'Performance Signals',   icon:'⭐'},
+];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const found=NAV.find(i=>i.key===k);
+  document.getElementById('pageTitle').textContent=found?(App.lang==='ar'?found.ar:found.en):k;
+  buildSidebar(NAV,k);
+  const fn=PAGES[k];const pc=document.getElementById('pageContent');
+  pc.innerHTML=`<div class="page-fade" id="pg"></div>`;
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML=`<p style="padding:40px;color:var(--text-2)">قيد البناء…</p>`;
+}
+
+reg('myday',async el=>{
+  const p=App.profile;
+  el.innerHTML=`
+    <div class="card mb-3" style="background:linear-gradient(135deg,var(--bg-3),var(--bg-2));border:1px solid var(--border)">
+      <h1 style="font-family:var(--font-hud);font-size:20px;font-weight:700;margin-bottom:4px">
+        ${new Date().getHours()<12?'🌅 صباح الخير':'🌆 مساء الخير'}، ${p?.full_name||'موظف'}
+      </h1>
+      <p style="font-size:13px;color:var(--text-2)">${new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+    </div>
+    <div class="grid g4 mb-3" id="empStats"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
+    <div class="grid g2 mb-3">
+      <div class="panel">
+        <div class="panel-head"><h3>🔴 المتأخرة — يحتاج إجراء فوري</h3></div>
+        <div class="panel-body" id="overdueList"><div class="skeleton sk-row"></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>📋 أولويات اليوم</h3></div>
+        <div class="panel-body" id="todayPri"><div class="skeleton sk-row"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>📝 تحديث نهاية اليوم</h3></div>
+      <div class="panel-body">
+        <div class="field"><label>ماذا أنجزت اليوم؟</label><textarea id="emp_done" placeholder="أدخل إنجازات اليوم..." rows="3"></textarea></div>
+        <div class="field"><label>هل هناك عوائق؟</label><textarea id="emp_block" placeholder="أي عقبات..." rows="2"></textarea></div>
+        <button class="btn primary" onclick="saveEmpUpdate()">📤 حفظ التحديث</button>
+      </div>
+    </div>`;
+  try{
+    const uid=p?.id;
+    const [openT,overdueT,openTkt,openAfi]=await Promise.all([
+      dbCount('tasks',{eq:{assigned_to:uid},in:{status:['open','in_progress']}}),
+      dbCount('tasks',{eq:{assigned_to:uid,status:'overdue'}}),
+      dbCount('tickets',{eq:{from_user:uid},neq:{status:'closed'}}),
+      dbCount('afis',{eq:{owner_id:uid},neq:{status:'closed'}}),
+    ]);
+    document.getElementById('empStats').innerHTML=[
+      {l:'مهام مفتوحة',v:openT,t:'blue'},{l:'مهام متأخرة',v:overdueT,t:overdueT?'danger':'success'},
+      {l:'تذاكر',v:openTkt,t:'blue'},{l:'AFIs مكلّف بها',v:openAfi,t:'blue'},
+    ].map(s=>`<div class="stat-card"><div class="sc-label">${s.l}</div><div class="sc-value ${s.t}">${s.v}</div></div>`).join('');
+
+    const {data:overdueTasks}=await dbList('tasks',{eq:{assigned_to:uid,status:'overdue'},limit:5});
+    document.getElementById('overdueList').innerHTML=overdueTasks.length
+      ?overdueTasks.map(t=>`<div class="alert-item"><div class="alert-dot" style="background:var(--danger)"></div>
+        <div class="alert-body"><div class="alert-title">${esc(t.title)}</div>
+        <div class="alert-meta">${t.task_number||''} · ${fmtDate(t.due_date)} · ${priBadge(t.priority)}</div></div>
+        <button class="btn sm primary" onclick="go('mytasks')">تحديث</button></div>`).join('')
+      :`<div style="padding:14px;text-align:center;color:var(--success)">✓ لا مهام متأخرة — عمل رائع!</div>`;
+
+    const {data:priorityTasks}=await dbList('tasks',{eq:{assigned_to:uid},in:{priority:['high','critical']},neq:{status:'closed'},limit:5});
+    document.getElementById('todayPri').innerHTML=priorityTasks.length
+      ?priorityTasks.map(t=>`<div class="alert-item"><div class="alert-dot" style="background:${t.priority==='critical'?'var(--danger)':'var(--warning)'}"></div>
+        <div class="alert-body"><div class="alert-title">${esc(t.title)}</div>
+        <div class="alert-meta">${priBadge(t.priority)} · استحقاق: ${fmtDate(t.due_date)}</div></div></div>`).join('')
+      :`<div style="padding:14px;text-align:center;color:var(--text-2)">لا مهام عاجلة اليوم</div>`;
+  }catch(e){toast(e.message,'error');}
+});
+window.saveEmpUpdate=async()=>{
+  const done=document.getElementById('emp_done')?.value;
+  const block=document.getElementById('emp_block')?.value;
+  await logActivity('employee_daily_update',null,null,{done,block});
+  toast('تم حفظ تحديث اليوم ✓','success');
+};
+
+reg('mytasks',async el=>{
+  el.innerHTML=`<div class="page-header"><div><h1>✓ مهامي</h1></div></div>
+    <div class="panel"><div id="myTaskList">${skeletonRows()}</div></div>`;
+  try{
+    const {data}=await dbList('tasks',{eq:{assigned_to:App.profile?.id},neq:{status:'closed'}});
+    if(!data.length){document.getElementById('myTaskList').innerHTML=emptyState('لا مهام مفتوحة');return;}
+    document.getElementById('myTaskList').innerHTML=`<div class="tbl-wrap"><table>
+      <thead><tr><th>الرقم</th><th>المهمة</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${data.map(t=>`<tr>
+        <td class="font-mono text-xs text-blue">${esc(t.task_number||t.id.slice(0,8))}</td>
+        <td style="font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.title)}</td>
+        <td>${priBadge(t.priority)}</td>
+        <td class="${isOverdue(t.due_date,t.status)?'text-danger':''} font-mono text-xs">${fmtDate(t.due_date)}</td>
+        <td>${stBadge(t.status)}</td>
+        <td><button class="btn sm" onclick="openTaskUpdate('${t.id}')">تحديث الحالة</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
+  }catch(e){document.getElementById('myTaskList').innerHTML=`<div style="padding:20px;color:var(--danger)">${e.message}</div>`;}
+});
+
+window.openTaskUpdate=async id=>{
+  const t=await dbGet('tasks',id);
+  openModal(`<div class="modal-head"><h3>تحديث المهمة</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="font-weight:600;margin-bottom:12px">${esc(t.title)}</div>
+      ${t.description?`<p class="text-sm text-muted mb-2">${esc(t.description)}</p>`:''}
+      <div class="field"><label>الحالة الجديدة</label>
+        <select id="tu_st"><option value="in_progress" ${t.status==='in_progress'?'selected':''}>قيد التنفيذ</option>
+          <option value="pending_review" ${t.status==='pending_review'?'selected':''}>جاهزة للمراجعة</option>
+          <option value="open" ${t.status==='open'?'selected':''}>مفتوح</option></select>
+      </div>
+      <div class="field"><label>تعليق</label><textarea id="tu_comment" placeholder="أضف تعليقاً..."></textarea></div>
+      <div class="field"><label>رابط الدليل (اختياري)</label><input id="tu_ev" value="${esc(t.evidence_url||'')}"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="submitTaskUpdate('${id}')">حفظ التحديث</button>
+    </div>`);
+};
+window.submitTaskUpdate=async id=>{
+  const status=mval('tu_st'),comment=mval('tu_comment'),ev=mval('tu_ev');
+  try{
+    await dbUpdate('tasks',id,{status,evidence_url:ev||null,...(status==='in_progress'?{started_at:new Date().toISOString()}:{})});
+    if(comment)await dbInsert('task_comments',{task_id:id,content:comment,type:'update'});
+    toast('تم تحديث الحالة ✓','success');closeModal();go('mytasks');
+  }catch(e){toast(e.message,'error');}
+};
+
+['mytickets','myafis','evidence','meetact','notifs','update','signals'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div class="page-header"><div><h1>${NAV.find(n=>n.key===k)?.ar||k}</h1></div>
+    <div class="header-actions"><a href="ticket-center.html" class="btn secondary sm">مركز التذاكر</a></div></div>
+    <p class="text-muted" style="padding:20px">يعمل بالكامل عند توصيل Supabase.</p>`;
+}));
+
+(async()=>{
+  const p=await initPage({});
+  if(!p)return;
+  document.getElementById('logoSvg').innerHTML=SE_LOGO_SVG;
+  buildSidebar(NAV,'myday');go('myday');
+})();
+</script>
+</body>
+</html>

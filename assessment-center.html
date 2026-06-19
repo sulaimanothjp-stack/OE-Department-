@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · مركز التقييم</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="se-logo-svg" id="logoSvg"></div>
+      <div class="brand-text"><div class="t1">se</div><div class="t2">مركز التقييم</div></div>
+    </div>
+    <div class="user-badge" id="userBadge"></div>
+    <nav class="nav-section" id="navSection"></nav>
+    <div class="sidebar-foot">
+      <button class="btn-logout" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lang" onclick="toggleLang()">EN/ع</button>
+    </div>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">مركز التقييم</div>
+      <div class="topbar-right">
+        <div class="clock-widget"><div class="clock-time" id="clockTime"></div><div class="clock-date" id="clockDate"></div></div>
+        <div class="status-dot"><div class="dot"></div><span>LIVE</span></div>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV=[{key:'calendar',ar:'تقويم التقييمات',en:'Calendar',icon:'📅'},{key:'active',ar:'تقييمات نشطة',en:'Active',icon:'▤'},{key:'assessors',ar:'المقيّمون',en:'Assessors',icon:'👤'},{key:'evidence',ar:'الأدلة',en:'Evidence',icon:'📎'}];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const found=NAV.find(i=>i.key===k);
+  document.getElementById('pageTitle').textContent=found?(App.lang==='ar'?found.ar:found.en):k;
+  buildSidebar(NAV,k);
+  const fn=PAGES[k];const pc=document.getElementById('pageContent');
+  pc.innerHTML=`<div class="page-fade" id="pg"></div>`;
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML=renderCenterModule(k);
+}
+
+function renderCenterModule(k){
+  return `<div class="page-header"><div><h1>${NAV.find(n=>n.key===k)?.ar||k}</h1></div>
+    <div class="header-actions"><button class="btn primary sm" onclick="openAddModal()">+ إضافة</button></div></div>
+    <div class="panel"><div class="panel-body"><div id="centerList">${skeletonRows()}</div></div></div>`;
+}
+async function openAddModal(){toast('ستُفتح نافذة الإضافة عند توصيل Supabase.','info');}
+
+reg(NAV[0]?.key,async el=>{
+  el.innerHTML=`
+    <div class="card mb-3" style="background:linear-gradient(135deg,var(--bg-3),var(--bg-2))">
+      <h1 style="font-family:var(--font-hud);font-size:22px;font-weight:700;margin-bottom:4px">▤ مركز التقييم</h1>
+      <p style="font-size:13px;color:var(--text-2)">إدارة التقييمات ودورة حياتها والمقيّمين والأدلة</p>
+    </div>
+    <div class="grid g3 mb-3">
+      ${NAV.map(item=>item.group?'':`<div class="card pointer" onclick="go('${item.key}')">
+        <div style="font-size:26px;margin-bottom:8px">${item.icon}</div>
+        <div style="font-weight:600;font-size:14px">${App.lang==='ar'?item.ar:item.en}</div>
+      </div>`).join('')}
+    </div>`;
+});
+
+(async()=>{
+  const p=await initPage({role:null});
+  if(!p)return;
+  document.getElementById('logoSvg').innerHTML=SE_LOGO_SVG;
+  const firstKey=NAV[0]?.key;
+  buildSidebar(NAV,firstKey);go(firstKey);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · بوابة مدير الإدارة</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--div-color:#D4AF37;--div-glow:rgba(212,175,55,.3)}
+.sidebar{background:linear-gradient(180deg,#0B0A00 0%,#03090A 100%)}
+.hero-dir{background:linear-gradient(135deg,#0B0A00,#1A1400);border:1px solid rgba(212,175,55,.2);border-radius:var(--r);padding:22px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero-dir::before{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(212,175,55,.15),transparent 70%)}
+.hero-dir h1{font-family:var(--font-hud);font-size:22px;font-weight:700;color:var(--text-1);margin-bottom:4px}
+.hero-dir .sub{font-size:13px;color:#FDE68A}
+.div-hex{width:90px;height:90px;background:linear-gradient(135deg,var(--bg-3),var(--bg-2));border:1px solid var(--border);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:.2s;text-align:center}
+.div-hex:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.div-hex .icon{font-size:22px}
+.div-hex .name{font-size:10px;font-weight:600;color:var(--text-2)}
+.div-hex .score{font-family:var(--font-hud);font-size:16px;font-weight:700}
+.war-room{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="se-logo-svg" id="logoSvg"></div>
+      <div class="brand-text"><div class="t1">se</div><div class="t2">مدير الإدارة</div></div>
+    </div>
+    <div class="user-badge" id="userBadge"></div>
+    <nav class="nav-section" id="navSection"></nav>
+    <div class="sidebar-foot">
+      <button class="btn-logout" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lang" onclick="toggleLang()">EN/ع</button>
+    </div>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">غرفة العمليات</div>
+      <div class="topbar-right">
+        <div class="clock-widget"><div class="clock-time" id="clockTime"></div><div class="clock-date" id="clockDate"></div><div class="clock-greeting" id="clockGreet"></div></div>
+        <button class="notif-btn" onclick="openNotifs()">🔔<span class="notif-dot" id="notifDot" style="display:none"></span></button>
+        <div class="status-dot"><div class="dot"></div><span>LIVE</span></div>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV=[
+  {key:'warroom',   ar:'غرفة العمليات',        en:'War Room',           icon:'🎯'},
+  {key:'health',    ar:'صحة المنظومة OE',       en:'OE Health Score',    icon:'💡'},
+  {key:'heatmap',   ar:'خريطة الدوائر',         en:'Division Heat Map',  icon:'🗺️'},
+  {key:'attention', ar:'يحتاج انتباهي',         en:'Needs Attention',    icon:'⚠️'},
+  {group:'المتابعة', groupEn:'FOLLOW-UP'},
+  {key:'assessments',ar:'التقييمات',            en:'Assessments',        icon:'▤'},
+  {key:'afis',      ar:'نقاط التحسين',          en:'AFIs',               icon:'▲'},
+  {key:'alerts',    ar:'التنبيهات الحرجة',      en:'Critical Alerts',    icon:'🚨'},
+  {key:'kpis',      ar:'مؤشرات الأداء',         en:'KPIs',               icon:'📈'},
+  {group:'القرارات', groupEn:'DECISIONS'},
+  {key:'approvals', ar:'موافقات معلقة',          en:'Pending Approvals',  icon:'✅'},
+  {key:'decisions', ar:'متابعة القرارات',        en:'Decision Tracker',   icon:'📋'},
+  {key:'meetings',  ar:'الاجتماعات',            en:'Meetings',           icon:'📅'},
+];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+let current='warroom';
+function go(k){
+  current=k;
+  const found=NAV.find(i=>i.key===k);
+  document.getElementById('pageTitle').textContent=found?(App.lang==='ar'?found.ar:found.en):k;
+  buildSidebar(NAV,k);
+  const fn=PAGES[k];
+  const pc=document.getElementById('pageContent');
+  pc.innerHTML=`<div class="page-fade" id="pg"></div>`;
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML=`<p style="padding:40px;color:var(--text-2)">قيد البناء…</p>`;
+}
+
+reg('warroom',async el=>{
+  el.innerHTML=`
+    <div class="hero-dir">
+      <h1>🎯 غرفة العمليات التنفيذية</h1>
+      <div class="sub">نظرة استراتيجية شاملة على منظومة التميز التشغيلي</div>
+    </div>
+    <div class="grid g4 mb-3" id="execStats"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
+    <div class="grid g3 mb-3" id="divNodes"><div class="skeleton sk-row" style="height:100px"></div><div class="skeleton sk-row" style="height:100px"></div><div class="skeleton sk-row" style="height:100px"></div><div class="skeleton sk-row" style="height:100px"></div><div class="skeleton sk-row" style="height:100px"></div></div>
+    <div class="grid g2 mb-3">
+      <div class="panel">
+        <div class="panel-head"><h3>⚠ ما يحتاج قراراتي اليوم</h3></div>
+        <div class="panel-body" id="dirAttention"><div class="skeleton sk-row"></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>🚨 التنبيهات الحرجة</h3></div>
+        <div class="panel-body" id="critAlerts"><div class="skeleton sk-row"></div></div>
+      </div>
+    </div>`;
+
+  try{
+    const [totalTasks,overdueTasks,openAfis,overdueAfis,critAlertsN,pendingApprovals]= await Promise.all([
+      dbCount('tasks'),dbCount('tasks',{eq:{status:'overdue'}}),
+      dbCount('afis',{neq:{status:'closed'}}),dbCount('afis',{eq:{status:'overdue'}}),
+      dbCount('technical_alerts',{eq:{severity:'critical'},neq:{status:'resolved'}}),
+      dbCount('assessments',{eq:{approval_status:'pending'}}),
+    ]);
+    document.getElementById('execStats').innerHTML=[
+      {l:'المهام المتأخرة',v:overdueTasks,t:overdueTasks?'danger':'success'},
+      {l:'AFIs مفتوحة',v:openAfis,t:openAfis>10?'danger':'blue'},
+      {l:'تنبيهات حرجة',v:critAlertsN,t:critAlertsN?'danger':'success'},
+      {l:'اعتمادات معلقة',v:pendingApprovals,t:pendingApprovals?'warning':'success'},
+    ].map(s=>`<div class="stat-card"><div class="sc-label">${s.l}</div><div class="sc-value ${s.t}">${s.v}</div></div>`).join('');
+
+    // Division nodes
+    const health=await loadDivisionHealth();
+    document.getElementById('divNodes').innerHTML=health.map(d=>{
+      const score=d.overdue_afis>2?60:d.open_afis>5?80:d.open_alerts>2?75:95;
+      const sc=score>=85?'success':score>=65?'warning':'danger';
+      return `<div class="div-hex" onclick="window.location.href='${d.code==='national_grid'?'national-grid':d.code}.html'">
+        <div class="icon">${DIVISIONS[d.code]?.icon||'◧'}</div>
+        <div class="name" style="color:${DIVISIONS[d.code]?.color||'#2563EB'}">${App.lang==='ar'?d.name_ar:d.name_en}</div>
+        <div class="score text-${sc}">${score}%</div>
+        ${progBar(score)}
+      </div>`;
+    }).join('');
+
+    // Attention
+    const {data:overdueAfiList}=await dbList('afis',{eq:{status:'overdue'},limit:5});
+    document.getElementById('dirAttention').innerHTML=overdueAfiList.length
+      ?overdueAfiList.map(a=>`<div class="alert-item"><div class="alert-dot" style="background:var(--danger)"></div>
+        <div class="alert-body"><div class="alert-title">${esc(a.title)}</div>
+        <div class="alert-meta">${a.afi_number||''} · ${priBadge(a.priority)}</div></div>
+        </div>`).join('')
+      :`<div style="padding:16px;text-align:center;color:var(--text-2)">✓ لا عناصر عاجلة</div>`;
+
+    // Critical alerts
+    const {data:alerts}=await dbList('technical_alerts',{eq:{severity:'critical'},neq:{status:'resolved'},limit:5});
+    document.getElementById('critAlerts').innerHTML=alerts.length
+      ?alerts.map(a=>`<div class="alert-item"><div class="alert-dot" style="background:var(--danger);animation:blink 1s infinite"></div>
+        <div class="alert-body"><div class="alert-title">${esc(a.title)}</div>
+        <div class="alert-meta">${a.alert_number||''} · ${esc(a.source_division||'')}</div></div>
+        </div>`).join('')
+      :`<div style="padding:16px;text-align:center;color:var(--text-2)">✓ لا تنبيهات حرجة</div>`;
+  }catch(e){toast(e.message,'error');}
+});
+
+reg('heatmap',async el=>{
+  el.innerHTML=`<div class="page-header"><div><h1>🗺️ خريطة حرارية — حالة الدوائر</h1></div></div>
+    <div class="grid g3 mb-3" id="hmGrid">${skeletonRows()}</div>`;
+  const health=await loadDivisionHealth();
+  document.getElementById('hmGrid').innerHTML=health.map(d=>{
+    const sc=d.overdue_afis>2?'danger':d.open_afis>5||d.open_alerts>2?'warning':'success';
+    const clr=sc==='danger'?'var(--danger)':sc==='warning'?'var(--warning)':'var(--success)';
+    return `<div class="card" style="border-color:${clr}44">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <span style="font-size:24px">${DIVISIONS[d.code]?.icon||'◧'}</span>
+        <div><div style="font-weight:600">${App.lang==='ar'?d.name_ar:d.name_en}</div>
+          <span class="badge" style="background:${clr}18;border:1px solid ${clr}44;color:${clr}">${sc==='danger'?'⚠ يحتاج تدخل':sc==='warning'?'⚡ مراقبة':'✓ جيد'}</span>
+        </div>
+      </div>
+      <div class="grid g2" style="gap:8px">
+        ${[{l:'AFIs مفتوحة',v:d.open_afis},{l:'AFIs متأخرة',v:d.overdue_afis},{l:'تنبيهات',v:d.open_alerts},{l:'تقييمات',v:d.active_assessments}].map(i=>
+          `<div style="padding:8px;background:var(--bg-1);border-radius:var(--r-s);text-align:center">
+            <div class="font-hud" style="font-size:18px">${i.v}</div>
+            <div class="text-xs text-muted">${i.l}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+});
+
+['health','attention','assessments','afis','alerts','kpis','approvals','decisions','meetings'].forEach(k=>{
+  reg(k,el=>{el.innerHTML=`<div class="page-header"><div><h1>${NAV.find(n=>n.key===k)?.ar||k}</h1></div></div>
+    <p class="text-muted" style="padding:20px">يتصل بالنظام الكامل عند توصيل Supabase.</p>`;});
+});
+
+window.openNotifs=async()=>{openModal(`<div class="modal-head"><h3>🔔 الإشعارات</h3><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body">${emptyState('لا إشعارات')}</div>`);};
+
+(async()=>{
+  const p=await initPage({role:['admin','director']});
+  if(!p)return;
+  document.getElementById('logoSvg').innerHTML=SE_LOGO_SVG;
+  buildSidebar(NAV,'warroom');
+  go('warroom');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · دائرة التنبيهات الفنية</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--div-color:#EF4444}
+.sidebar{background:linear-gradient(180deg,#120404 0%,#060101 100%)}
+.nav-item.active{color:var(--div-color);background:rgba(239,68,68,.12)}
+.nav-item.active::after{background:var(--div-color)}
+.radar-wrap{position:relative;width:200px;height:200px;margin:0 auto}
+.radar-canvas{position:absolute;inset:0}
+.hero-alr{background:linear-gradient(135deg,#120404,#1A0000);border:1px solid rgba(239,68,68,.25);border-radius:var(--r);padding:22px;margin-bottom:20px;overflow:hidden;position:relative}
+.hero-alr::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(239,68,68,.15),transparent 70%)}
+.alert-severity-bar{height:8px;border-radius:99px;overflow:hidden;display:flex}
+.alert-severity-bar .seg{flex:var(--w);transition:.5s}
+.sev-crit{background:#EF4444}.sev-high{background:#F97316}.sev-med{background:#F59E0B}.sev-low{background:#10B981}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><div class="se-logo-svg" id="logoSvg"></div>
+      <div class="brand-text"><div class="t1">se</div><div class="t2">التنبيهات الفنية</div></div>
+    </div>
+    <div class="user-badge" id="userBadge"></div>
+    <nav class="nav-section" id="navSection"></nav>
+    <div class="sidebar-foot">
+      <button class="btn-logout" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lang" onclick="toggleLang()">EN/ع</button>
+    </div>
+  </aside>
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">الرادار الفني</div>
+      <div class="topbar-right">
+        <div class="clock-widget"><div class="clock-time" id="clockTime"></div><div class="clock-date" id="clockDate"></div><div class="clock-greeting" id="clockGreet"></div></div>
+        <button class="notif-btn">🔔<span class="notif-dot" id="notifDot" style="display:none"></span></button>
+        <div class="status-dot"><div class="dot" style="background:var(--danger);box-shadow:0 0 6px var(--danger)"></div><span style="color:var(--danger)">SCANNING</span></div>
+      </div>
+    </div>
+    <div class="page-content" id="pageContent"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV=[
+  {key:'radar',      ar:'الرادار الفني',           en:'Technical Radar',      icon:'📡'},
+  {key:'daily',      ar:'يومي',                    en:'My Day',               icon:'☀️'},
+  {group:'التنبيهات', groupEn:'ALERTS'},
+  {key:'new_alerts', ar:'تنبيهات جديدة',           en:'New Alerts',           icon:'🆕'},
+  {key:'alerts',     ar:'سجل التنبيهات',           en:'Alert Registry',       icon:'📋'},
+  {key:'classify',   ar:'التصنيف',                  en:'Classification',       icon:'🏷️'},
+  {key:'matrix',     ar:'مصفوفة التأثير',           en:'Impact / Probability', icon:'⚡'},
+  {group:'التحديات', groupEn:'CHALLENGES'},
+  {key:'challenges', ar:'التحديات الكبرى',          en:'Corporate Challenges', icon:'🏔️'},
+  {key:'resolution', ar:'متابعة الحل',             en:'Resolution Tracker',   icon:'🔧'},
+  {key:'technology', ar:'فرص التقنية',             en:'Tech Opportunities',   icon:'🔬'},
+  {group:'التنسيق', groupEn:'COORDINATION'},
+  {key:'escalation', ar:'مركز التصعيد',            en:'Escalation Center',    icon:'📢'},
+  {key:'metrics',    ar:'مقاييس التنبيهات',        en:'Alert Metrics',        icon:'📊'},
+  {key:'weekly',     ar:'التحديث الأسبوعي',        en:'Weekly Update',        icon:'📅'},
+  {key:'evaluation', ar:'تقييم الموظفين',          en:'Evaluation',           icon:'⭐'},
+];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const found=NAV.find(i=>i.key===k);
+  document.getElementById('pageTitle').textContent=found?(App.lang==='ar'?found.ar:found.en):k;
+  buildSidebar(NAV,k);
+  const fn=PAGES[k];
+  const pc=document.getElementById('pageContent');
+  pc.innerHTML=`<div class="page-fade" id="pg"></div>`;
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML=`<p style="padding:40px;color:var(--text-2)">قيد البناء…</p>`;
+}
+
+reg('radar',async el=>{
+  el.innerHTML=`
+    <div class="hero-alr">
+      <h1 style="font-family:var(--font-hud);font-size:22px;font-weight:700">📡 الرادار الفني — رصد شامل</h1>
+      <div class="sub" style="color:#FCA5A5">رصد التنبيهات الفنية عبر قطاعات التوليد والنقل والتوزيع</div>
+    </div>
+    <div class="grid g4 mb-3" id="alertStats"><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div><div class="skeleton sk-row"></div></div>
+    <div class="grid g21 mb-3">
+      <div class="panel">
+        <div class="panel-head"><h3>🚨 تنبيهات حرجة وعالية — تحتاج إجراء فوري</h3><button class="btn sm primary" onclick="openAddAlert()">+ تنبيه جديد</button></div>
+        <div id="critList" class="panel-body"><div class="skeleton sk-row"></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>📊 توزيع حسب الخطورة</h3></div>
+        <div class="panel-body" id="sevBreak"><div class="skeleton sk-row"></div></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h3>📋 آخر التنبيهات</h3><button class="btn sm" onclick="go('alerts')">عرض الكل</button></div>
+      <div id="recentList"><div class="skeleton sk-row"></div></div>
+    </div>`;
+
+  try{
+    const [total,critical,high,overdue,byBl]=await Promise.all([
+      dbCount('technical_alerts',{neq:{status:'resolved'}}),
+      dbCount('technical_alerts',{eq:{severity:'critical'},neq:{status:'resolved'}}),
+      dbCount('technical_alerts',{eq:{severity:'high'},neq:{status:'resolved'}}),
+      dbCount('technical_alerts',{eq:{status:'overdue'}}),
+      Promise.resolve([]),
+    ]);
+    document.getElementById('alertStats').innerHTML=[
+      {l:'تنبيهات مفتوحة',v:total,t:'blue'},
+      {l:'حرجة',v:critical,t:critical?'danger':'success'},
+      {l:'عالية',v:high,t:high?'warning':'success'},
+      {l:'متأخرة',v:overdue,t:overdue?'danger':'success'},
+    ].map(s=>`<div class="stat-card"><div class="sc-label">${s.l}</div><div class="sc-value ${s.t}">${s.v}</div></div>`).join('');
+
+    // Critical alerts
+    const {data:crits}=await dbList('technical_alerts',{in:{severity:['critical','high']},neq:{status:'resolved'},limit:8});
+    document.getElementById('critList').innerHTML=crits.length
+      ?crits.map(a=>`<div class="alert-item" style="cursor:pointer" onclick="openAlertDetail('${a.id}')">
+          <div class="alert-dot" style="background:${a.severity==='critical'?'var(--danger)':'var(--warning)'};box-shadow:0 0 6px currentColor;animation:blink 1s infinite"></div>
+          <div class="alert-body">
+            <div class="alert-title">${esc(a.title)}</div>
+            <div class="alert-meta" style="display:flex;gap:8px;flex-wrap:wrap">${a.alert_number||''} · <span style="color:${DIVISIONS[a.source_division]?.color||'#fff'}">${esc(a.source_division||'')}</span> · ${stBadge(a.status)}</div>
+          </div>
+          <span class="badge ${a.severity==='critical'?'badge-red':'badge-yellow'}">${a.severity==='critical'?'حرج':'عالٍ'}</span>
+        </div>`).join('')
+      :`<div style="padding:16px;text-align:center;color:var(--text-2)">✓ لا تنبيهات حرجة نشطة</div>`;
+
+    // Severity breakdown
+    const {data:allAlerts}=await dbList('technical_alerts',{neq:{status:'resolved'}});
+    const sevs={critical:0,high:0,medium:0,low:0};
+    allAlerts.forEach(a=>{if(sevs[a.severity]!==undefined)sevs[a.severity]++;});
+    const tot=Object.values(sevs).reduce((a,b)=>a+b,0)||1;
+    document.getElementById('sevBreak').innerHTML=`
+      <div class="alert-severity-bar mb-2">
+        <div class="seg sev-crit" style="--w:${sevs.critical}"></div>
+        <div class="seg sev-high" style="--w:${sevs.high}"></div>
+        <div class="seg sev-med" style="--w:${sevs.medium}"></div>
+        <div class="seg sev-low" style="--w:${sevs.low}"></div>
+      </div>
+      ${Object.entries({critical:'حرج',high:'عالٍ',medium:'متوسط',low:'منخفض'}).map(([k,l])=>`
+        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(21,40,64,.4)">
+          <span style="font-size:13px">${l}</span>
+          <span class="font-hud" style="font-size:13px">${sevs[k]} <span class="text-muted text-xs">(${Math.round(sevs[k]/tot*100)}%)</span></span>
+        </div>`).join('')}`;
+
+    // Recent alerts
+    const {data:recent}=await dbList('technical_alerts',{limit:10});
+    document.getElementById('recentList').innerHTML=recent.length?`<div class="tbl-wrap"><table>
+      <thead><tr><th>الرقم</th><th>العنوان</th><th>القطاع</th><th>التصنيف</th><th>الخطورة</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${recent.map(a=>`<tr>
+        <td class="font-mono text-xs text-danger">${esc(a.alert_number||a.id.slice(0,8))}</td>
+        <td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(a.title)}</td>
+        <td class="text-sm" style="color:${DIVISIONS[a.source_division]?.color||'inherit'}">${esc(a.source_division||'—')}</td>
+        <td class="text-sm text-muted">${esc(a.category||'—')}</td>
+        <td>${a.severity==='critical'?'<span class="badge badge-red">حرج</span>':a.severity==='high'?'<span class="badge badge-yellow">عالٍ</span>':'<span class="badge badge-grey">'+a.severity+'</span>'}</td>
+        <td class="font-mono text-xs text-muted">${fmtDate(a.reported_date)}</td>
+        <td>${stBadge(a.status)}</td>
+        <td><button class="btn sm" onclick="openAlertDetail('${a.id}')">تفاصيل</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`:emptyState('لا تنبيهات',`<button class="btn primary sm" onclick="openAddAlert()">+ إضافة تنبيه</button>`);
+  }catch(e){toast(e.message,'error');}
+});
+
+reg('alerts',el=>{go('radar');});
+
+function alertForm(rec={}){
+  return `<div class="modal-head"><h3>${rec.id?'تعديل تنبيه':'تنبيه فني جديد'}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>عنوان التنبيه</label><input id="al_title" value="${esc(rec.title||'')}"></div>
+        <div class="field form-full"><label>الوصف التفصيلي</label><textarea id="al_desc">${esc(rec.description||'')}</textarea></div>
+        <div class="field"><label>القطاع المصدر</label>
+          <select id="al_src">${Object.entries(DIVISIONS).map(([k,v])=>`<option value="${k}" ${rec.source_division===k?'selected':''}>${App.lang==='ar'?v.ar:v.en}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>التصنيف</label>
+          <select id="al_cat">${['reliability','safety','operational','financial','reputation','compliance','environmental'].map(c=>`<option value="${c}" ${rec.category===c?'selected':''}>${{reliability:'موثوقية',safety:'سلامة',operational:'تشغيلي',financial:'مالي',reputation:'سمعة',compliance:'امتثال',environmental:'بيئي'}[c]}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>مستوى الخطورة</label>
+          <select id="al_sev">${['low','medium','high','critical'].map(s=>`<option value="${s}" ${rec.severity===s?'selected':''}>${{low:'منخفض',medium:'متوسط',high:'عالٍ',critical:'حرج'}[s]}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>الحالة</label>
+          <select id="al_st">${['new','classified','in_progress','escalated','resolved','closed'].map(s=>`<option value="${s}" ${rec.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
+        </div>
+        <div class="field"><label>تاريخ الإبلاغ</label><input type="date" id="al_date" value="${rec.reported_date||new Date().toISOString().slice(0,10)}"></div>
+        <div class="field form-full"><label>قرار التصعيد</label><input id="al_esc" value="${esc(rec.escalated_to||'')}"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="saveAlert('${rec.id||''}')">حفظ</button>
+    </div>`;
+}
+window.openAddAlert  = ()=>openModal(alertForm(),'wide');
+window.openAlertDetail=async id=>{const r=await dbGet('technical_alerts',id);openModal(alertForm(r),'wide');};
+window.saveAlert = async id=>{
+  const title=mval('al_title');if(!title){toast('العنوان مطلوب','error');return;}
+  const row={title,description:mval('al_desc')||null,source_division:mval('al_src'),category:mval('al_cat'),severity:mval('al_sev'),status:mval('al_st'),reported_date:mval('al_date'),escalated_to:mval('al_esc')||null};
+  try{if(id)await dbUpdate('technical_alerts',id,row);else await dbInsert('technical_alerts',row);toast('تم الحفظ','success');closeModal();go('radar');}catch(e){toast(e.message,'error');}
+};
+
+['daily','new_alerts','classify','matrix','challenges','resolution','technology','escalation','metrics','weekly','evaluation'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div class="page-header"><div><h1>${NAV.find(n=>n.key===k)?.ar||k}</h1></div></div><p class="text-muted" style="padding:20px">يعمل بالكامل عند توصيل Supabase.</p>`;
+}));
+
+(async()=>{
+  const p=await initPage({role:['technical_alerts_manager','admin','director','governance_manager']});
+  if(!p)return;
+  document.getElementById('logoSvg').innerHTML=SE_LOGO_SVG;
+  buildSidebar(NAV,'radar');go('radar');
+})();
+</script>
+</body>
+</html>

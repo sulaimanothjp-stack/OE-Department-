@@ -2,282 +2,469 @@
 <html lang="ar" dir="rtl" id="root">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SE · مركز قيادة التميز التشغيلي</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · بوابة التميز التشغيلي</title>
 <link rel="stylesheet" href="styles.css">
 <style>
-body { overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
-#bg-canvas { position: fixed; inset: 0; z-index: 0; }
-.login-shell { position: relative; z-index: 1; display: flex; width: 100%; max-width: 1100px; min-height: 580px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 40px 100px rgba(0,0,0,.7); }
-/* LEFT — Digital Twin Visualization */
-.twin-panel {
-  flex: 1;
-  background: linear-gradient(135deg, #030B18 0%, #071224 100%);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px;
-  overflow: hidden;
-}
-.twin-panel::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%, rgba(37,99,235,.08) 0%,transparent 70%); }
-.twin-canvas { position: absolute; inset: 0; z-index: 0; }
-.twin-content { position: relative; z-index: 1; text-align: center; }
-.twin-logo { margin-bottom: 20px; }
-.twin-title { font-family: var(--font-hud); font-size: 13px; letter-spacing: .18em; color: var(--text-3); margin-bottom: 8px; text-transform: uppercase; }
-.twin-name { font-family: var(--font-ar); font-size: 22px; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
-.twin-name-en { font-family: var(--font-hud); font-size: 13px; color: var(--text-2); }
-/* Division orbit nodes */
-.orbit-wrap { position: relative; width: 260px; height: 260px; margin: 24px auto; }
-.orbit-center {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  width: 64px; height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1E3A6E, #0C1E38);
-  border: 2px solid rgba(37,99,235,.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  box-shadow: 0 0 30px rgba(37,99,235,.3);
-  z-index: 2;
-}
-.orbit-ring {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-  border-radius: 50%;
-  border: 1px dashed rgba(37,99,235,.2);
-  animation: orbit-spin 20s linear infinite;
-}
-.orbit-ring-1 { width: 150px; height: 150px; animation-duration: 18s; }
-.orbit-ring-2 { width: 230px; height: 230px; animation-duration: 28s; animation-direction: reverse; }
-@keyframes orbit-spin { to { transform: translate(-50%,-50%) rotate(360deg); } }
-.orbit-node {
-  position: absolute;
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  border: 1px solid;
-  cursor: pointer;
-  transition: .2s;
-  box-shadow: 0 0 12px currentColor;
-  animation: node-pulse 3s ease-in-out infinite;
-}
-.orbit-node:hover { transform: scale(1.15); }
-@keyframes node-pulse { 0%,100%{box-shadow:0 0 8px currentColor} 50%{box-shadow:0 0 20px currentColor} }
-/* RIGHT — Login form */
-.login-panel {
-  width: 400px;
-  flex-shrink: 0;
-  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 40px 36px;
-}
-.login-panel h2 { font-family: var(--font-hud); font-size: 20px; margin-bottom: 5px; }
-.login-panel .login-sub { font-size: 13px; color: var(--text-2); margin-bottom: 28px; }
-.err-box {
-  background: var(--status-red-bg);
-  border: 1px solid var(--status-red-bd);
-  border-radius: var(--r-s);
-  padding: 10px 14px;
-  font-size: 13px;
-  color: var(--danger);
-  margin-bottom: 14px;
-  display: none;
-}
-.btn-sign-in {
-  width: 100%; padding: 13px;
-  border-radius: var(--r-s);
-  background: linear-gradient(135deg, var(--blue), var(--teal));
-  color: #fff; font-size: 15px; font-weight: 600;
-  border: none; cursor: pointer; transition: .18s;
-  font-family: var(--font-ar);
-  position: relative; overflow: hidden;
-  margin-top: 6px;
-}
-.btn-sign-in::after { content:''; position:absolute; inset:0; background:#fff; opacity:0; transition:.2s; }
-.btn-sign-in:hover::after { opacity:.07; }
-.btn-sign-in:disabled { opacity: .6; cursor: not-allowed; }
-.login-footer { margin-top: 28px; text-align: center; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
-.lang-row { display: flex; gap: 6px; margin-bottom: 18px; }
-.lang-pill { padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg-3); color: var(--text-2); font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: .14s; }
-.lang-pill.active { border-color: var(--blue); color: var(--blue); background: rgba(37,99,235,.1); }
-@media(max-width:768px){.twin-panel{display:none}.login-panel{width:100%;padding:32px 24px}}
+body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh;background:#020912}
+#bgcv{position:fixed;inset:0;z-index:0}
+
+/* CARD */
+.wrap{position:relative;z-index:1;width:96%;max-width:1100px;min-height:565px;display:flex;border-radius:18px;overflow:hidden;border:1px solid #152840;box-shadow:0 40px 100px rgba(0,0,0,.85)}
+
+/* LEFT — Animated Scene */
+.scene{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;transition:background 1s}
+#scv{position:absolute;inset:0;z-index:0}
+.sg{position:absolute;inset:0;z-index:0;opacity:.14;transition:background 1.2s;pointer-events:none}
+.si{position:relative;z-index:1;text-align:center;pointer-events:none}
+.si-logo{margin-bottom:12px}
+.si-se{font-family:'Chakra Petch',monospace;font-size:32px;font-weight:700;letter-spacing:.06em;margin-bottom:2px}
+.si-ic{font-size:68px;margin:14px 0;animation:flt 3s ease-in-out infinite;transition:all .6s}
+@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.si-nm{font-family:'Chakra Petch',monospace;font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;transition:color .5s}
+.si-sb{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;opacity:.45;margin-bottom:8px}
+.si-ds{font-size:12.5px;color:rgba(255,255,255,.38);max-width:280px;margin:0 auto;line-height:1.7}
+.sbar{position:absolute;bottom:0;left:0;right:0;height:3px;animation:sba 3s linear infinite;background-size:200%;transition:background 1s}
+@keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
+
+/* RIGHT — Login Panel */
+.lp{width:420px;flex-shrink:0;background:linear-gradient(165deg,#091628,#020912);display:flex;flex-direction:column;padding:22px 24px 16px;overflow-y:auto}
+
+/* Language */
+.lg-row{display:flex;gap:5px;margin-bottom:14px}
+.lg-btn{padding:3px 12px;border-radius:99px;border:1px solid #152840;background:#0C1E38;color:#8098BC;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:.13s}
+.lg-btn.on{border-color:#2563EB;color:#2563EB;background:rgba(37,99,235,.1)}
+
+/* Tabs */
+.tabs-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
+.tab{display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;background:#0C1E38;color:#8098BC;white-space:nowrap;transition:.18s;user-select:none}
+.tab:hover{color:#E8F0FF}
+.tab.on{color:#fff;border-color:transparent}
+
+/* Form */
+.lf-title{font-family:'Chakra Petch',monospace;font-size:16px;font-weight:600;margin-bottom:3px;transition:color .4s}
+.lf-sub{font-size:12px;color:#8098BC;margin-bottom:14px}
+.lerr{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:8px;padding:8px 11px;font-size:12.5px;color:#EF4444;margin-bottom:10px;display:none}
+.lfield{margin-bottom:12px}
+.lfield label{display:block;font-size:11.5px;color:#8098BC;margin-bottom:4px;font-weight:500}
+.lfield input{width:100%;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:8px;padding:9px 11px;font-size:14px;font-family:'IBM Plex Sans Arabic',sans-serif;transition:.14s;box-sizing:border-box}
+.lfield input:focus{outline:none}
+.btn-si{width:100%;padding:12px;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;font-family:'IBM Plex Sans Arabic',sans-serif;cursor:pointer;transition:.17s;margin-top:4px}
+.lp-foot{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#3E5878;text-align:center;margin-top:auto;padding-top:12px;line-height:1.6}
+@keyframes sk{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(max-width:720px){.scene{display:none}.lp{width:100%}}
 </style>
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
-<div class="login-shell">
-  <!-- Digital Twin Visualization -->
-  <div class="twin-panel">
-    <canvas class="twin-canvas" id="twin-canvas"></canvas>
-    <div class="twin-content">
-      <div class="twin-logo" id="twin-logo-svg"></div>
-      <div class="twin-title">SAUDI ENERGY</div>
-      <div class="twin-name">مركز قيادة التميز التشغيلي</div>
-      <div class="twin-name-en">OE Digital Twin Command Center</div>
-      <!-- Division orbit -->
-      <div class="orbit-wrap" id="orbitWrap">
-        <div class="orbit-ring orbit-ring-1"></div>
-        <div class="orbit-ring orbit-ring-2"></div>
-        <div class="orbit-center">🏛️</div>
+<canvas id="bgcv"></canvas>
+
+<div class="wrap" id="wrap">
+  <!-- SCENE -->
+  <div class="scene" id="scene">
+    <div class="sg" id="sg"></div>
+    <canvas id="scv"></canvas>
+    <div class="si">
+      <div class="si-logo">
+        <svg viewBox="0 0 120 86" fill="none" style="width:52px;height:36px">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2563EB"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#10B981"/></linearGradient>
+          </defs>
+          <path d="M4,28 C16,28 21,54 38,54 C55,54 60,28 76,28 L76,42 C60,42 55,68 38,68 C21,68 16,42 4,42 Z" fill="url(#g1)"/>
+          <path d="M40,10 C52,10 57,36 74,36 C91,36 96,10 110,10 L110,24 C96,24 91,50 74,50 C57,50 52,24 40,24 Z" fill="url(#g2)"/>
+        </svg>
       </div>
-      <div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-3)">
-        إدارة التميز التشغيلي · Chief Engineer BU
-      </div>
+      <div class="si-se" id="siSe" style="background:linear-gradient(135deg,#2563EB,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">se</div>
+      <div class="si-ic" id="siIc">🏛️</div>
+      <div class="si-nm" id="siNm">مركز قيادة التميز التشغيلي</div>
+      <div class="si-sb" id="siSb">OE DIGITAL TWIN COMMAND CENTER</div>
+      <div class="si-ds" id="siDs">المنصة الرقمية لإدارة التميز التشغيلي · Saudi Energy</div>
     </div>
+    <div class="sbar" id="sbar" style="background:linear-gradient(90deg,transparent,#2563EB,transparent)"></div>
   </div>
-  <!-- Login Form -->
-  <div class="login-panel">
-    <div class="lang-row">
-      <button class="lang-pill active" id="lpAr" onclick="loginSetLang('ar')">العربية</button>
-      <button class="lang-pill" id="lpEn" onclick="loginSetLang('en')">English</button>
+
+  <!-- LOGIN PANEL -->
+  <div class="lp">
+    <div class="lg-row">
+      <button class="lg-btn on" id="lgAr" onclick="setL('ar')">العربية</button>
+      <button class="lg-btn" id="lgEn" onclick="setL('en')">English</button>
     </div>
-    <h2 id="lh">تسجيل الدخول</h2>
-    <p class="login-sub" id="ls">أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى المنصة</p>
-    <div class="err-box" id="errBox" id="errBox"></div>
-    <div class="field"><label id="lEmail">البريد الإلكتروني</label>
-      <input type="email" id="email" autocomplete="email" placeholder="name@se.com.sa">
+
+    <!-- ═══ TABS — HARDCODED IN HTML ═══ -->
+    <div class="tabs-row" id="tabsRow">
+      <div class="tab" id="t_dept" onclick="activate('dept')" title="الإدارة والأدمن">🏛️ <span class="tl" data-ar="الإدارة" data-en="Department">الإدارة</span></div>
+      <div class="tab" id="t_gov"  onclick="activate('gov')"  title="الحوكمة والتقييم">⚖️ <span class="tl" data-ar="الحوكمة" data-en="Governance">الحوكمة</span></div>
+      <div class="tab" id="t_gen"  onclick="activate('gen')"  title="دائرة التوليد">⚡ <span class="tl" data-ar="التوليد" data-en="Generation">التوليد</span></div>
+      <div class="tab" id="t_grid" onclick="activate('grid')" title="الشبكة الوطنية">🔌 <span class="tl" data-ar="الشبكة" data-en="Grid">الشبكة</span></div>
+      <div class="tab" id="t_dist" onclick="activate('dist')" title="دائرة التوزيع">🏘️ <span class="tl" data-ar="التوزيع" data-en="Distribution">التوزيع</span></div>
+      <div class="tab" id="t_alr"  onclick="activate('alr')"  title="التنبيهات الفنية">⚠️ <span class="tl" data-ar="التنبيهات" data-en="Alerts">التنبيهات</span></div>
+      <div class="tab" id="t_emp"  onclick="activate('emp')"  title="الموظفون">👤 <span class="tl" data-ar="الموظفون" data-en="Employees">الموظفون</span></div>
     </div>
-    <div class="field"><label id="lPass">كلمة المرور</label>
-      <input type="password" id="password" autocomplete="current-password" placeholder="••••••••">
+
+    <!-- Form -->
+    <div class="lf-title" id="lfTitle">تسجيل الدخول — الإدارة</div>
+    <div class="lf-sub" id="lfSub">أدخل بريدك الإلكتروني وكلمة المرور</div>
+    <div class="lerr" id="lerr"></div>
+
+    <!-- Username field (employees only) -->
+    <div class="lfield" id="fUname" style="display:none">
+      <label id="lUname">اسم المستخدم</label>
+      <input type="text" id="iUname" placeholder="ahmed.gen" autocomplete="username">
     </div>
-    <button class="btn-sign-in" id="signInBtn" onclick="doSignIn()">
-      <span id="signInLbl">دخول</span>
+    <!-- Email field -->
+    <div class="lfield" id="fEmail">
+      <label id="lEmail">البريد الإلكتروني</label>
+      <input type="email" id="iEmail" placeholder="name@se.com.sa" autocomplete="email">
+    </div>
+    <!-- Password -->
+    <div class="lfield">
+      <label id="lPass">كلمة المرور</label>
+      <input type="password" id="iPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+
+    <button class="btn-si" id="siBtn" onclick="doLogin()">
+      <span id="siLbl">دخول</span>
     </button>
-    <div class="login-footer" id="loginFooter">
-      SE · OE Command Center v2.0<br>
-      <span style="color:var(--text-muted)">إدارة التميز التشغيلي — قطاع الرئيس التنفيذي للشؤون الفنية</span>
+
+    <div class="lp-foot">
+      SE · OE Command Center v3.0<br>
+      إدارة التميز التشغيلي · Chief Engineer BU · Saudi Energy
     </div>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="app.js"></script>
 <script>
-// ── Language ─────────────────────────────────────────────────────
-let LNG = localStorage.getItem('se_lang') || 'ar';
-const LT = {
-  ar: { lh:'تسجيل الدخول', ls:'أدخل بريدك الإلكتروني وكلمة المرور للوصول إلى المنصة', lEmail:'البريد الإلكتروني', lPass:'كلمة المرور', signIn:'دخول', errBad:'البريد أو كلمة المرور غير صحيحة', errFill:'يرجى تعبئة جميع الحقول' },
-  en: { lh:'Sign In', ls:'Enter your email and password to access the platform', lEmail:'Email', lPass:'Password', signIn:'Sign In', errBad:'Invalid email or password', errFill:'Please fill all fields' },
+/* ═══ SUPABASE ══════════════════════════════════════════════ */
+const _SB = supabase.createClient(
+  'https://ekywcrlcjgbjtwnjozov.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI'
+);
+
+const PORTALS = {
+  admin:'admin.html', director:'department.html',
+  governance_manager:'governance.html', generation_manager:'generation.html',
+  national_grid_manager:'national-grid.html', distribution_manager:'distribution.html',
+  technical_alerts_manager:'technical-alerts.html', employee:'employee.html',
 };
-function loginSetLang(l) {
+
+/* ═══ TAB CONFIG ═════════════════════════════════════════════ */
+const TABS = {
+  dept: {
+    ic:'🏛️', ar:'الإدارة والأدمن', en:'Department & Admin',
+    nAr:'إدارة التميز التشغيلي', nEn:'OE Department',
+    dAr:'المدير التنفيذي وأدمن النظام · نظرة استراتيجية شاملة',
+    color:'#D4AF37', cv:'net', isEmp:false,
+    roles:['director','admin']
+  },
+  gov: {
+    ic:'⚖️', ar:'الحوكمة والتقييم', en:'Governance',
+    nAr:'دائرة الحوكمة والتقييم', nEn:'Governance & Assessment',
+    dAr:'المايسترو · الإطار المؤسسي · التقييمات · مؤشرات الأداء',
+    color:'#7C3AED', cv:'net', isEmp:false,
+    roles:['governance_manager']
+  },
+  gen: {
+    ic:'⚡', ar:'التوليد', en:'Generation',
+    nAr:'دائرة التوليد', nEn:'Generation OE',
+    dAr:'إدارة أداء التوليد · تدفق الطاقة · مؤشرات الكفاءة',
+    color:'#F59E0B', cv:'energy', isEmp:false,
+    roles:['generation_manager']
+  },
+  grid: {
+    ic:'🔌', ar:'الشبكة الوطنية', en:'National Grid',
+    nAr:'الشبكة الوطنية للنقل', nEn:'National Grid',
+    dAr:'شريان الطاقة الوطني · موثوقية النقل · شبكة 380kV',
+    color:'#0EA5E9', cv:'grid', isEmp:false,
+    roles:['national_grid_manager']
+  },
+  dist: {
+    ic:'🏘️', ar:'التوزيع', en:'Distribution',
+    nAr:'دائرة التوزيع', nEn:'Distribution OE',
+    dAr:'شبكة التوزيع الحية · SAIDI · موثوقية الخدمة',
+    color:'#10B981', cv:'city', isEmp:false,
+    roles:['distribution_manager']
+  },
+  alr: {
+    ic:'⚠️', ar:'التنبيهات الفنية', en:'Tech Alerts',
+    nAr:'دائرة التنبيهات الفنية', nEn:'Technical Alerts',
+    dAr:'الرادار الفني · رصد المخاطر المبكر · Early Warning System',
+    color:'#EF4444', cv:'radar', isEmp:false,
+    roles:['technical_alerts_manager']
+  },
+  emp: {
+    ic:'👤', ar:'الموظفون', en:'Employees',
+    nAr:'بوابة الموظف', nEn:'Employee Portal',
+    dAr:'المهام اليومية · تحديث الحالة · متابعة الأداء الشخصي',
+    color:'#6366F1', cv:'net', isEmp:true,
+    roles:['employee']
+  },
+};
+
+let ACT = 'dept';
+let LNG = localStorage.getItem('se_lang') || 'ar';
+
+/* ═══ ACTIVATE TAB ═══════════════════════════════════════════ */
+function activate(k) {
+  ACT = k;
+  const tb = TABS[k];
+
+  // Update tab styles
+  Object.keys(TABS).forEach(id => {
+    const el = document.getElementById('t_'+id);
+    if (!el) return;
+    el.classList.remove('on');
+    el.style.background = el.style.color = el.style.borderColor = el.style.boxShadow = '';
+  });
+  const tabEl = document.getElementById('t_'+k);
+  if (tabEl) {
+    tabEl.classList.add('on');
+    tabEl.style.background = tb.color + '20';
+    tabEl.style.color = tb.color;
+    tabEl.style.borderColor = tb.color + '44';
+    tabEl.style.boxShadow = '0 0 12px ' + tb.color + '20';
+  }
+
+  // Scene
+  document.getElementById('scene').style.background = 'linear-gradient(145deg,' + tb.color + '0A,#020912)';
+  document.getElementById('sg').style.background = 'radial-gradient(circle at 50% 40%,' + tb.color + ' 0%,transparent 70%)';
+  document.getElementById('siIc').textContent = tb.ic;
+  document.getElementById('siNm').textContent = LNG==='ar' ? tb.nAr : tb.nEn;
+  document.getElementById('siSb').textContent = (LNG==='ar' ? tb.nAr : tb.nEn).toUpperCase();
+  document.getElementById('siDs').textContent = tb.dAr;
+  document.getElementById('sbar').style.background = 'linear-gradient(90deg,transparent,' + tb.color + ',' + tb.color + '88,transparent)';
+
+  // Re-init canvas
+  const old = document.getElementById('scv');
+  const nw = document.createElement('canvas');
+  nw.id = 'scv';
+  nw.style.cssText = 'position:absolute;inset:0;z-index:0';
+  old.parentNode.replaceChild(nw, old);
+  drawCanvas('scv', tb.cv, tb.color);
+
+  // Form title/sub
+  document.getElementById('lfTitle').textContent = tb.ic + ' ' + (LNG==='ar' ? tb.nAr : tb.nEn);
+  document.getElementById('lfTitle').style.color = tb.color;
+  document.getElementById('siBtn').style.background = 'linear-gradient(135deg,' + tb.color + ',' + tb.color + 'aa)';
+
+  // Employee vs manager
+  if (tb.isEmp) {
+    document.getElementById('fEmail').style.display = 'none';
+    document.getElementById('fUname').style.display = 'block';
+    document.getElementById('lfSub').textContent = LNG==='ar'
+      ? 'أدخل اسم المستخدم وكلمة المرور اللي أعطاك إياها مديرك'
+      : 'Enter username and password given by your manager';
+  } else {
+    document.getElementById('fEmail').style.display = 'block';
+    document.getElementById('fUname').style.display = 'none';
+    document.getElementById('lfSub').textContent = LNG==='ar'
+      ? 'أدخل بريدك الإلكتروني وكلمة المرور'
+      : 'Enter your email and password';
+  }
+
+  document.getElementById('lerr').style.display = 'none';
+}
+
+/* ═══ LANGUAGE ═══════════════════════════════════════════════ */
+function setL(l) {
   LNG = l;
   localStorage.setItem('se_lang', l);
   const r = document.getElementById('root');
-  r.lang = l; r.dir = l === 'ar' ? 'rtl' : 'ltr';
-  document.getElementById('lpAr').classList.toggle('active', l==='ar');
-  document.getElementById('lpEn').classList.toggle('active', l==='en');
-  ['lh','ls','lEmail','lPass'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=LT[l][id]; });
-  document.getElementById('signInLbl').textContent = LT[l].signIn;
-}
-loginSetLang(LNG);
-
-// ── Check existing session ────────────────────────────────────────
-(async()=>{
-  const { data:{ session } } = await sb.auth.getSession();
-  if (session) {
-    const { data: p } = await sb.from('profiles').select('role').eq('id', session.user.id).single();
-    if (p) window.location.href = ROLE_PORTALS[p.role] || 'employee.html';
-  }
-})();
-
-// ── Sign In ───────────────────────────────────────────────────────
-async function doSignIn() {
-  const email = document.getElementById('email').value.trim();
-  const pass  = document.getElementById('password').value;
-  const btn   = document.getElementById('signInBtn');
-  const err   = document.getElementById('errBox');
-  err.style.display = 'none';
-  if (!email || !pass) { err.textContent = LT[LNG].errFill; err.style.display='block'; return; }
-  btn.disabled = true;
-  btn.innerHTML = '<span class="btn spin"></span>';
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
-  btn.disabled = false;
-  btn.innerHTML = `<span id="signInLbl">${LT[LNG].signIn}</span>`;
-  if (error) { err.textContent = LT[LNG].errBad; err.style.display='block'; return; }
-  const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
-  window.location.href = ROLE_PORTALS[profile?.role] || 'employee.html';
-}
-document.addEventListener('keydown', e => { if (e.key==='Enter') doSignIn(); });
-
-// ── Background canvas ─────────────────────────────────────────────
-(function(){
-  const c = document.getElementById('bg-canvas');
-  const cx = c.getContext('2d');
-  let W, H, pts=[];
-  function resize(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; init(); }
-  function init(){
-    pts=[];
-    const n=Math.floor(W*H/20000);
-    for(let i=0;i<n;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.5+.8});
-  }
-  function draw(){
-    cx.clearRect(0,0,W,H);
-    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});
-    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
-      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
-      if(d>120)continue;
-      cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
-      cx.strokeStyle=`rgba(37,99,235,${(1-d/120)*.1})`;cx.lineWidth=.5;cx.stroke();
-    }
-    pts.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle='rgba(37,99,235,.3)';cx.fill();});
-    requestAnimationFrame(draw);
-  }
-  resize(); window.addEventListener('resize',resize); draw();
-})();
-
-// ── Twin canvas ───────────────────────────────────────────────────
-document.getElementById('twin-logo-svg').innerHTML = SE_LOGO_SVG.replace('44px','56px').replace('32px','40px');
-(function(){
-  const c=document.getElementById('twin-canvas'),cx=c.getContext('2d');
-  let W,H;
-  function resize(){
-    const r=c.parentElement.getBoundingClientRect();
-    W=c.width=r.width; H=c.height=r.height;
-  }
-  resize(); window.addEventListener('resize',resize);
-  let t=0;
-  function draw(){
-    t+=.008; cx.clearRect(0,0,W,H);
-    // Energy particles
-    for(let i=0;i<6;i++){
-      const ang=(t+i*Math.PI/3)*1.2, r=90;
-      const x=W/2+Math.cos(ang)*r, y=H/2+Math.sin(ang)*r;
-      cx.beginPath();cx.arc(x,y,2,0,Math.PI*2);
-      cx.fillStyle=`rgba(37,99,235,${.4+Math.sin(t+i)*.3})`;cx.fill();
-      cx.beginPath();cx.moveTo(W/2,H/2);cx.lineTo(x,y);
-      cx.strokeStyle=`rgba(37,99,235,${.06+Math.sin(t+i)*.04})`;cx.lineWidth=1;cx.stroke();
-    }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-
-// ── Orbit nodes ───────────────────────────────────────────────────
-(function(){
-  const wrap = document.getElementById('orbitWrap');
-  const divs = [
-    { icon:'⚖️', color:'#7C3AED', label:'Governance' },
-    { icon:'⚡', color:'#F59E0B', label:'Generation' },
-    { icon:'🔌', color:'#0EA5E9', label:'Grid'       },
-    { icon:'🏘️', color:'#10B981', label:'Dist'       },
-    { icon:'⚠️', color:'#EF4444', label:'Alerts'     },
-  ];
-  divs.forEach((d,i)=>{
-    const ang = (i/divs.length)*Math.PI*2 - Math.PI/2;
-    const r   = 112;
-    const x   = 130 + Math.cos(ang)*r - 22;
-    const y   = 130 + Math.sin(ang)*r - 22;
-    const el  = document.createElement('div');
-    el.className = 'orbit-node';
-    el.style.cssText = `left:${x}px;top:${y}px;color:${d.color};border-color:${d.color}44;background:${d.color}18;animation-delay:${i*.4}s`;
-    el.innerHTML = d.icon;
-    el.title = d.label;
-    wrap.appendChild(el);
+  r.lang = l; r.dir = l==='ar' ? 'rtl' : 'ltr';
+  document.getElementById('lgAr').classList.toggle('on', l==='ar');
+  document.getElementById('lgEn').classList.toggle('on', l==='en');
+  // Update tab labels
+  document.querySelectorAll('.tl').forEach(el => {
+    el.textContent = l==='ar' ? el.dataset.ar : el.dataset.en;
   });
+  document.getElementById('siLbl').textContent = l==='ar' ? 'دخول' : 'Sign In';
+  document.getElementById('lEmail').textContent = l==='ar' ? 'البريد الإلكتروني' : 'Email';
+  document.getElementById('lUname').textContent = l==='ar' ? 'اسم المستخدم' : 'Username';
+  document.getElementById('lPass').textContent = l==='ar' ? 'كلمة المرور' : 'Password';
+  activate(ACT);
+}
+
+/* ═══ LOGIN ══════════════════════════════════════════════════ */
+async function doLogin() {
+  const err = document.getElementById('lerr');
+  err.style.display = 'none';
+  const btn = document.getElementById('siBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid transparent;border-top-color:#fff;border-radius:50%;animation:sk .6s linear infinite;vertical-align:middle"></span>';
+
+  const pass = document.getElementById('iPass').value;
+  const tb = TABS[ACT];
+  let email = '';
+
+  if (tb.isEmp) {
+    const un = document.getElementById('iUname').value.trim();
+    if (!un || !pass) { showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields'); reset(); return; }
+    email = un.includes('@') ? un : un + '@se.com.sa';
+  } else {
+    email = document.getElementById('iEmail').value.trim();
+    if (!email || !pass) { showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields'); reset(); return; }
+  }
+
+  try {
+    const { data, error } = await _SB.auth.signInWithPassword({ email, password: pass });
+    if (error) throw error;
+    const { data: p } = await _SB.from('profiles').select('role,division').eq('id', data.user.id).single();
+    if (!p) throw new Error('Profile not found');
+    // Role check vs tab
+    if (tb.roles && tb.roles.length && !tb.roles.includes(p.role) && p.role !== 'admin') {
+      await _SB.auth.signOut();
+      showErr(LNG==='ar'
+        ? 'هذا الحساب غير مصرّح له بهذا التبويب — اختر التبويب الصحيح'
+        : 'This account is not authorized for this tab');
+      reset(); return;
+    }
+    location.href = PORTALS[p.role] || 'employee.html';
+  } catch(e) {
+    showErr(LNG==='ar' ? 'البريد أو كلمة المرور غير صحيحة' : 'Invalid email or password');
+    reset();
+  }
+}
+
+function showErr(msg) {
+  const e = document.getElementById('lerr');
+  e.textContent = msg; e.style.display = 'block';
+  document.getElementById('wrap').style.animation = 'sk .3s ease';
+  setTimeout(() => document.getElementById('wrap').style.animation = '', 300);
+}
+function reset() {
+  const btn = document.getElementById('siBtn');
+  btn.disabled = false;
+  btn.innerHTML = `<span id="siLbl">${LNG==='ar'?'دخول':'Sign In'}</span>`;
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+/* ═══ CANVAS ANIMATIONS ══════════════════════════════════════ */
+function drawCanvas(id, type, color) {
+  const cv = document.getElementById(id); if (!cv) return;
+  const cx = cv.getContext('2d');
+  let W, H, nodes = [], pts = [], t = 0;
+
+  function resize() {
+    const r = cv.parentElement.getBoundingClientRect();
+    W = cv.width = r.width; H = cv.height = r.height; build();
+  }
+  function build() {
+    nodes = []; pts = [];
+    if (type === 'net') {
+      const n = Math.floor(W*H/4500);
+      for (let i=0;i<n;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2.5+1,p:Math.random()*6.28,hub:Math.random()>.8});
+    }
+    if (type === 'energy') {
+      for (let i=0;i<50;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()>.5?1:-1)*(Math.random()*1.5+.5),vy:(Math.random()-.5)*.3,r:Math.random()*2+1,trail:[],mt:14});
+    }
+    if (type === 'grid') {
+      const cols=Math.floor(W/88)+1, rows=Math.floor(H/58)+1;
+      for (let c=0;c<cols;c++) for (let r=0;r<rows;r++) nodes.push({x:c*88+44,y:r*58+29,hub:Math.random()>.72});
+    }
+    if (type === 'city') {
+      const n = Math.floor(W*H/6500);
+      for (let i=0;i<n;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.9+.5,p:Math.random()*6.28,hub:Math.random()>.82});
+    }
+    if (type === 'radar') {
+      nodes = [{cx:W/2,cy:H/2,R:Math.min(W,H)*.42,angle:0}];
+    }
+  }
+
+  const h2 = v => Math.floor(v*255).toString(16).padStart(2,'0');
+
+  function draw() {
+    t += .008; cx.clearRect(0,0,W,H);
+
+    if (type==='net') {
+      cx.fillStyle='rgba(0,0,0,.05)'; cx.fillRect(0,0,W,H);
+      nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;n.p+=.018;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;});
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d>130)continue;
+        const al=(1-d/130)*.22;
+        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(al);cx.lineWidth=.6;cx.stroke();
+        const fp=((t*.9)%1);
+        cx.beginPath();cx.arc(a.x+(b.x-a.x)*fp,a.y+(b.y-a.y)*fp,1.8,0,6.28);cx.fillStyle=color+h2(al*2);cx.fill();
+      }
+      nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,n.r*3,0,6.28);cx.strokeStyle=color+h2(.15*g);cx.lineWidth=1;cx.stroke();}cx.beginPath();cx.arc(n.x,n.y,n.r,0,6.28);cx.fillStyle=color+h2(n.hub?.85:.6*g);cx.fill();});
+    }
+
+    if (type==='energy') {
+      cx.fillStyle='rgba(0,0,0,.07)'; cx.fillRect(0,0,W,H);
+      pts.forEach(p=>{
+        p.x+=p.vx;p.y+=p.vy+Math.sin(t+p.x*.01)*.45;
+        if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<0||p.y>H)p.vy*=-1;
+        p.trail.unshift({x:p.x,y:p.y});if(p.trail.length>p.mt)p.trail.pop();
+        p.trail.forEach((pt,i)=>{const al=(1-i/p.mt)*.5;cx.beginPath();cx.arc(pt.x,pt.y,p.r*(1-i/p.mt*.65),0,6.28);cx.fillStyle=color+h2(al);cx.fill();});
+        cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle=color+'bb';cx.fill();
+      });
+    }
+
+    if (type==='grid') {
+      cx.fillStyle='rgba(0,0,0,.06)'; cx.fillRect(0,0,W,H);
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j];
+        if(Math.abs(a.x-b.x)>90||Math.abs(a.y-b.y)>60)continue;
+        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(.18);cx.lineWidth=.6;cx.stroke();
+        if(Math.random()<.002) pts.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,p:0});
+      }
+      pts=pts.filter(p=>{p.p+=.04;return p.p<1;});
+      pts.forEach(p=>{const x=p.ax+(p.bx-p.ax)*p.p,y=p.ay+(p.by-p.ay)*p.p;cx.beginPath();cx.arc(x,y,3,0,6.28);cx.fillStyle=color+h2(1-p.p);cx.fill();});
+      nodes.forEach(n=>{const g=Math.sin(t+n.x*.02)*.5+.5;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,7,0,6.28);cx.fillStyle=color+h2(.1*g);cx.fill();}cx.beginPath();cx.arc(n.x,n.y,n.hub?3:1.5,0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();});
+    }
+
+    if (type==='city') {
+      cx.fillStyle='rgba(0,0,0,.06)'; cx.fillRect(0,0,W,H);
+      nodes.forEach(n=>{n.p+=.014;});
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+        if(d>105)continue;
+        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2((1-d/105)*.11);cx.lineWidth=.5;cx.stroke();
+      }
+      if(Math.random()<.04){const n=nodes[Math.floor(Math.random()*nodes.length)];const adj=nodes.filter(m=>Math.hypot(m.x-n.x,m.y-n.y)<105&&m!==n);if(adj.length)pts.push({ax:n.x,ay:n.y,bx:adj[0].x,by:adj[0].y,p:0});}
+      pts=pts.filter(p=>{p.p+=.025;return p.p<1;});
+      pts.forEach(p=>{const x=p.ax+(p.bx-p.ax)*p.p,y=p.ay+(p.by-p.ay)*p.p;cx.beginPath();cx.arc(x,y,2.5,0,6.28);cx.fillStyle=color+h2(.9-p.p*.7);cx.fill();});
+      nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,8,0,6.28);cx.strokeStyle=color+h2(.1*g);cx.lineWidth=1;cx.stroke();}cx.beginPath();cx.arc(n.x,n.y,n.r*(n.hub?2.5:1),0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();});
+    }
+
+    if (type==='radar') {
+      const nd=nodes[0]; nd.angle+=.024;
+      for(let r2=.33;r2<=1;r2+=.33){cx.beginPath();cx.arc(nd.cx,nd.cy,nd.R*r2,0,6.28);cx.strokeStyle=color+h2(.18);cx.lineWidth=.7;cx.stroke();}
+      cx.strokeStyle=color+h2(.12);cx.lineWidth=.5;
+      cx.beginPath();cx.moveTo(nd.cx-nd.R,nd.cy);cx.lineTo(nd.cx+nd.R,nd.cy);cx.stroke();
+      cx.beginPath();cx.moveTo(nd.cx,nd.cy-nd.R);cx.lineTo(nd.cx,nd.cy+nd.R);cx.stroke();
+      for(let i=0;i<60;i++){const a=nd.angle-i*.05,al=Math.max(0,(60-i)/60)*.42;cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.arc(nd.cx,nd.cy,nd.R,a,a+.06);cx.closePath();cx.fillStyle=color+h2(al);cx.fill();}
+      cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.lineTo(nd.cx+Math.cos(nd.angle)*nd.R,nd.cy+Math.sin(nd.angle)*nd.R);cx.strokeStyle=color+'dd';cx.lineWidth=1.5;cx.stroke();
+      cx.beginPath();cx.arc(nd.cx,nd.cy,4,0,6.28);cx.fillStyle=color;cx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+  resize(); window.addEventListener('resize', resize); draw();
+}
+
+/* ═══ BG CANVAS ══════════════════════════════════════════════ */
+(function(){
+  const c=document.getElementById('bgcv'),cx=c.getContext('2d');
+  let W,H,pts=[];
+  function r(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;pts=[];const n=Math.floor(W*H/22000);for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.13,vy:(Math.random()-.5)*.13,r:Math.random()*1.2+.5});}
+  function d(){cx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dv=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(dv>100)continue;cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=`rgba(37,99,235,${(1-dv/100)*.07})`;cx.lineWidth=.5;cx.stroke();}pts.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle='rgba(37,99,235,.18)';cx.fill();});requestAnimationFrame(d);}
+  r();window.addEventListener('resize',r);d();
 })();
+
+/* ═══ INIT ═══════════════════════════════════════════════════ */
+setL(LNG);
+activate('dept'); // Default: Department tab
+
+// Check existing session
+_SB.auth.getSession().then(({data:{session}})=>{
+  if(session) _SB.from('profiles').select('role').eq('id',session.user.id).single().then(({data:p})=>{if(p)location.href=PORTALS[p.role]||'employee.html';}).catch(()=>{});
+}).catch(()=>{});
 </script>
+<style>@keyframes sk{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}</style>
 </body>
 </html>

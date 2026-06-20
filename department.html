@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · إدارة التميز التشغيلي</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--DC:#D4AF37;--DR:212,175,55}
+body{background:#020912}
+.ni.on{color:#D4AF37;background:rgba(212,175,55,.12)}
+.ni.on::after{background:#D4AF37}
+.tb-ttl{color:#D4AF37!important}.clk .ct{color:#D4AF37!important}
+.ld .d{background:#D4AF37;color:#D4AF37;box-shadow:0 0 6px #D4AF37}
+
+/* War Room Hero */
+.wr-hero{position:relative;overflow:hidden;background:linear-gradient(145deg,#D4AF3708,#020912);border:1px solid rgba(212,175,55,.2);border-radius:12px;margin-bottom:18px}
+#wrcv{position:absolute;inset:0;z-index:0}
+.wr-hi{position:relative;z-index:1;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.wr-left h1{font-family:var(--hud);font-size:22px;font-weight:700;background:linear-gradient(135deg,#fff,#FDE68A,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.wr-left .ws{font-size:12.5px;color:#D4AF3755;font-style:italic}
+.wr-clk .wt{font-family:var(--hud);font-size:40px;font-weight:700;color:#D4AF37;line-height:1}
+.wr-clk .wd{font-family:var(--mono);font-size:11px;color:#8B7340;margin-top:3px;text-align:center}
+.wr-stats{display:flex;gap:18px;flex-wrap:wrap}
+.wkv{text-align:center}
+.wkv .wv{font-family:var(--hud);font-size:26px;font-weight:700;line-height:1;color:#fff}
+.wkv .wl{font-family:var(--mono);font-size:9px;color:#8B7340;margin-top:2px;letter-spacing:.08em}
+.wkv.rd .wv{color:#F87171}.wkv.gn .wv{color:#34D399}.wkv.yw .wv{color:#FCD34D}
+.wrb{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#D4AF37,#FDE68A,#D4AF37,transparent);animation:sba 4s linear infinite;background-size:200%}
+@keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
+
+/* Division hexes */
+.dhx{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.dhx-node{position:relative;overflow:hidden;background:var(--bg2);border:1px solid rgba(212,175,55,.08);border-radius:12px;padding:14px 12px;cursor:pointer;transition:.22s;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.dhx-node:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.6);border-color:rgba(212,175,55,.2)}
+.dhx-node.crit{border-color:rgba(239,68,68,.35)}
+.dhx-node.warn{border-color:rgba(245,158,11,.3)}
+.dhx-node.ok{border-color:rgba(16,185,129,.25)}
+.hn-ic{font-size:26px}
+.hn-nm{font-size:11px;font-weight:700;color:var(--t1)}
+.hn-sc{font-family:var(--hud);font-size:24px;font-weight:700}
+.hn-st{font-family:var(--mono);font-size:9px;letter-spacing:.07em}
+.hn-mt{display:flex;gap:8px;width:100%;border-top:1px solid rgba(255,255,255,.05);padding-top:7px;justify-content:center}
+.hn-m .mv{font-family:var(--hud);font-size:13px;font-weight:700}
+.hn-m .ml{font-size:9px;color:var(--t3)}
+.hn-bar{width:100%;height:3px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.hn-fill{height:100%;border-radius:99px}
+
+/* attention feed */
+.at-item{display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid rgba(212,175,55,.06);cursor:pointer;transition:.13s}
+.at-item:hover{background:rgba(212,175,55,.04)}
+.at-item:last-child{border-bottom:none}
+.at-led{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.at-led.cr{background:#EF4444;box-shadow:0 0 7px #EF4444;animation:pl 1s infinite}
+.at-led.wr{background:#F59E0B;box-shadow:0 0 5px #F59E0B;animation:pl 2s infinite}
+.at-led.ok{background:#10B981}
+@keyframes pl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sb">
+  <div class="sb-brand">
+    <div id="lgEl"></div>
+    <div><div class="sb-t1" style="color:#D4AF37">se</div><div class="sb-t2">إدارة التميز التشغيلي</div></div>
+  </div>
+  <div id="ubEl" class="ub"></div>
+  <nav class="nav" id="navEl"></nav>
+  <div class="sb-foot">
+    <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
+    <button class="btn-lg" onclick="toggleLang()">EN/ع</button>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="tb-ttl fhud" id="pgtitle">غرفة العمليات</div>
+    <div class="tb-r">
+      <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
+      <div class="ld"><div class="d"></div><span style="color:#8B7340;font-family:var(--mono);font-size:11px">WAR ROOM</span></div>
+    </div>
+  </div>
+  <div class="page" id="pgContent"></div>
+</div>
+</div>
+<div id="tc"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV=[
+  {k:'warroom',  ar:'غرفة العمليات',      en:'War Room',         ic:'🎯',fn:"go('warroom')"},
+  {k:'heatmap',  ar:'خريطة الدوائر',       en:'Division Map',     ic:'🗺️',fn:"go('heatmap')"},
+  {g:'المتابعة',ge:'FOLLOW-UP'},
+  {k:'afis',     ar:'AFIs الحرجة',         en:'Critical AFIs',    ic:'▲',fn:"go('afis')"},
+  {k:'alerts',   ar:'تنبيهات حرجة',        en:'Critical Alerts',  ic:'🚨',fn:"go('alerts')"},
+  {k:'kpis',     ar:'مؤشرات متدهورة',      en:'KPI Decline',      ic:'📉',fn:"go('kpis')"},
+  {k:'tasks',    ar:'المهام',              en:'Tasks',            ic:'✓',fn:"go('tasks')"},
+  {g:'القرارات',ge:'DECISIONS'},
+  {k:'approvals',ar:'موافقات معلقة',        en:'Approvals',        ic:'✅',fn:"go('approvals')"},
+  {k:'brief',    ar:'الملخص التنفيذي',     en:'Executive Brief',  ic:'📋',fn:"go('brief')"},
+];
+const PAGES={};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const item=NAV.find(n=>n.k===k);
+  document.getElementById('pgtitle').textContent=item?(App.lang==='ar'?item.ar:item.en):k;
+  buildNav(NAV,k);
+  const ct=document.getElementById('pgContent');ct.innerHTML='<div class="fade" id="pg"></div>';
+  (PAGES[k]||function(el){el.innerHTML='<p style="padding:40px;color:var(--t3)">قيد البناء…</p>';})(document.getElementById('pg'));
+}
+
+/* War room canvas */
+function drawWR(id){
+  const cv=document.getElementById(id);if(!cv)return;
+  const cx=cv.getContext('2d');let W,H,pts=[],t=0;
+  function r(){const rc=cv.parentElement.getBoundingClientRect();W=cv.width=rc.width;H=cv.height=rc.height;pts=[];const n=Math.floor(W*H/8000);for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.12,vy:(Math.random()-.5)*.12,r:Math.random()*1.2+.5,gold:Math.random()>.7});}
+  function d(){t+=.005;cx.clearRect(0,0,W,H);
+    cx.strokeStyle='rgba(212,175,55,.03)';cx.lineWidth=.4;
+    for(let x=0;x<W;x+=55){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+    for(let y=0;y<H;y+=38){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+    const g=cx.createRadialGradient(W*.7,H*.5,0,W*.7,H*.5,H*.6);
+    g.addColorStop(0,'rgba(212,175,55,.05)');g.addColorStop(1,'transparent');
+    cx.fillStyle=g;cx.fillRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle=p.gold?'rgba(212,175,55,.5)':'rgba(255,255,255,.12)';cx.fill();});
+    const sy=(Math.sin(t)*.5+.5)*H;cx.fillStyle='rgba(212,175,55,.02)';cx.fillRect(0,sy-1,W,2);
+    requestAnimationFrame(d);}
+  r();window.addEventListener('resize',r);d();
+}
+
+reg('warroom',async el=>{
+  el.innerHTML=`
+    <div class="wr-hero">
+      <canvas id="wrcv"></canvas>
+      <div class="wr-hi">
+        <div class="wr-left">
+          <h1>🎯 غرفة العمليات التنفيذية</h1>
+          <div class="ws">"نظرة استراتيجية شاملة — فقط ما يحتاج قرارك"</div>
+          <div class="wr-stats" id="wrStats">
+            <div class="wkv rd"><div class="wv">—</div><div class="wl">AFIs OVERDUE</div></div>
+            <div class="wkv yw"><div class="wv">—</div><div class="wl">KPIs RED</div></div>
+            <div class="wkv rd"><div class="wv">—</div><div class="wl">CRITICAL ALERTS</div></div>
+            <div class="wkv yw"><div class="wv">—</div><div class="wl">PENDING APPROVALS</div></div>
+          </div>
+        </div>
+        <div class="wr-clk">
+          <div class="wt" id="wt">—</div><div class="wd" id="wd"></div>
+          <div style="font-size:11.5px;color:#8B7340;margin-top:5px;font-family:var(--mono);text-align:center" id="wg"></div>
+        </div>
+      </div>
+      <div class="wrb"></div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:10px;color:#8B7340;letter-spacing:.12em;margin-bottom:10px">◈ OPERATIONAL HEALTH — DIVISION STATUS</div>
+    <div class="dhx" id="dhx">${skR(5)}</div>
+
+    <div class="g3">
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)"><h3 style="color:#D4AF37;font-size:12px">⚡ يحتاج قراراتك الآن</h3><span class="fmono" style="font-size:10px;color:#8B7340" id="atCnt">...</span></div>
+        <div id="atFeed"></div>
+      </div>
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)"><h3 style="color:#D4AF37;font-size:12px">📉 مؤشرات تتراجع</h3></div>
+        <div id="kpiFeed"></div>
+      </div>
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)"><h3 style="color:#D4AF37;font-size:12px">📋 الملخص التنفيذي</h3><span class="badge bb" style="font-size:9px">AI BRIEF</span></div>
+        <div id="brfFeed"></div>
+      </div>
+    </div>`;
+
+  drawWR('wrcv');
+
+  // War room clock
+  function wTick(){
+    const n=new Date(),h=n.getHours();
+    const hh=String(h%12||12).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0'),ss=String(n.getSeconds()).padStart(2,'0');
+    const el=document.getElementById('wt');if(el)el.textContent=`${hh}:${mm}:${ss} ${h<12?'ص':'م'}`;
+    const TI=T[App.lang]||T.ar;
+    const de=document.getElementById('wd');if(de)de.textContent=`${TI.days[n.getDay()]}، ${n.getDate()} ${TI.months[n.getMonth()]} ${n.getFullYear()}`;
+    const ge=document.getElementById('wg');if(ge)ge.textContent=h<12?'صباح الخير — راجع أولويات اليوم':h<17?'مساء الخير — ماذا يحتاج قرارك؟':'وقت الإغلاق — لخّص إنجازات اليوم';
+  }
+  wTick();setInterval(wTick,1000);
+
+  try{
+    const[oAfis,rKpis,cAlerts,pApp,health,afis,kpis]=await Promise.all([
+      dbCnt('afis',{eq:{status:'overdue'}}),
+      dbCnt('kpis',{eq:{status:'red'}}),
+      dbCnt('technical_alerts',{eq:{severity:'critical'},neq:{status:'resolved'}}),
+      dbCnt('assessments',{eq:{approval_status:'pending'}}),
+      loadHealth(),
+      dbList('afis',{eq:{status:'overdue'},lim:6}),
+      dbList('kpis',{eq:{status:'red'},lim:4}),
+    ]);
+
+    document.getElementById('wrStats').innerHTML=[
+      {v:oAfis,l:'AFIs OVERDUE',cl:oAfis?'rd':'gn'},
+      {v:rKpis,l:'KPIs RED',cl:rKpis?'yw':'gn'},
+      {v:cAlerts,l:'CRITICAL ALERTS',cl:cAlerts?'rd':'gn'},
+      {v:pApp,l:'PENDING APPROVALS',cl:pApp?'yw':'gn'},
+    ].map(s=>`<div class="wkv ${s.cl}"><div class="wv">${s.v}</div><div class="wl">${s.l}</div></div>`).join('');
+
+    document.getElementById('dhx').innerHTML=health.map(d=>{
+      const cfg=DIVS[d.code]||{};
+      const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
+      const cls=sc>=85?'ok':sc>=65?'warn':'crit';
+      const clr=sc>=85?'#34D399':sc>=65?'#FCD34D':'#F87171';
+      const scAr=sc>=85?'ممتاز':sc>=65?'مراقبة':'يحتاج تدخل';
+      return`<div class="dhx-node ${cls}" onclick="window.location.href='${d.code==='national_grid'?'national-grid':d.code}.html'">
+        <div class="hn-ic">${cfg.icon||'◧'}</div>
+        <div class="hn-nm">${App.lang==='ar'?d.name_ar:d.name_en}</div>
+        <div class="hn-sc" style="color:${clr}">${sc}%</div>
+        <div class="hn-st" style="color:${clr}88">${scAr}</div>
+        <div class="hn-bar"><div class="hn-fill" style="width:${sc}%;background:${clr}"></div></div>
+        <div class="hn-mt">
+          <div class="hn-m"><div class="mv" style="color:#F87171">${d.overdue_afis}</div><div class="ml">LATE</div></div>
+          <div class="hn-m"><div class="mv" style="color:#FCD34D">${d.open_alerts}</div><div class="ml">ALRT</div></div>
+          <div class="hn-m"><div class="mv" style="color:#60A5FA">${d.active_assessments}</div><div class="ml">ASSM</div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const atItems=[
+      ...afis.data.map(a=>({sev:'cr',t:esc(a.title),m:`${a.afi_number||''} · ${DIVS[a.business_line]?.ar||a.business_line||''}`})),
+      ...kpis.data.slice(0,2).map(k=>({sev:'wr',t:`${esc(k.name_ar)} — دون الهدف`,m:`الفعلي: ${k.actual} / الهدف: ${k.target} ${k.unit||'%'}`})),
+    ];
+    if(!atItems.length)atItems.push({sev:'ok',t:'لا قرارات عاجلة اليوم ✓',m:'المنظومة تعمل بشكل جيد'});
+    document.getElementById('atCnt').textContent=`${atItems.filter(a=>a.sev!=='ok').length} عنصر`;
+    document.getElementById('atFeed').innerHTML=atItems.map(a=>`<div class="at-item"><div class="at-led ${a.sev}"></div><div style="flex:1"><div style="font-weight:600;font-size:13px">${a.t}</div><div style="font-size:11.5px;color:var(--t2)">${a.m}</div></div></div>`).join('');
+
+    document.getElementById('kpiFeed').innerHTML=kpis.data.length
+      ?kpis.data.map(k=>`<div class="at-item"><div class="at-led wr"></div><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(k.name_ar)}</div><div style="font-size:11.5px;color:var(--t2)">${fmtN(k.actual)} / هدف ${fmtN(k.target)} ${k.unit||'%'}</div></div><span class="badge br">${k.trend==='down'?'↓ هابط':'دون الهدف'}</span></div>`).join('')
+      :`<div style="padding:12px;text-align:center;color:var(--success);font-size:13px">✓ كل المؤشرات ضمن الأهداف</div>`;
+
+    const avgHealth=health.length?Math.round(health.reduce((s,d)=>{const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;return s+sc;},0)/health.length):0;
+    document.getElementById('brfFeed').innerHTML=[
+      {h:'الوضع العام',t:`إدارة التميز التشغيلي تعمل بكفاءة ${avgHealth}%. ${oAfis>0?`${oAfis} AFI متأخرة.`:''} ${cAlerts>0?`${cAlerts} تنبيه حرج.`:''}`},
+      {h:'أولويات اليوم',t:`${oAfis>0?`متابعة ${oAfis} AFI متأخرة.`:''}${rKpis>0?` مراجعة ${rKpis} مؤشر دون الهدف.`:''}${pApp>0?` ${pApp} طلب اعتماد ينتظرك.`:''} `.trim()||'لا قرارات عاجلة — يوم جيد.'},
+      {h:'توصية',t:'راجع الدائرة ذات أعلى AFIs متأخرة واطلب تقرير معالجة فوري.'},
+    ].map(b=>`<div style="padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06)"><div style="font-family:var(--hud);font-size:10.5px;color:#D4AF37;margin-bottom:4px">${b.h.toUpperCase()}</div><p style="font-size:12.5px;color:var(--t2);line-height:1.6">${b.t}</p></div>`).join('');
+  }catch(e){toast(e.message,'e');}
+});
+
+reg('heatmap',async el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">🗺️ خريطة الدوائر</h1></div><div class="g3" id="hmGrid">${skR()}</div>`;
+  const h=await loadHealth();
+  document.getElementById('hmGrid').innerHTML=h.map(d=>{
+    const cfg=DIVS[d.code]||{};const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
+    const clr=sc>=85?'var(--success)':sc>=65?'var(--warning)':'var(--danger)';
+    return`<div class="card" style="border-color:${cfg.color||clr}30">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-size:26px">${cfg.icon||'◧'}</div>
+        <div><div style="font-weight:700;font-size:14px">${App.lang==='ar'?d.name_ar:d.name_en}</div>
+          <span style="font-family:var(--hud);font-size:20px;font-weight:700;color:${clr}">${sc}%</span>
+        </div>
+      </div>
+      <div class="g2" style="gap:6px">
+        ${[{l:'AFIs مفتوحة',v:d.open_afis},{l:'AFIs متأخرة',v:d.overdue_afis},{l:'تنبيهات',v:d.open_alerts},{l:'تقييمات',v:d.active_assessments}].map(i=>`<div style="padding:7px;background:var(--bg1);border-radius:var(--rs);text-align:center"><div style="font-family:var(--hud);font-size:17px">${i.v}</div><div style="font-size:9.5px;color:var(--t3)">${i.l}</div></div>`).join('')}
+      </div>
+      <a href="${d.code==='national_grid'?'national-grid':d.code}.html" class="btn sm" style="width:100%;margin-top:10px;justify-content:center;color:${cfg.color||clr};border-color:${cfg.color||clr}44">فتح البورتال ←</a>
+    </div>`;
+  }).join('');
+});
+
+['afis','alerts','kpis','tasks','approvals','brief'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">${NAV.find(n=>n.k===k)?.ar||k}</h1></div><p style="color:var(--t2);padding:18px">يتصل بالنظام الكامل عند توصيل Supabase.</p>`;
+}));
+
+(async()=>{
+  const p=await initPage({roles:['director','admin']});
+  if(!p)return;
+  document.getElementById('lgEl').innerHTML=LOGO;
+  buildNav(NAV,'warroom');go('warroom');
+})();
+</script>
+</body>
+</html>

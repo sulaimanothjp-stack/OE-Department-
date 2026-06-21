@@ -259,9 +259,19 @@ async function initAuth(roles) {
     return null;
   }
 
+  // Get user ID from JWT sub claim (more reliable than sess.user.id)
+  let userId = sess.user?.id;
+  if (!userId) {
+    try {
+      const payload = JSON.parse(atob(sess.access_token.split('.')[1]));
+      userId = payload.sub;
+    } catch (e) {}
+  }
+  if (!userId) { location.href = 'index.html'; return null; }
+
   // Fetch profile via REST API
   try {
-    const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${sess.user.id}&select=*&limit=1`, {
+    const res = await fetch(`${SB_URL}/rest/v1/profiles?id=eq.${userId}&select=*&limit=1`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${sess.access_token}` }
     });
     const data = await res.json();
@@ -272,7 +282,7 @@ async function initAuth(roles) {
       return null;
     }
 
-    App.user = sess.user;
+    App.user = sess.user || { id: userId };
     App.profile = p;
 
     if (roles) {

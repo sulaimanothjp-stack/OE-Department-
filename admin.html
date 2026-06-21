@@ -358,6 +358,25 @@ reg('divs',async el=>{
 /* ═══ SETTINGS ════════════════════════════════════════════ */
 reg('settings',el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">⚙️ الإعدادات</h1></div>
+  <div class="g2 mb2">
+    <!-- CHANGE PASSWORD -->
+    <div class="panel" style="border-color:rgba(79,70,229,.15)">
+      <div class="ph" style="border-color:rgba(79,70,229,.12)"><h3 style="color:#818CF8">🔐 تغيير كلمة المرور</h3></div>
+      <div class="pb">
+        <div class="field"><label>كلمة المرور الجديدة</label>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="cp_new" placeholder="كلمة مرور جديدة..." style="flex:1">
+            <button class="btn sm" onclick="genCP()" style="flex-shrink:0">🔀 توليد</button>
+          </div>
+        </div>
+        <div id="cp_box" style="background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:8px;padding:12px;font-family:var(--mono);margin-bottom:12px;display:none">
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:4px">كلمة المرور الجديدة — انسخها قبل الحفظ</div>
+          <div id="cp_show" style="font-size:15px;font-weight:700;color:#818CF8;letter-spacing:.05em"></div>
+        </div>
+        <button class="btn" onclick="changeMyPass()" style="background:linear-gradient(135deg,#4F46E5,#818CF8);border:none;color:#fff">حفظ كلمة المرور الجديدة</button>
+        <p style="font-size:11.5px;color:var(--t3);margin-top:8px">ستُسجَّل خارجاً تلقائياً بعد التغيير لتسجيل الدخول بالجديدة</p>
+      </div>
+    </div>
   <div class="g2">
     <div class="panel" style="border-color:rgba(79,70,229,.15)">
       <div class="ph" style="border-color:rgba(79,70,229,.12)"><h3 style="color:#818CF8">🔗 Supabase</h3></div>
@@ -394,6 +413,26 @@ window.testSB=async()=>{
 };
 
 /* ═══ HEALTH ══════════════════════════════════════════════ */
+/* ═══ CHANGE PASSWORD ════════════════════════════════════════ */
+window.genCP=()=>{
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('cp_new');if(el)el.value=p;
+  const box=document.getElementById('cp_box'),show=document.getElementById('cp_show');
+  if(box)box.style.display='block';if(show)show.textContent=p;
+  navigator.clipboard?.writeText(p).catch(()=>{});
+};
+window.changeMyPass=async()=>{
+  const np=document.getElementById('cp_new')?.value?.trim();
+  if(!np||np.length<6){toast('كلمة المرور يجب أن تكون 6 أحرف على الأقل','e');return;}
+  try{
+    const{error}=await sb.auth.updateUser({password:np});
+    if(error)throw error;
+    toast('تم تغيير كلمة المرور ✓ — جارٍ تسجيل الخروج...','s');
+    setTimeout(async()=>{await sb.auth.signOut();location.href='index.html';},2000);
+  }catch(e){toast(e.message,'e');}
+};
+
 reg('health',async el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">💡 صحة النظام</h1></div><div class="g4" id="hGrid">${skR()}</div>`;
   try{
@@ -406,7 +445,114 @@ reg('health',async el=>{
 });
 
 /* ═══ INIT ════════════════════════════════════════════════ */
+/* ═══ FIRST-TIME SETUP CHECK ═════════════════════════════════ */
+async function checkSetup(){
+  // Check if any admin exists
+  try{
+    const{count}=await sb.from('profiles').select('id',{count:'exact',head:true}).eq('role','admin');
+    if(count===0){
+      // No admin exists — show setup screen
+      showSetupScreen();
+      return false;
+    }
+  }catch(e){
+    // Table might not exist yet
+    showSetupScreen();
+    return false;
+  }
+  return true;
+}
+
+function showSetupScreen(){
+  document.querySelector('.shell').style.display='none';
+  document.body.innerHTML=`
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#020912;padding:20px">
+      <div style="width:100%;max-width:460px;background:#091628;border:1px solid #152840;border-radius:14px;padding:28px">
+        <div style="text-align:center;margin-bottom:22px">
+          <img src="se-logo.png.PNG" alt="SE" style="height:48px;margin-bottom:10px">
+          <h2 style="font-family:'Chakra Petch',monospace;font-size:18px;color:#fff">إعداد حساب الأدمن</h2>
+          <p style="font-size:12.5px;color:#8098BC;margin-top:5px">أول تشغيل — أنشئ حساب مشرف النظام</p>
+        </div>
+        <div id="setupErr" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.28);border-radius:8px;padding:8px 11px;font-size:12.5px;color:#EF4444;margin-bottom:12px;display:none"></div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11.5px;color:#8098BC;margin-bottom:4px">الاسم الكامل</label>
+          <input type="text" id="su_name" placeholder="سليمان الخطيب" value="سليمان الخطيب" style="width:100%;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:8px;padding:9px 11px;font-size:14px;font-family:'IBM Plex Sans Arabic',sans-serif;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11.5px;color:#8098BC;margin-bottom:4px">البريد الإلكتروني</label>
+          <input type="email" id="su_email" placeholder="admin@se.com.sa" style="width:100%;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:8px;padding:9px 11px;font-size:14px;font-family:'IBM Plex Sans Arabic',sans-serif;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="display:block;font-size:11.5px;color:#8098BC;margin-bottom:4px">كلمة المرور</label>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="su_pass" placeholder="كلمة مرور قوية" style="flex:1;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:8px;padding:9px 11px;font-size:14px;font-family:'IBM Plex Sans Arabic',sans-serif">
+            <button onclick="genSetupPass()" style="padding:9px 12px;background:#0C1E38;border:1px solid #152840;color:#8098BC;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap">🔀 توليد</button>
+          </div>
+        </div>
+        <button onclick="createAdminAccount()" id="setupBtn" style="width:100%;padding:12px;background:linear-gradient(135deg,#4F46E5,#818CF8);border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif">إنشاء حساب الأدمن</button>
+        <p style="text-align:center;font-size:11px;color:#3E5878;margin-top:12px;line-height:1.6">هذه الشاشة تظهر مرة واحدة فقط<br>بعد الإنشاء تدخل مباشرة للوحة التحكم</p>
+      </div>
+    </div>`;
+  // Re-add fonts
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href='https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&display=swap';
+  document.head.appendChild(link);
+  genSetupPass();
+}
+
+function genSetupPass(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('su_pass');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+}
+
+async function createAdminAccount(){
+  const name=document.getElementById('su_name')?.value?.trim();
+  const email=document.getElementById('su_email')?.value?.trim();
+  const pass=document.getElementById('su_pass')?.value;
+  const err=document.getElementById('setupErr');
+  const btn=document.getElementById('setupBtn');
+
+  if(!name||!email||!pass){err.textContent='يرجى تعبئة جميع الحقول';err.style.display='block';return;}
+  btn.disabled=true;btn.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid transparent;border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle"></span> جارٍ الإنشاء...';
+
+  try{
+    const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name,role:'admin'}}});
+    if(error)throw error;
+    const uid=data.user?.id;
+    if(uid){
+      await sb.from('profiles').upsert({id:uid,full_name:name,full_name_en:name,role:'admin',is_active:true});
+    }
+    // Show success + credentials
+    document.body.innerHTML=`
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#020912;padding:20px">
+        <div style="width:100%;max-width:460px;background:#091628;border:1px solid #152840;border-radius:14px;padding:28px;text-align:center">
+          <div style="font-size:48px;margin-bottom:10px">✅</div>
+          <h2 style="font-family:'Chakra Petch',monospace;font-size:18px;color:#34D399;margin-bottom:5px">تم إنشاء حساب الأدمن!</h2>
+          <p style="font-size:12.5px;color:#8098BC;margin-bottom:18px">احفظ بيانات الدخول قبل المتابعة</p>
+          <div style="background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:8px;padding:14px;text-align:right;margin-bottom:16px;font-family:'IBM Plex Mono',monospace">
+            <div style="font-size:9.5px;color:#3E5878;margin-bottom:3px">الإيميل</div>
+            <div style="font-size:13px;font-weight:700;color:#818CF8;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px">${email}</div>
+            <div style="font-size:9.5px;color:#3E5878;margin-bottom:3px">كلمة المرور</div>
+            <div style="font-size:13px;font-weight:700;color:#818CF8;background:#0A1828;padding:6px 10px;border-radius:6px">${pass}</div>
+          </div>
+          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:9px 12px;font-size:12px;color:#FCD34D;margin-bottom:16px;text-align:right">
+            ⚠️ احفظ كلمة المرور — لن تظهر مرة أخرى
+          </div>
+          <button onclick="location.reload()" style="width:100%;padding:12px;background:linear-gradient(135deg,#4F46E5,#818CF8);border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer">دخول للوحة التحكم ←</button>
+        </div>
+      </div>`;
+  }catch(e){
+    err.textContent=e.message?.includes('already')?'هذا الإيميل مسجّل مسبقاً — ادخل مباشرة من index.html':e.message;
+    err.style.display='block';
+    btn.disabled=false;btn.innerHTML='إنشاء حساب الأدمن';
+  }
+}
+
 (async()=>{
+  const ready=await checkSetup();
+  if(!ready)return;
   const p=await initPage({roles:['admin']});
   if(!p)return;
   document.getElementById('lgEl').innerHTML=LOGO;
@@ -415,3 +561,4 @@ reg('health',async el=>{
 </script>
 </body>
 </html>
+<!-- SETUP OVERRIDE - injected before closing body -->

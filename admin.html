@@ -97,13 +97,21 @@ reg('users',async el=>{
     const r=document.getElementById('ur')?.value||'';
     el2.innerHTML=skR();
     try{
-      // Test connection first
-      const{error:connErr}=await sb.from('profiles').select('id',{count:'exact',head:true});
-      if(connErr)throw connErr;
-      
-      const opts={}; if(r) opts.eq={role:r};
-      const{data}=await dbList('profiles',opts);
-      const fl=q?data.filter(u=>(u.full_name||'').toLowerCase().includes(q)):data;
+      // Use native fetch to avoid Supabase JS client hanging
+      const sess = await sb.auth.getSession();
+      const token = sess.data?.session?.access_token;
+      let url = 'https://ekywcrlcjgbjtwnjozov.supabase.co/rest/v1/profiles?select=*&order=created_at.desc';
+      if(r) url += '&role=eq.'+r;
+      const res = await fetch(url, {
+        headers:{
+          'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI',
+          'Authorization':'Bearer '+(token||''),
+          'Content-Type':'application/json'
+        }
+      });
+      const data = await res.json();
+      if(!Array.isArray(data)) throw new Error(data.message||JSON.stringify(data));
+      const fl=q?data.filter(u=>((u.full_name||'')+(u.full_name_en||'')).toLowerCase().includes(q)):data;
       const stEl=document.getElementById('uStats');
       if(stEl) stEl.innerHTML=[
         {sl:'الكل',sv:fl.length},{sl:'مدراء',sv:fl.filter(u=>u.role?.includes('manager')||u.role==='director').length},

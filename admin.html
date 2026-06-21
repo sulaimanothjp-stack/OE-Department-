@@ -92,10 +92,15 @@ reg('users',async el=>{
 
   async function load(){
     const el2=document.getElementById('uList');
+    if(!el2){console.warn('uList not found');return;}
     const q=(document.getElementById('uq')?.value||'').toLowerCase();
     const r=document.getElementById('ur')?.value||'';
     el2.innerHTML=skR();
     try{
+      // Test connection first
+      const{error:connErr}=await sb.from('profiles').select('id',{count:'exact',head:true});
+      if(connErr)throw connErr;
+      
       const opts={}; if(r) opts.eq={role:r};
       const{data}=await dbList('profiles',opts);
       const fl=q?data.filter(u=>(u.full_name||'').toLowerCase().includes(q)):data;
@@ -104,7 +109,7 @@ reg('users',async el=>{
         {sl:'الكل',sv:fl.length},{sl:'مدراء',sv:fl.filter(u=>u.role?.includes('manager')||u.role==='director').length},
         {sl:'موظفون',sv:fl.filter(u=>u.role==='employee').length},{sl:'نشطون',sv:fl.filter(u=>u.is_active).length,cl:'grn'},
       ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl||''}">${s.sv}</div></div>`).join('');
-      if(!fl.length){el2.innerHTML=emptyEl('لا مستخدمين',`<button class="btn sm" onclick="openCU()">+ إنشاء</button>`);return;}
+      if(!fl.length){el2.innerHTML=emptyEl('لا مستخدمين بعد',`<button class="btn sm" onclick="openCU()" style="background:linear-gradient(135deg,#4F46E5,#818CF8);border:none;color:#fff">+ أنشئ أول مستخدم</button>`);return;}
       el2.innerHTML=fl.map(u=>{
         const init=(u.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
         const clr=RCO[u.role]||'var(--t2)';
@@ -129,7 +134,17 @@ reg('users',async el=>{
           </div>
         </div>`;
       }).join('');
-    }catch(e){el2.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+    }catch(e){
+      console.error('Load users error:',e);
+      if(!document.getElementById('uList'))return;
+      document.getElementById('uList').innerHTML=`<div style="padding:20px;text-align:center">
+        <div style="font-size:32px;margin-bottom:10px">⚠️</div>
+        <div style="color:var(--danger);font-size:13.5px;font-weight:600;margin-bottom:8px">${e.message}</div>
+        <div style="color:var(--t2);font-size:12.5px;margin-bottom:14px">تأكد من تشغيل SQL Schema في Supabase</div>
+        <button class="btn sm" onclick="load()" style="margin-left:6px">إعادة المحاولة</button>
+        <a href="https://supabase.com/dashboard/project/ekywcrlcjgbjtwnjozov/editor" target="_blank" class="btn sm">فتح SQL Editor</a>
+      </div>`;
+    }
   }
   ['uq','ur'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>setTimeout(load,300));document.getElementById(id)?.addEventListener('change',load);});
   load(); window._rlu=load;
@@ -377,6 +392,21 @@ reg('settings',el=>{
         <p style="font-size:11.5px;color:var(--t3);margin-top:8px">ستُسجَّل خارجاً تلقائياً بعد التغيير لتسجيل الدخول بالجديدة</p>
       </div>
     </div>
+    <!-- CHANGE EMAIL -->
+    <div class="panel" style="border-color:rgba(79,70,229,.15)">
+      <div class="ph" style="border-color:rgba(79,70,229,.12)"><h3 style="color:#818CF8">✉️ تغيير البريد الإلكتروني</h3></div>
+      <div class="pb">
+        <div style="background:var(--bg1);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px">
+          <div style="font-size:10.5px;color:var(--t3);margin-bottom:3px">البريد الحالي</div>
+          <div style="font-family:var(--mono);font-size:13px;color:#818CF8" id="curEmail">—</div>
+        </div>
+        <div class="field"><label>البريد الإلكتروني الجديد</label>
+          <input type="email" id="ne_email" placeholder="new@se.com.sa">
+        </div>
+        <button class="btn" onclick="changeMyEmail()" style="background:linear-gradient(135deg,#4F46E5,#818CF8);border:none;color:#fff">حفظ البريد الجديد</button>
+        <p style="font-size:11.5px;color:var(--t3);margin-top:8px">سيُرسل تأكيد للبريد الجديد — تأكد من تعطيل تأكيد الإيميل في Supabase</p>
+      </div>
+    </div>
   <div class="g2">
     <div class="panel" style="border-color:rgba(79,70,229,.15)">
       <div class="ph" style="border-color:rgba(79,70,229,.12)"><h3 style="color:#818CF8">🔗 Supabase</h3></div>
@@ -401,6 +431,11 @@ reg('settings',el=>{
     </div>
   </div>`;
   testSB();
+  // Show current email
+  sb.auth.getUser().then(({data:{user}})=>{
+    const el=document.getElementById('curEmail');
+    if(el&&user) el.textContent=user.email||'—';
+  });
 });
 window.testSB=async()=>{
   const el=document.getElementById('sbSt'); if(!el) return;
@@ -422,6 +457,17 @@ window.genCP=()=>{
   if(box)box.style.display='block';if(show)show.textContent=p;
   navigator.clipboard?.writeText(p).catch(()=>{});
 };
+window.changeMyEmail=async()=>{
+  const ne=mv('ne_email');
+  if(!ne||!ne.includes('@')){toast('يرجى إدخال إيميل صحيح','e');return;}
+  try{
+    const{error}=await sb.auth.updateUser({email:ne});
+    if(error)throw error;
+    toast('تم تغيير البريد ✓ — سجّل دخول بالجديد','s');
+    setTimeout(async()=>{await sb.auth.signOut();location.href='index.html';},2000);
+  }catch(e){toast(e.message,'e');}
+};
+
 window.changeMyPass=async()=>{
   const np=document.getElementById('cp_new')?.value?.trim();
   if(!np||np.length<6){toast('كلمة المرور يجب أن تكون 6 أحرف على الأقل','e');return;}

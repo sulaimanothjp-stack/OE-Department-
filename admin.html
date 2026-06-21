@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SE · Admin</title>
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=1782068784">
 <style>
 :root{--DC:#4F46E5;--DR:79,70,229}
 body{background:#020912}
@@ -44,7 +44,7 @@ body{background:#020912}
 </div>
 <div id="tc"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=1782068784"></script>
 <script>
 const RLA = {admin:'مشرف النظام',director:'مدير الإدارة',governance_manager:'مدير الحوكمة',generation_manager:'مدير التوليد',national_grid_manager:'مدير النقل',distribution_manager:'مدير التوزيع',technical_alerts_manager:'مدير التنبيهات',employee:'موظف'};
 const RCL = {admin:'rgba(239,68,68,.15)',director:'rgba(212,175,55,.12)',governance_manager:'rgba(124,58,237,.15)',generation_manager:'rgba(245,158,11,.12)',national_grid_manager:'rgba(14,165,233,.12)',distribution_manager:'rgba(16,185,129,.12)',technical_alerts_manager:'rgba(239,68,68,.12)',employee:'rgba(30,58,88,.5)'};
@@ -597,12 +597,49 @@ async function createAdminAccount(){
 }
 
 (async()=>{
-  const ready=await checkSetup();
-  if(!ready)return;
-  const p=await initPage({roles:['admin']});
-  if(!p)return;
-  document.getElementById('lgEl').innerHTML=LOGO;
-  buildNav(NAV,'users');go('users');
+  // Show loading immediately
+  const ct=document.getElementById('pgContent');
+  if(ct) ct.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:70vh;flex-direction:column;gap:14px"><div style="width:40px;height:40px;border:3px solid #152840;border-top-color:#818CF8;border-radius:50%;animation:sp .8s linear infinite"></div><div style="color:#8098BC;font-size:13.5px">جارٍ التحميل...</div></div>';
+
+  // Get session
+  const {data:{session}} = await sb.auth.getSession();
+  if(!session){
+    location.href='index.html';
+    return;
+  }
+
+  // Get profile
+  const {data:profile, error:pErr} = await sb.from('profiles').select('*').eq('id',session.user.id).single();
+
+  if(pErr || !profile){
+    if(ct) ct.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:70vh"><div style="text-align:center;padding:20px">
+      <div style="font-size:42px;margin-bottom:12px">🗄️</div>
+      <h2 style="color:#fff;margin-bottom:8px">Profile not found</h2>
+      <p style="color:#8098BC;font-size:13px;margin-bottom:14px">شغّل هذا في Supabase SQL Editor:</p>
+      <code style="background:#0C1E38;padding:10px;border-radius:8px;display:block;font-size:12px;color:#818CF8;text-align:left;direction:ltr">UPDATE public.profiles SET role='admin' WHERE id='${session.user.id}';</code>
+      <button onclick="location.reload()" style="margin-top:14px;padding:10px 20px;background:#4F46E5;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">إعادة المحاولة</button>
+    </div></div>`;
+    return;
+  }
+
+  if(profile.role !== 'admin'){
+    location.href = PORTALS[profile.role] || 'index.html';
+    return;
+  }
+
+  App.user = session.user;
+  App.profile = profile;
+
+  // Update last login
+  sb.from('profiles').update({last_login:new Date().toISOString()}).eq('id',profile.id).catch(()=>{});
+
+  // Render
+  _renderBadge();
+  setLang(profile.preferences?.lang || App.lang);
+  startClock();
+  document.getElementById('lgEl').innerHTML = LOGO;
+  buildNav(NAV,'users');
+  go('users');
 })();
 </script>
 </body>

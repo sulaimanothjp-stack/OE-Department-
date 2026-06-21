@@ -619,7 +619,27 @@ async function createAdminAccount(){
   }
 
   setMsg('② جلب البيانات...');
-  const {data:profile, error:pErr} = await sb.from('profiles').select('*').eq('id',session.user.id).single();
+  
+  // Use native fetch directly to bypass any Supabase JS client issues
+  let profile = null, pErr = null;
+  try {
+    const res = await fetch(
+      'https://ekywcrlcjgbjtwnjozov.supabase.co/rest/v1/profiles?id=eq.' + session.user.id + '&select=*&limit=1',
+      {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI',
+          'Authorization': 'Bearer ' + session.access_token,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    const data = await res.json();
+    if(Array.isArray(data) && data.length > 0) { profile = data[0]; }
+    else if(data.message) { pErr = {message: data.message, code: data.code}; }
+    else { pErr = {message: 'Profile not found', code: 'NOT_FOUND'}; }
+  } catch(e) {
+    pErr = {message: e.message, code: 'NETWORK'};
+  }
   
   if(pErr){
     if(ct)ct.innerHTML=`<div style="padding:40px;text-align:center">

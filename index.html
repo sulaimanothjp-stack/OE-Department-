@@ -68,16 +68,8 @@ body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:ce
     <canvas id="scv"></canvas>
     <div class="si">
       <div class="si-logo">
-        <svg viewBox="0 0 120 86" fill="none" style="width:52px;height:36px">
-          <defs>
-            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2563EB"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient>
-            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#10B981"/></linearGradient>
-          </defs>
-          <path d="M4,28 C16,28 21,54 38,54 C55,54 60,28 76,28 L76,42 C60,42 55,68 38,68 C21,68 16,42 4,42 Z" fill="url(#g1)"/>
-          <path d="M40,10 C52,10 57,36 74,36 C91,36 96,10 110,10 L110,24 C96,24 91,50 74,50 C57,50 52,24 40,24 Z" fill="url(#g2)"/>
-        </svg>
+        <img src="se-logo.png.PNG" alt="Saudi Energy" style="height:70px;width:auto;object-fit:contain;filter:drop-shadow(0 0 12px rgba(37,99,235,.4))">
       </div>
-      <div class="si-se" id="siSe" style="background:linear-gradient(135deg,#2563EB,#0EA5E9);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">se</div>
       <div class="si-ic" id="siIc">🏛️</div>
       <div class="si-nm" id="siNm">مركز قيادة التميز التشغيلي</div>
       <div class="si-sb" id="siSb">OE DIGITAL TWIN COMMAND CENTER</div>
@@ -95,7 +87,8 @@ body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:ce
 
     <!-- ═══ TABS — HARDCODED IN HTML ═══ -->
     <div class="tabs-row" id="tabsRow">
-      <div class="tab" id="t_dept" onclick="activate('dept')" title="الإدارة والأدمن">🏛️ <span class="tl" data-ar="الإدارة" data-en="Department">الإدارة</span></div>
+      <div class="tab" id="t_adm"  onclick="activate('adm')"  title="مشرف النظام">⚙️ <span class="tl" data-ar="الأدمن" data-en="Admin">الأدمن</span></div>
+      <div class="tab" id="t_dept" onclick="activate('dept')" title="مدير الإدارة">🏛️ <span class="tl" data-ar="الإدارة" data-en="Department">الإدارة</span></div>
       <div class="tab" id="t_gov"  onclick="activate('gov')"  title="الحوكمة والتقييم">⚖️ <span class="tl" data-ar="الحوكمة" data-en="Governance">الحوكمة</span></div>
       <div class="tab" id="t_gen"  onclick="activate('gen')"  title="دائرة التوليد">⚡ <span class="tl" data-ar="التوليد" data-en="Generation">التوليد</span></div>
       <div class="tab" id="t_grid" onclick="activate('grid')" title="الشبكة الوطنية">🔌 <span class="tl" data-ar="الشبكة" data-en="Grid">الشبكة</span></div>
@@ -153,6 +146,13 @@ const PORTALS = {
 
 /* ═══ TAB CONFIG ═════════════════════════════════════════════ */
 const TABS = {
+  adm: {
+    ic:'⚙️', ar:'مشرف النظام', en:'System Admin',
+    nAr:'لوحة إدارة النظام', nEn:'System Administration',
+    dAr:'إنشاء المستخدمين · إدارة الأدوار · إعدادات النظام · صحة المنصة',
+    color:'#4F46E5', cv:'net', isEmp:false,
+    roles:['admin']
+  },
   dept: {
     ic:'🏛️', ar:'الإدارة والأدمن', en:'Department & Admin',
     nAr:'إدارة التميز التشغيلي', nEn:'OE Department',
@@ -458,7 +458,7 @@ function drawCanvas(id, type, color) {
 
 /* ═══ INIT ═══════════════════════════════════════════════════ */
 setL(LNG);
-activate('dept'); // Default: Department tab
+activate('adm'); // Default: Admin tab first
 
 // Check existing session
 _SB.auth.getSession().then(({data:{session}})=>{

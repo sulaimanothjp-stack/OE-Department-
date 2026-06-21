@@ -280,7 +280,7 @@ async function logAct(action,etype,eid,details={}){
   try{if(App.profile)await dbIns('activity_log',{user_id:App.profile.id,action,entity_type:etype,entity_id:eid,details});}catch{}
 }
 
-/* SE Logo */
-const LOGO='<svg viewBox="0 0 120 86" fill="none" style="width:40px;height:28px"><defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2563EB"/><stop offset="1" stop-color="#0EA5E9"/></linearGradient><linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0EA5E9"/><stop offset="1" stop-color="#10B981"/></linearGradient></defs><path d="M4,28 C16,28 21,54 38,54 C55,54 60,28 76,28 L76,42 C60,42 55,68 38,68 C21,68 16,42 4,42 Z" fill="url(#lg1)"/><path d="M40,10 C52,10 57,36 74,36 C91,36 96,10 110,10 L110,24 C96,24 91,50 74,50 C57,50 52,24 40,24 Z" fill="url(#lg2)"/></svg>';
+/* SE Logo — image file (se-logo.png.PNG in same folder) */
+const LOGO='<img src="se-logo.png.PNG" alt="Saudi Energy" style="height:32px;width:auto;object-fit:contain;display:block">';
 
 Object.assign(window,{App,sb,DIVS,PORTALS,T,t,setLang,toggleLang,doLogout,initAuth,initPage,_renderBadge,startClock,toast,openModal,closeModal,mv,ms,dbList,dbGet,dbIns,dbUpd,dbDel,dbCnt,fmtD,fmtN,esc,isOD,priBadge,stBadge,progBar,skR,emptyEl,initCanvas,buildNav,loadHealth,confirm2,logAct,LOGO});

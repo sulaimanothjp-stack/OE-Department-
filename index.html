@@ -131,10 +131,8 @@ body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:ce
 
 <script>
 /* ═══ SUPABASE ══════════════════════════════════════════════ */
-const _SB = supabase.createClient(
-  'https://ekywcrlcjgbjtwnjozov.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI'
-);
+// Use sb from app.js (pure fetch emulator)
+const _SB = sb;
 
 const PORTALS = {
   admin:'admin.html', director:'department.html',

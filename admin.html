@@ -1,866 +1,894 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="root">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SE · بوابة التميز التشغيلي</title>
-
-<link rel="stylesheet" href="styles.css">
+<title>SE · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-
 <style>
-*{box-sizing:border-box}
-body{
-  margin:0;
-  overflow:hidden;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  background:#020912;
-  color:#E8F0FF;
-  font-family:'IBM Plex Sans Arabic',sans-serif;
-}
-#bgcv{position:fixed;inset:0;z-index:0}
-.wrap{
-  position:relative;
-  z-index:1;
-  width:96%;
-  max-width:1100px;
-  min-height:565px;
-  display:flex;
-  border-radius:18px;
-  overflow:hidden;
-  border:1px solid #152840;
-  box-shadow:0 40px 100px rgba(0,0,0,.85);
-  background:#020912;
-}
-.scene{
-  flex:1;
-  position:relative;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:32px;
-  transition:background 1s;
-}
-#scv{position:absolute;inset:0;z-index:0}
-.sg{
-  position:absolute;
-  inset:0;
-  z-index:0;
-  opacity:.14;
-  transition:background 1.2s;
-  pointer-events:none;
-}
-.si{position:relative;z-index:1;text-align:center;pointer-events:none}
-.si-logo{margin-bottom:12px}
-.si-logo img{
-  height:92px;
-  width:auto;
-  max-width:260px;
-  object-fit:contain;
-  filter:drop-shadow(0 0 18px rgba(37,99,235,.35));
-}
-.si-ic{
-  font-size:62px;
-  margin:14px 0;
-  animation:flt 3s ease-in-out infinite;
-  transition:all .6s;
-}
-@keyframes flt{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-.si-nm{
-  font-family:'Chakra Petch',monospace;
-  font-size:20px;
-  font-weight:700;
-  color:#fff;
-  margin-bottom:4px;
-}
-.si-sb{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  letter-spacing:.14em;
-  opacity:.45;
-  margin-bottom:8px;
-}
-.si-ds{
-  font-size:12.5px;
-  color:rgba(255,255,255,.42);
-  max-width:310px;
-  margin:0 auto;
-  line-height:1.7;
-}
-.sbar{
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  height:3px;
-  animation:sba 3s linear infinite;
-  background-size:200%;
-}
-@keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
-
-.lp{
-  width:420px;
-  flex-shrink:0;
-  background:linear-gradient(165deg,#091628,#020912);
-  display:flex;
-  flex-direction:column;
-  padding:22px 24px 16px;
-  overflow-y:auto;
-}
-.lg-row{display:flex;gap:5px;margin-bottom:14px}
-.lg-btn{
-  padding:3px 12px;
-  border-radius:99px;
-  border:1px solid #152840;
-  background:#0C1E38;
-  color:#8098BC;
-  font-family:'IBM Plex Mono',monospace;
-  font-size:11px;
-  cursor:pointer;
-  transition:.13s;
-}
-.lg-btn.on{border-color:#2563EB;color:#2563EB;background:rgba(37,99,235,.1)}
-.tabs-row{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px}
-.tab{
-  display:flex;
-  align-items:center;
-  gap:5px;
-  padding:7px 11px;
-  border-radius:8px;
-  font-size:12px;
-  font-weight:600;
-  cursor:pointer;
-  border:1px solid transparent;
-  background:#0C1E38;
-  color:#8098BC;
-  white-space:nowrap;
-  transition:.18s;
-  user-select:none;
-}
-.tab:hover{color:#E8F0FF}
-.tab.on{color:#fff}
-.lf-title{
-  font-family:'Chakra Petch',monospace;
-  font-size:16px;
-  font-weight:600;
-  margin-bottom:3px;
-}
-.lf-sub{font-size:12px;color:#8098BC;margin-bottom:14px}
-.lerr{
-  background:rgba(239,68,68,.1);
-  border:1px solid rgba(239,68,68,.28);
-  border-radius:8px;
-  padding:8px 11px;
-  font-size:12.5px;
-  color:#EF4444;
-  margin-bottom:10px;
-  display:none;
-}
-.lok{
-  background:rgba(16,185,129,.1);
-  border:1px solid rgba(16,185,129,.28);
-  border-radius:8px;
-  padding:8px 11px;
-  font-size:12.5px;
-  color:#10B981;
-  margin-bottom:10px;
-  display:none;
-}
-.lfield{margin-bottom:12px}
-.lfield label{
-  display:block;
-  font-size:11.5px;
-  color:#8098BC;
-  margin-bottom:4px;
-  font-weight:500;
-}
-.lfield input{
-  width:100%;
-  background:#060F1E;
-  border:1px solid #152840;
-  color:#E8F0FF;
-  border-radius:8px;
-  padding:9px 11px;
-  font-size:14px;
-  font-family:'IBM Plex Sans Arabic',sans-serif;
-  transition:.14s;
-}
-.lfield input:focus{outline:none;border-color:var(--active,#2563EB);box-shadow:0 0 0 3px color-mix(in srgb,var(--active,#2563EB) 15%,transparent)}
-.btn-si{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  color:#fff;
-  font-size:15px;
-  font-weight:600;
-  font-family:'IBM Plex Sans Arabic',sans-serif;
-  cursor:pointer;
-  transition:.17s;
-  margin-top:4px;
-}
-.btn-si:disabled{opacity:.75;cursor:not-allowed}
-.lp-foot{
-  font-family:'IBM Plex Mono',monospace;
-  font-size:9.5px;
-  color:#3E5878;
-  text-align:center;
-  margin-top:auto;
-  padding-top:12px;
-  line-height:1.6;
-}
-.session-banner{
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  z-index:999;
-  background:rgba(9,22,40,.96);
-  backdrop-filter:blur(12px);
-  border-bottom:1px solid #152840;
-  padding:10px 18px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  font-family:'IBM Plex Sans Arabic',sans-serif;
-}
-.session-banner span{color:#fff;font-size:13px}
-.session-banner button{
-  padding:6px 14px;
-  border-radius:7px;
-  font-size:12.5px;
-  font-weight:700;
-  cursor:pointer;
-  font-family:inherit;
-}
-.go-btn{background:#fff;border:none;color:#2563EB}
-.out-btn{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.35);color:#FCA5A5}
-@keyframes sk{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-.spin{
-  display:inline-block;
-  width:15px;
-  height:15px;
-  border:2px solid rgba(255,255,255,.35);
-  border-top-color:#fff;
-  border-radius:50%;
-  animation:spin .65s linear infinite;
-  vertical-align:middle;
-}
-@media(max-width:720px){
-  body{align-items:stretch;height:auto;min-height:100vh;overflow:auto}
-  .wrap{width:100%;min-height:100vh;border-radius:0;border:none}
-  .scene{display:none}
-  .lp{width:100%;padding:22px 18px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:#020912;color:#E8F0FF;font-size:14px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#060F1E}::-webkit-scrollbar-thumb{background:#1E3A56;border-radius:2px}
+.shell{display:flex;height:100vh;overflow:hidden}
+.sb{width:240px;flex-shrink:0;background:linear-gradient(180deg,#091628,#060F1E);border-left:1px solid #152840;display:flex;flex-direction:column}
+.sb-brand{padding:14px 12px;border-bottom:1px solid #152840;display:flex;align-items:center;gap:8px}
+.sb-t1{font-family:'Chakra Petch',monospace;font-size:14px;font-weight:700;color:#4F46E5}
+.sb-t2{font-size:10px;color:#3E5878}
+.ub{margin:8px;padding:8px;background:#0C1E38;border:1px solid #152840;border-radius:8px;display:flex;align-items:center;gap:8px}
+.ub-av{width:30px;height:30px;border-radius:7px;background:rgba(79,70,229,.2);color:#818CF8;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.ub-nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ub-rl{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#8098BC}
+.odot{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 5px #10B981;margin-right:auto;flex-shrink:0}
+.nav{flex:1;overflow-y:auto;padding:5px 0}
+.ng{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#3E5878;letter-spacing:.14em;padding:8px 12px 3px;text-transform:uppercase}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 12px;color:#8098BC;font-size:13px;cursor:pointer;border:none;background:none;width:100%;text-align:right;transition:.12s;border-radius:0}
+.ni:hover{color:#E8F0FF;background:#0C1E38}
+.ni.on{color:#818CF8;background:rgba(79,70,229,.12)}
+.ni .ic{width:18px;text-align:center;font-size:13px}
+.sb-foot{padding:8px;border-top:1px solid #152840;display:flex;gap:5px}
+.btn-lo{flex:1;padding:7px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#EF4444;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-lg{padding:7px 10px;background:#0C1E38;border:1px solid #152840;color:#8098BC;border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{height:52px;background:rgba(6,15,30,.97);border-bottom:1px solid #152840;display:flex;align-items:center;justify-content:space-between;padding:0 16px;flex-shrink:0}
+.tb-ttl{font-family:'Chakra Petch',monospace;font-size:14px;font-weight:600;color:#818CF8}
+.tb-r{display:flex;align-items:center;gap:10px}
+.clk-t{font-family:'Chakra Petch',monospace;font-size:13px;color:#4F46E5}
+.clk-d{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:#3E5878}
+.adot{display:flex;align-items:center;gap:5px}
+.adot .d{width:7px;height:7px;border-radius:50%;background:#4F46E5;box-shadow:0 0 5px #4F46E5;animation:pd 2s infinite}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.4}}
+.page{flex:1;overflow-y:auto;padding:16px}
+/* Cards */
+.sc{background:linear-gradient(145deg,#0C1E38,#091628);border:1px solid #152840;border-radius:10px;padding:14px;position:relative;overflow:hidden;transition:.18s}
+.sc:hover{transform:translateY(-2px)}
+.sc::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at 100% 0%,#4F46E5 0%,transparent 75%);opacity:.08}
+.sc .sl{font-size:11.5px;color:#8098BC;margin-bottom:8px}
+.sc .sv{font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;background:linear-gradient(135deg,#4F46E5,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sc .sv.grn{background:linear-gradient(135deg,#10B981,#34D399)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+.bg{background:rgba(21,40,64,.8);border:1px solid #152840;color:#8098BC}
+/* Panel */
+.panel{background:#091628;border:1px solid #152840;border-radius:10px;overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid #152840}
+.ph h3{font-family:'Chakra Petch',monospace;font-size:12.5px;font-weight:600;color:#818CF8}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid #152840;background:#0C1E38;color:#E8F0FF;white-space:nowrap;transition:.14s}
+.btn:hover{background:#1E3A56}
+.btn.p{background:linear-gradient(135deg,#4F46E5,#818CF8);border-color:#4F46E5;color:#fff}
+.btn.p:hover{filter:brightness(1.1)}
+.btn.d{background:transparent;border-color:rgba(239,68,68,.35);color:#EF4444}
+.btn.sm{padding:4px 11px;font-size:11.5px}
+/* User row */
+.ur{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(79,70,229,.07);transition:.13s}
+.ur:hover{background:rgba(79,70,229,.04)}
+.ur:last-child{border-bottom:none}
+.ur-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+/* Form */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11.5px;color:#8098BC;margin-bottom:4px;font-weight:500}
+.field input,.field select,.field textarea{width:100%;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:7px;padding:8px 11px;font-size:13.5px;font-family:'IBM Plex Sans Arabic',sans-serif;transition:.14s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:#4F46E5}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ff{grid-column:1/-1}
+/* Modal */
+.mbg{position:fixed;inset:0;background:rgba(2,9,18,.88);backdrop-filter:blur(5px);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
+.modal{background:#091628;border:1px solid #152840;border-radius:12px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.8);animation:mani .2s ease}
+@keyframes mani{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal.w{max-width:720px}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #152840;position:sticky;top:0;background:#091628;z-index:1}
+.mh h3{font-family:'Chakra Petch',monospace;font-size:14px;font-weight:600;color:#818CF8}
+.mx{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#8098BC;font-size:17px;cursor:pointer;transition:.12s;border:none;background:none}
+.mx:hover{background:rgba(239,68,68,.15);color:#EF4444}
+.mbd{padding:16px 18px}
+.mf{padding:11px 18px;border-top:1px solid #152840;display:flex;justify-content:flex-end;gap:7px;background:#091628;position:sticky;bottom:0}
+/* Creds */
+.creds{background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:8px;padding:14px;font-family:'IBM Plex Mono',monospace}
+.cl{font-size:9.5px;color:#3E5878;letter-spacing:.06em;margin-bottom:3px;margin-top:8px}
+.cv{font-size:13px;font-weight:700;color:#818CF8;background:#0A1828;padding:6px 10px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all}
+.cpbtn{padding:2px 8px;border-radius:5px;background:rgba(79,70,229,.2);border:1px solid rgba(79,70,229,.3);color:#818CF8;cursor:pointer;font-size:10px;white-space:nowrap;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+/* Toast */
+#tc{position:fixed;bottom:18px;right:18px;z-index:500;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:10px;border:1px solid;font-size:13px;font-weight:500;min-width:240px;max-width:340px;pointer-events:all;animation:tin .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+@keyframes tin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.ts{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:#10B981}
+.te{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#EF4444}
+.ti{background:rgba(79,70,229,.1);border-color:rgba(79,70,229,.3);color:#818CF8}
+/* Spin */
+.spin{width:14px;height:14px;border:2px solid transparent;border-top-color:currentColor;border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Note */
+.note{background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.2);border-radius:8px;padding:10px 12px;font-size:12.5px;color:#818CF8;margin-bottom:14px;line-height:1.6}
+/* Filters */
+.fi{background:#060F1E;border:1px solid #152840;border-radius:8px;padding:7px 11px;font-size:13px;color:#E8F0FF;transition:.13s;font-family:'IBM Plex Sans Arabic',sans-serif}
+.fi:focus{outline:none;border-color:#4F46E5}
+/* skr */
+.skr{height:42px;border-radius:8px;background:linear-gradient(90deg,#0C1E38 25%,#091628 50%,#0C1E38 75%);background-size:400% 100%;animation:sh 1.4s ease infinite;margin-bottom:7px}
+@keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+@media(max-width:768px){
+  .sb{display:none}
+  .page{padding:10px}
+  .g4{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
-
 <body>
-<canvas id="bgcv"></canvas>
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sb">
+    <div class="sb-brand">
+      <img src="se-logo.png.PNG" alt="SE" style="height:28px;width:auto;object-fit:contain">
+      <div><div class="sb-t1">se</div><div class="sb-t2">System Admin</div></div>
+    </div>
+    <div class="ub" id="ubEl">
+      <div class="ub-av" id="ubAv">—</div>
+      <div style="flex:1;min-width:0"><div class="ub-nm" id="ubNm">جارٍ التحميل</div><div class="ub-rl">Admin</div></div>
+      <div class="odot"></div>
+    </div>
+    <nav class="nav">
+      <div class="ng">الإدارة</div>
+      <button class="ni on" onclick="showPage('users')"><span class="ic">👥</span> إدارة المستخدمين</button>
+      <button class="ni" onclick="showPage('divs')"><span class="ic">🏛️</span> الدوائر</button>
+      <div class="ng">الإعدادات</div>
+      <button class="ni" onclick="showPage('settings')"><span class="ic">⚙️</span> الإعدادات</button>
+      <button class="ni" onclick="showPage('health')"><span class="ic">💡</span> صحة النظام</button>
+    </nav>
+    <div class="sb-foot">
+      <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
+      <button class="btn-lg" onclick="toggleDir()">EN/ع</button>
+    </div>
+  </aside>
 
-<div class="wrap" id="wrap">
-  <div class="scene" id="scene">
-    <div class="sg" id="sg"></div>
-    <canvas id="scv"></canvas>
-    <div class="si">
-      <div class="si-logo">
-        <img src="se-logo.png.PNG" alt="Saudi Energy" onerror="this.style.display='none'">
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-ttl" id="pgTitle">إدارة المستخدمين</div>
+      <div class="tb-r">
+        <div><div class="clk-t" id="ct">—</div><div class="clk-d" id="cd"></div></div>
+        <div class="adot"><div class="d"></div><span style="color:#3E5878;font-family:'IBM Plex Mono',monospace;font-size:11px">ADMIN</span></div>
       </div>
-      <div class="si-ic" id="siIc">🏛️</div>
-      <div class="si-nm" id="siNm">مركز قيادة التميز التشغيلي</div>
-      <div class="si-sb" id="siSb">OE COMMAND CENTER</div>
-      <div class="si-ds" id="siDs">المنصة الرقمية لإدارة التميز التشغيلي · Saudi Energy</div>
     </div>
-    <div class="sbar" id="sbar"></div>
-  </div>
-
-  <div class="lp">
-    <div class="lg-row">
-      <button class="lg-btn on" id="lgAr" onclick="setL('ar')">العربية</button>
-      <button class="lg-btn" id="lgEn" onclick="setL('en')">English</button>
-    </div>
-
-    <div class="tabs-row" id="tabsRow">
-      <div class="tab" id="t_adm" onclick="activate('adm')">⚙️ <span class="tl" data-ar="الأدمن" data-en="Admin">الأدمن</span></div>
-      <div class="tab" id="t_dept" onclick="activate('dept')">🏛️ <span class="tl" data-ar="الإدارة" data-en="Department">الإدارة</span></div>
-      <div class="tab" id="t_gov" onclick="activate('gov')">⚖️ <span class="tl" data-ar="الحوكمة" data-en="Governance">الحوكمة</span></div>
-      <div class="tab" id="t_gen" onclick="activate('gen')">⚡ <span class="tl" data-ar="التوليد" data-en="Generation">التوليد</span></div>
-      <div class="tab" id="t_grid" onclick="activate('grid')">🔌 <span class="tl" data-ar="الشبكة" data-en="Grid">الشبكة</span></div>
-      <div class="tab" id="t_dist" onclick="activate('dist')">🏘️ <span class="tl" data-ar="التوزيع" data-en="Distribution">التوزيع</span></div>
-      <div class="tab" id="t_alr" onclick="activate('alr')">⚠️ <span class="tl" data-ar="التنبيهات" data-en="Alerts">التنبيهات</span></div>
-      <div class="tab" id="t_emp" onclick="activate('emp')">👤 <span class="tl" data-ar="الموظفون" data-en="Employees">الموظفون</span></div>
-    </div>
-
-    <div class="lf-title" id="lfTitle">تسجيل الدخول</div>
-    <div class="lf-sub" id="lfSub">أدخل بريدك الإلكتروني وكلمة المرور</div>
-    <div class="lerr" id="lerr"></div>
-    <div class="lok" id="lok"></div>
-
-    <div class="lfield" id="fUname" style="display:none">
-      <label id="lUname">اسم المستخدم</label>
-      <input type="text" id="iUname" placeholder="ahmed.gen" autocomplete="username">
-    </div>
-
-    <div class="lfield" id="fEmail">
-      <label id="lEmail">البريد الإلكتروني</label>
-      <input type="email" id="iEmail" placeholder="name@se.com.sa" autocomplete="email">
-    </div>
-
-    <div class="lfield">
-      <label id="lPass">كلمة المرور</label>
-      <input type="password" id="iPass" placeholder="••••••••" autocomplete="current-password">
-    </div>
-
-    <button class="btn-si" id="siBtn" onclick="doLogin()">
-      <span id="siLbl">دخول</span>
-    </button>
-
-    <div class="lp-foot">
-      SE · OE Command Center v3.1<br>
-      إدارة التميز التشغيلي · Chief Engineer BU · Saudi Energy
+    <div class="page" id="pageArea">
+      <div style="display:flex;align-items:center;justify-content:center;height:60vh;flex-direction:column;gap:12px">
+        <div class="spin" style="width:36px;height:36px;border-width:3px;color:#4F46E5"></div>
+        <div style="color:#8098BC;font-size:13px" id="loadTxt">جارٍ التحميل...</div>
+      </div>
     </div>
   </div>
 </div>
-
-<script src="app.js"></script>
+<div id="tc"></div>
 
 <script>
-'use strict';
+/* ═══ CONFIG ══════════════════════════════════════════════════ */
+const SB_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
 
-const _SB = window.sb;
-
-const PORTALS_FALLBACK = {
-  admin:'admin.html',
-  director:'department.html',
-  governance_manager:'governance.html',
-  generation_manager:'generation.html',
-  national_grid_manager:'national-grid.html',
-  distribution_manager:'distribution.html',
-  technical_alerts_manager:'technical-alerts.html',
-  employee:'employee.html'
-};
-
-const PORTALS_MAP = window.PORTALS || PORTALS_FALLBACK;
-
-const TABS = {
-  adm:{
-    ic:'⚙️', ar:'مشرف النظام', en:'System Admin',
-    nAr:'لوحة إدارة النظام', nEn:'System Administration',
-    dAr:'إدارة المستخدمين · الصلاحيات · صحة النظام · إعدادات المنصة',
-    dEn:'Users · Roles · System Health · Platform Settings',
-    color:'#4F46E5', cv:'net', isEmp:false, roles:['admin']
-  },
-  dept:{
-    ic:'🏛️', ar:'الإدارة', en:'Department',
-    nAr:'إدارة التميز التشغيلي', nEn:'Operational Excellence Department',
-    dAr:'غرفة العمليات التنفيذية · نظرة شاملة على الدوائر والمؤشرات',
-    dEn:'Executive command room · Cross-division overview and KPIs',
-    color:'#D4AF37', cv:'net', isEmp:false, roles:['director','admin']
-  },
-  gov:{
-    ic:'⚖️', ar:'الحوكمة والتقييم', en:'Governance',
-    nAr:'دائرة الحوكمة والتقييم', nEn:'Governance & Assessment',
-    dAr:'الإطار المؤسسي · التقييمات · مؤشرات الأداء · التحسين المستمر',
-    dEn:'Governance framework · Assessments · KPIs · Continuous improvement',
-    color:'#7C3AED', cv:'net', isEmp:false, roles:['governance_manager']
-  },
-  gen:{
-    ic:'⚡', ar:'التوليد', en:'Generation',
-    nAr:'دائرة التوليد', nEn:'Generation OE',
-    dAr:'أداء التوليد · كفاءة الطاقة · الاعتمادية · التحسين المستمر',
-    dEn:'Generation performance · Efficiency · Reliability · Improvement',
-    color:'#F59E0B', cv:'energy', isEmp:false, roles:['generation_manager']
-  },
-  grid:{
-    ic:'🔌', ar:'الشبكة الوطنية', en:'National Grid',
-    nAr:'الشبكة الوطنية للنقل', nEn:'National Grid',
-    dAr:'موثوقية النقل · شبكة الطاقة العالية · مؤشرات الشبكة',
-    dEn:'Transmission reliability · High-voltage grid · Grid indicators',
-    color:'#0EA5E9', cv:'grid', isEmp:false, roles:['national_grid_manager']
-  },
-  dist:{
-    ic:'🏘️', ar:'التوزيع', en:'Distribution',
-    nAr:'دائرة التوزيع', nEn:'Distribution OE',
-    dAr:'شبكة التوزيع · SAIDI · موثوقية الخدمة · تجربة المستفيد',
-    dEn:'Distribution network · SAIDI · Service reliability · Customer impact',
-    color:'#10B981', cv:'city', isEmp:false, roles:['distribution_manager']
-  },
-  alr:{
-    ic:'⚠️', ar:'التنبيهات الفنية', en:'Technical Alerts',
-    nAr:'دائرة التنبيهات الفنية', nEn:'Technical Alerts',
-    dAr:'الرادار الفني · رصد المخاطر المبكر · التصعيد والمعالجة',
-    dEn:'Technical radar · Early warning · Escalation and resolution',
-    color:'#EF4444', cv:'radar', isEmp:false, roles:['technical_alerts_manager']
-  },
-  emp:{
-    ic:'👤', ar:'الموظفون', en:'Employees',
-    nAr:'بوابة الموظف', nEn:'Employee Portal',
-    dAr:'المهام اليومية · التحديثات · متابعة الأداء الشخصي',
-    dEn:'Daily tasks · Updates · Personal performance tracking',
-    color:'#6366F1', cv:'net', isEmp:true, roles:['employee']
-  }
-};
-
-let ACT = 'adm';
-let LNG = localStorage.getItem('se_lang') || 'ar';
-let currentSceneCleanup = null;
-let currentBgCleanup = null;
-
-function getEl(id){return document.getElementById(id)}
-function isSmall(){return window.innerWidth < 768}
-
-function showErr(msg){
-  const e = getEl('lerr');
-  const ok = getEl('lok');
-  ok.style.display = 'none';
-  e.textContent = msg;
-  e.style.display = 'block';
-  getEl('wrap').style.animation = 'sk .3s ease';
-  setTimeout(()=>getEl('wrap').style.animation='',300);
+/* ═══ AUTH — reads directly from localStorage ════════════════ */
+function getStoredSession() {
+  try {
+    // Supabase stores session in localStorage with this key pattern
+    const keys = Object.keys(localStorage).filter(k => k.includes('auth-token') || k.includes('supabase'));
+    for(const k of keys) {
+      const val = JSON.parse(localStorage.getItem(k) || 'null');
+      if(val && val.access_token) return val;
+      if(val && val.session && val.session.access_token) return val.session;
+    }
+    return null;
+  } catch(e) { return null; }
 }
 
-function showOk(msg){
-  const e = getEl('lerr');
-  const ok = getEl('lok');
-  e.style.display = 'none';
-  ok.textContent = msg;
-  ok.style.display = 'block';
-}
-
-function resetBtn(){
-  const btn = getEl('siBtn');
-  btn.disabled = false;
-  btn.innerHTML = `<span id="siLbl">${LNG==='ar'?'دخول':'Sign In'}</span>`;
-}
-
-function loadingBtn(){
-  const btn = getEl('siBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>';
-}
-
-function routeForRole(role){
-  return PORTALS_MAP[role] || 'employee.html';
-}
-
-function activate(k){
-  ACT = k;
-  const tb = TABS[k];
-
-  Object.keys(TABS).forEach(id=>{
-    const el = getEl('t_'+id);
-    if(!el) return;
-    el.classList.remove('on');
-    el.style.background = '';
-    el.style.color = '';
-    el.style.borderColor = '';
-    el.style.boxShadow = '';
+/* ═══ API CALL — pure fetch, no Supabase JS ═════════════════ */
+async function api(method, path, body, token) {
+  const sess = getStoredSession();
+  const tk = token || sess?.access_token || '';
+  const res = await fetch(SB_URL + path, {
+    method: method || 'GET',
+    headers: {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + tk,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : 'return=representation'
+    },
+    body: body ? JSON.stringify(body) : undefined
   });
-
-  const tabEl = getEl('t_'+k);
-  if(tabEl){
-    tabEl.classList.add('on');
-    tabEl.style.background = tb.color + '20';
-    tabEl.style.color = tb.color;
-    tabEl.style.borderColor = tb.color + '44';
-    tabEl.style.boxShadow = '0 0 12px ' + tb.color + '20';
-  }
-
-  document.documentElement.style.setProperty('--active',tb.color);
-  getEl('scene').style.background = 'linear-gradient(145deg,'+tb.color+'0A,#020912)';
-  getEl('sg').style.background = 'radial-gradient(circle at 50% 40%,'+tb.color+' 0%,transparent 70%)';
-  getEl('siIc').textContent = tb.ic;
-  getEl('siNm').textContent = LNG==='ar' ? tb.nAr : tb.nEn;
-  getEl('siSb').textContent = LNG==='ar' ? tb.ar : tb.nEn.toUpperCase();
-  getEl('siDs').textContent = LNG==='ar' ? tb.dAr : tb.dEn;
-  getEl('sbar').style.background = 'linear-gradient(90deg,transparent,'+tb.color+','+tb.color+'88,transparent)';
-  getEl('lfTitle').textContent = tb.ic + ' ' + (LNG==='ar' ? tb.nAr : tb.nEn);
-  getEl('lfTitle').style.color = tb.color;
-  getEl('siBtn').style.background = 'linear-gradient(135deg,'+tb.color+','+tb.color+'aa)';
-
-  if(tb.isEmp){
-    getEl('fEmail').style.display = 'none';
-    getEl('fUname').style.display = 'block';
-    getEl('lfSub').textContent = LNG==='ar'
-      ? 'أدخل اسم المستخدم وكلمة المرور'
-      : 'Enter username and password';
-  }else{
-    getEl('fEmail').style.display = 'block';
-    getEl('fUname').style.display = 'none';
-    getEl('lfSub').textContent = LNG==='ar'
-      ? 'أدخل بريدك الإلكتروني وكلمة المرور'
-      : 'Enter your email and password';
-  }
-
-  getEl('lerr').style.display = 'none';
-  getEl('lok').style.display = 'none';
-
-  if(!isSmall()){
-    if(currentSceneCleanup) currentSceneCleanup();
-    currentSceneCleanup = drawCanvas('scv',tb.cv,tb.color);
-  }
+  const text = await res.text();
+  try { return JSON.parse(text); } catch(e) { return text; }
 }
 
-function setL(l){
-  LNG = l;
-  localStorage.setItem('se_lang',l);
+/* ═══ ROLE LABELS ════════════════════════════════════════════ */
+const RLA = {admin:'مشرف النظام',director:'مدير الإدارة',governance_manager:'مدير الحوكمة',generation_manager:'مدير التوليد',national_grid_manager:'مدير النقل',distribution_manager:'مدير التوزيع',technical_alerts_manager:'مدير التنبيهات',employee:'موظف'};
+const RCO = {admin:'#FCA5A5',director:'#FDE68A',governance_manager:'#C4B5FD',generation_manager:'#FDE68A',national_grid_manager:'#BAE6FD',distribution_manager:'#A7F3D0',technical_alerts_manager:'#FCA5A5',employee:'#8098BC'};
+const RCL = {admin:'rgba(239,68,68,.15)',director:'rgba(212,175,55,.12)',governance_manager:'rgba(124,58,237,.15)',generation_manager:'rgba(245,158,11,.12)',national_grid_manager:'rgba(14,165,233,.12)',distribution_manager:'rgba(16,185,129,.12)',technical_alerts_manager:'rgba(239,68,68,.12)',employee:'rgba(30,58,88,.5)'};
+const DIVS = {governance:{ar:'الحوكمة',color:'#7C3AED',icon:'⚖️'},generation:{ar:'التوليد',color:'#F59E0B',icon:'⚡'},national_grid:{ar:'النقل',color:'#0EA5E9',icon:'🔌'},distribution:{ar:'التوزيع',color:'#10B981',icon:'🏘️'},technical_alerts:{ar:'التنبيهات',color:'#EF4444',icon:'⚠️'}};
+const PORTALS = {admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
 
-  const r = getEl('root');
-  r.lang = l;
-  r.dir = l==='ar' ? 'rtl' : 'ltr';
-
-  getEl('lgAr').classList.toggle('on',l==='ar');
-  getEl('lgEn').classList.toggle('on',l==='en');
-
-  document.querySelectorAll('.tl').forEach(el=>{
-    el.textContent = l==='ar' ? el.dataset.ar : el.dataset.en;
-  });
-
-  getEl('siLbl').textContent = l==='ar' ? 'دخول' : 'Sign In';
-  getEl('lEmail').textContent = l==='ar' ? 'البريد الإلكتروني' : 'Email';
-  getEl('lUname').textContent = l==='ar' ? 'اسم المستخدم' : 'Username';
-  getEl('lPass').textContent = l==='ar' ? 'كلمة المرور' : 'Password';
-
-  activate(ACT);
+/* ═══ HELPERS ════════════════════════════════════════════════ */
+const esc = s => String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const mv = id => document.getElementById(id)?.value?.trim()||'';
+function toast(msg,type='i',dur=3500){
+  let c=document.getElementById('tc');
+  const el=document.createElement('div');
+  el.className='toast t'+type;
+  el.innerHTML='<span>'+(type==='s'?'✓':type==='e'?'✕':'ℹ')+'</span><span style="flex:1">'+msg+'</span><button style="opacity:.5;cursor:pointer;font-size:14px" onclick="this.parentElement.remove()">×</button>';
+  c.appendChild(el);
+  setTimeout(()=>el.remove(),dur);
 }
+function openModal(html,cls){const bd=document.createElement('div');bd.className='mbg';bd.id='M';bd.innerHTML='<div class="modal '+(cls||'')+'">'+html+'</div>';bd.addEventListener('click',e=>{if(e.target===bd)closeModal();});document.body.appendChild(bd);}
+function closeModal(){document.getElementById('M')?.remove();}
+function toggleDir(){const r=document.documentElement;r.dir=r.dir==='rtl'?'ltr':'rtl';}
 
-async function getProfileByUser(user){
-  if(!user?.id) return null;
-  const {data:p,error} = await _SB.from('profiles').select('role,division,full_name,preferences').eq('id',user.id).single();
-  if(error) throw error;
-  return p;
-}
-
-async function doLogin(){
-  if(!_SB?.auth){
-    showErr(LNG==='ar'
-      ? 'app.js غير محمّل أو window.sb غير موجود'
-      : 'app.js is not loaded or window.sb is missing');
-    return;
+/* ═══ CLOCK ══════════════════════════════════════════════════ */
+function startClock(){
+  const days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  function tick(){
+    const n=new Date(),h=n.getHours();
+    const ct=document.getElementById('ct'),cd=document.getElementById('cd');
+    if(ct)ct.textContent=String(h%12||12).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0')+' '+(h<12?'ص':'م');
+    if(cd)cd.textContent=days[n.getDay()]+'، '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
   }
+  tick();setInterval(tick,1000);
+}
 
-  const tb = TABS[ACT];
-  const pass = getEl('iPass').value;
-  let email = '';
+/* ═══ LOGOUT ══════════════════════════════════════════════════ */
+async function doLogout(){
+  // Clear all supabase localStorage keys
+  Object.keys(localStorage).filter(k=>k.includes('supabase')||k.includes('sb-')).forEach(k=>localStorage.removeItem(k));
+  location.href='index.html';
+}
 
-  getEl('lerr').style.display = 'none';
-  getEl('lok').style.display = 'none';
+/* ═══ PAGE NAVIGATION ════════════════════════════════════════ */
+function showPage(name){
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  event?.target?.closest('.ni')?.classList.add('on');
+  const titles={users:'إدارة المستخدمين',divs:'الدوائر',settings:'الإعدادات',health:'صحة النظام'};
+  document.getElementById('pgTitle').textContent=titles[name]||name;
+  const area=document.getElementById('pageArea');
+  area.innerHTML='<div class="skr"></div><div class="skr"></div><div class="skr"></div>';
+  if(name==='users') renderUsers();
+  else if(name==='divs') renderDivs();
+  else if(name==='settings') renderSettings();
+  else if(name==='health') renderHealth();
+}
 
-  if(tb.isEmp){
-    const un = getEl('iUname').value.trim();
-    if(!un || !pass){
-      showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields');
+
+/* Admin reset user password */
+window.openResetPass = (id, name) => {
+  openModal(`<div class="mh"><h3>🔐 إعادة تعيين كلمة مرور ${esc(name)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">كلمة المرور الجديدة ستُرسل للمستخدم مباشرة — احفظها قبل الحفظ.</div>
+      <div class="field"><label>كلمة المرور الجديدة</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="rp_pw" placeholder="كلمة مرور جديدة...">
+          <button class="btn sm" onclick="genRPW()">🔀 توليد</button>
+        </div>
+      </div>
+      <div id="rp_show" style="background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:8px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:#818CF8;margin-bottom:10px;display:none"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn p" onclick="doResetPass('${id}','${esc(name)}')">حفظ كلمة المرور</button>
+    </div>`);
+  genRPW();
+};
+window.genRPW = () => {
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('rp_pw');if(el)el.value=p;
+  const sh=document.getElementById('rp_show');if(sh){sh.textContent=p;sh.style.display='block';}
+  navigator.clipboard?.writeText(p).catch(()=>{});
+};
+window.doResetPass = async (userId, name) => {
+  const np = mv('rp_pw');
+  if(!np||np.length<6){toast('6 أحرف على الأقل','e');return;}
+  const sess = getStoredSession();
+  try{
+    // Use admin endpoint via service role - fallback to showing manual instructions
+    const res = await fetch(SB_URL+'/auth/v1/admin/users/'+userId,{
+      method:'PUT',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
+      body:JSON.stringify({password:np})
+    });
+    const d = await res.json();
+    if(d.error||res.status===403){
+      // Anon key can't use admin endpoint - show manual instructions
+      closeModal();
+      openModal(`<div class="mh"><h3>🔐 كلمة المرور الجديدة لـ ${esc(name)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+        <div class="mbd">
+          <p style="font-size:13px;color:var(--t2);margin-bottom:10px">انسخ هذه البيانات وأعطها للمستخدم:</p>
+          <div class="creds">
+            <div class="cl">الاسم</div><div class="cv"><span>${esc(name)}</span></div>
+            <div class="cl">كلمة المرور الجديدة</div>
+            <div class="cv"><span>${esc(np)}</span><button class="cpbtn" onclick="copyT('${esc(np)}')">نسخ</button></div>
+          </div>
+          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:9px;font-size:12px;color:#FCD34D;margin-top:10px">
+            ⚠️ لإعادة التعيين الفعلية: Supabase → Auth → Users → اختر المستخدم → Change password
+          </div>
+        </div>
+        <div class="mf"><button class="btn p" onclick="closeModal()">فهمت</button></div>`);
       return;
     }
-    email = un.includes('@') ? un : un + '@se.com.sa';
-  }else{
-    email = getEl('iEmail').value.trim();
-    if(!email || !pass){
-      showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields');
-      return;
-    }
+    toast('تم تغيير كلمة المرور ✓','s');
+    closeModal();
+  }catch(e){toast('خطأ: '+e.message,'e');}
+};
+
+/* ═══ USERS PAGE ════════════════════════════════════════════ */
+async function renderUsers(){
+  const area=document.getElementById('pageArea');
+  area.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">'+
+      '<div><h1 style="font-family:\'Chakra Petch\',monospace;font-size:18px;color:#818CF8">👥 إدارة المستخدمين</h1>'+
+      '<div style="font-size:12px;color:#8098BC">أنشئ الحسابات واضبط الأدوار والدوائر</div></div>'+
+      '<button class="btn p" onclick="openCU()">+ إنشاء مستخدم</button>'+
+    '</div>'+
+    '<div class="note">ℹ️ أنشئ المستخدم ← تظهر بيانات الدخول ← أعطها للمستخدم ← يسجّل دخول ويغيّر كلمة المرور</div>'+
+    '<div class="g4" style="margin-bottom:14px">'+
+      '<div class="sc"><div class="sl">الكل</div><div class="sv" id="stAll">—</div></div>'+
+      '<div class="sc"><div class="sl">مدراء</div><div class="sv" id="stMgr">—</div></div>'+
+      '<div class="sc"><div class="sl">موظفون</div><div class="sv" id="stEmp">—</div></div>'+
+      '<div class="sc"><div class="sl">نشطون</div><div class="sv grn" id="stAct">—</div></div>'+
+    '</div>'+
+    '<div class="panel">'+
+      '<div style="padding:10px 12px;border-bottom:1px solid #152840;display:flex;gap:8px;flex-wrap:wrap">'+
+        '<input class="fi" id="uq" placeholder="بحث..." style="min-width:140px">'+
+        '<select class="fi" id="ur">'+
+          '<option value="">كل الأدوار</option>'+
+          Object.entries(RLA).map(function(e){return '<option value="'+e[0]+'">'+e[1]+'</option>';}).join('')+
+        '</select>'+
+        '<button class="btn sm" onclick="loadUsers()">🔄</button>'+
+      '</div>'+
+      '<div id="uList"><div class="skr" style="margin:10px"></div><div class="skr" style="margin:10px"></div></div>'+
+    '</div>';
+  document.getElementById('uq').addEventListener('input',function(){clearTimeout(window._ut);window._ut=setTimeout(loadUsers,300);});
+  document.getElementById('ur').addEventListener('change',loadUsers);
+  loadUsers();
+}
+
+async function loadUsers(){
+  const el=document.getElementById('uList');
+  if(!el) return;
+  el.innerHTML='<div style="padding:14px;text-align:center;color:#8098BC">جارٍ التحميل...</div>';
+  const q=(document.getElementById('uq')?.value||'').toLowerCase();
+  const r=document.getElementById('ur')?.value||'';
+  let url='/rest/v1/profiles?select=*&order=created_at.desc';
+  if(r) url+='&role=eq.'+encodeURIComponent(r);
+  try{
+    const data=await api('GET',url);
+    if(!Array.isArray(data)) throw new Error(typeof data==='object'?JSON.stringify(data):String(data));
+    const fl=q?data.filter(function(u){return ((u.full_name||'')+(u.full_name_en||'')).toLowerCase().indexOf(q)>-1;}):data;
+    const sa=document.getElementById('stAll'),sm=document.getElementById('stMgr'),se=document.getElementById('stEmp'),sac=document.getElementById('stAct');
+    if(sa)sa.textContent=fl.length;
+    if(sm)sm.textContent=fl.filter(function(u){return u.role&&(u.role.indexOf('manager')>-1||u.role==='director');}).length;
+    if(se)se.textContent=fl.filter(function(u){return u.role==='employee';}).length;
+    if(sac)sac.textContent=fl.filter(function(u){return u.is_active;}).length;
+    if(!fl.length){el.innerHTML='<div style="padding:40px;text-align:center;color:#8098BC">لا مستخدمين — <button class="btn sm p" onclick="openCU()">+ إنشاء أول مستخدم</button></div>';return;}
+    el.innerHTML=fl.map(function(u){
+      const init=(u.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      const clr=RCO[u.role]||'#8098BC';
+      const bg=RCL[u.role]||'rgba(30,58,88,.5)';
+      return '<div class="ur">'+
+        '<div class="ur-av" style="background:'+bg+';color:'+clr+'">'+init+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:13px;font-weight:600">'+esc(u.full_name||'—')+'</div>'+
+          '<div style="font-size:10.5px;color:#8098BC;font-family:\'IBM Plex Mono\',monospace">'+esc(u.full_name_en||'—')+'</div>'+
+          '<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">'+
+            '<span class="badge" style="background:'+bg+';border:1px solid '+clr+'33;color:'+clr+'">'+esc(RLA[u.role]||u.role)+'</span>'+
+            (u.division?'<span class="badge bg">'+esc(u.division)+'</span>':'')+
+            '<span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;color:#3E5878">'+
+              '<div style="width:6px;height:6px;border-radius:50%;background:'+(u.is_active?'#10B981':'#3E5878')+'"></div>'+
+              (u.is_active?'نشط':'معطّل')+
+            '</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:4px;flex-shrink:0">'+
+          '<button class="btn sm" onclick="openEU(\''+u.id+'\')">تعديل</button>'+
+          '<button class="btn sm" onclick="openUC(\''+u.id+'\',\''+esc(u.full_name||'')+'\')">🔑</button>'+
+          '<button class="btn sm d" onclick="toggleU(\''+u.id+'\','+u.is_active+')">'+(u.is_active?'تعطيل':'تفعيل')+'</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="padding:20px;text-align:center">'+
+      '<div style="color:#EF4444;margin-bottom:8px">'+esc(e.message)+'</div>'+
+      '<button class="btn sm" onclick="loadUsers()">إعادة المحاولة</button>'+
+      '</div>';
   }
+}
+
+/* ═══ CREATE USER ════════════════════════════════════════════ */
+function openCU(){
+  openModal(
+    '<div class="mh"><h3>👤 إنشاء مستخدم جديد</h3><button class="mx" onclick="closeModal()">×</button></div>'+
+    '<div class="mbd">'+
+      '<div class="note">سيُنشأ الحساب ← احفظ بيانات الدخول ← أعطها للمستخدم</div>'+
+      '<div class="fg">'+
+        '<div class="field ff"><label>الاسم الكامل (عربي) *</label><input id="nu_n" placeholder="سليمان الخطيب"></div>'+
+        '<div class="field"><label>الاسم (إنجليزي)</label><input id="nu_ne" placeholder="Sulaiman Alkhateeb"></div>'+
+        '<div class="field"><label>البريد الإلكتروني *</label><input type="email" id="nu_em" placeholder="name@se.com.sa"></div>'+
+        '<div class="field ff">'+
+          '<label>كلمة المرور *</label>'+
+          '<div style="display:flex;gap:7px">'+
+            '<input type="text" id="nu_pw" placeholder="كلمة مرور قوية...">'+
+            '<button class="btn sm" onclick="genPW()">🔀 توليد</button>'+
+          '</div>'+
+        '</div>'+
+        '<div class="field"><label>الدور *</label>'+
+          '<select id="nu_rl" onchange="handleRC()">'+
+            '<option value="">اختر...</option>'+
+            Object.entries(RLA).map(function(e){return '<option value="'+e[0]+'">'+e[1]+'</option>';}).join('')+
+          '</select>'+
+        '</div>'+
+        '<div class="field" id="nu_divF" style="display:none"><label>الدائرة</label>'+
+          '<select id="nu_dv">'+
+            '<option value="">—</option>'+
+            Object.entries(DIVS).map(function(e){return '<option value="'+e[0]+'">'+e[1].icon+' '+e[1].ar+'</option>';}).join('')+
+          '</select>'+
+        '</div>'+
+        '<div class="field"><label>المسمى الوظيفي (عربي)</label><input id="nu_tt" placeholder="مدير دائرة..."></div>'+
+        '<div class="field"><label>المسمى الوظيفي (إنجليزي)</label><input id="nu_te" placeholder="Manager..."></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>'+
+    '<button class="btn p" id="createBtn" onclick="createUser()">إنشاء الحساب</button></div>',
+    'w'
+  );
+  genPW();
+}
+
+function handleRC(){
+  const r=mv('nu_rl');
+  const needDiv=['governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager','employee'].indexOf(r)>-1;
+  const f=document.getElementById('nu_divF');
+  if(f)f.style.display=needDiv?'block':'none';
+  const autoMap={governance_manager:'governance',generation_manager:'generation',national_grid_manager:'national_grid',distribution_manager:'distribution',technical_alerts_manager:'technical_alerts'};
+  const ad=autoMap[r];
+  if(ad){const d=document.getElementById('nu_dv');if(d)d.value=ad;}
+}
+
+function genPW(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('nu_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(function(){});}
+}
+
+async function createUser(){
+  const name=mv('nu_n'),email=mv('nu_em'),pass=mv('nu_pw'),role=mv('nu_rl');
+  if(!name||!email||!pass||!role){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
+
+  const btn=document.getElementById('createBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ الإنشاء...';}
 
   try{
-    loadingBtn();
+    const sess=getStoredSession();
+    const tk=sess?.access_token||'';
 
-    const {data,error} = await _SB.auth.signInWithPassword({email,password:pass});
-    if(error) throw error;
+    // إنشاء المستخدم في Supabase Auth من داخل المنصة
+    const authRes=await fetch(SB_URL+'/auth/v1/signup',{
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        email:email,
+        password:pass,
+        data:{
+          full_name:name,
+          role:role,
+          division:mv('nu_dv')||null
+        }
+      })
+    });
 
-    const profile = await getProfileByUser(data.user);
-    if(!profile) throw new Error('Profile not found');
+    const authData=await authRes.json();
 
-    if(tb.roles?.length && !tb.roles.includes(profile.role) && profile.role !== 'admin'){
-      await _SB.auth.signOut();
-      showErr(LNG==='ar'
-        ? 'هذا الحساب غير مصرّح له بهذا التبويب — اختر التبويب الصحيح'
-        : 'This account is not authorized for this tab');
-      resetBtn();
-      return;
+    if(!authRes.ok || authData.error || authData.msg){
+      throw new Error(authData.error_description||authData.msg||authData.error||'فشل إنشاء حساب Auth');
     }
 
-    showOk(LNG==='ar'?'تم تسجيل الدخول بنجاح':'Signed in successfully');
+    const uid=authData.id || authData.user?.id;
+    if(!uid) throw new Error('لم يرجع Supabase رقم المستخدم');
 
-    setTimeout(()=>{
-      location.href = routeForRole(profile.role);
-    },350);
+    const profileRow={
+      id:uid,
+      email:email,
+      full_name:name,
+      full_name_en:mv('nu_ne')||null,
+      role:role,
+      division:mv('nu_dv')||null,
+      job_title:mv('nu_tt')||null,
+      job_title_en:mv('nu_te')||null,
+      is_active:true
+    };
+
+    // حفظ/تحديث بيانات المستخدم في جدول profiles
+    const profRes=await fetch(SB_URL+'/rest/v1/profiles?on_conflict=id',{
+      method:'POST',
+      headers:{
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+tk,
+        'Content-Type':'application/json',
+        'Prefer':'resolution=merge-duplicates,return=minimal'
+      },
+      body:JSON.stringify(profileRow)
+    });
+
+    if(!profRes.ok){
+      const errTxt=await profRes.text();
+      throw new Error('تم إنشاء Auth لكن فشل حفظ Profile: '+errTxt);
+    }
+
+    closeModal();
+    showCreds(name,email,pass,RLA[role]||role);
+    loadUsers();
 
   }catch(e){
-    showErr(LNG==='ar' ? 'البريد أو كلمة المرور غير صحيحة' : 'Invalid email or password');
-    resetBtn();
+    toast('فشل: '+e.message,'e');
+    if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}
+    if(e.message && (e.message.includes('already') || e.message.includes('registered'))){
+      toast('هذا الإيميل مسجّل مسبقاً','e');
+    }
   }
 }
 
-async function checkExistingSession(){
-  if(!_SB?.auth) return;
+function showCreds(name,email,pass,role){
+  openModal(
+    '<div class="mh"><h3 style="color:#10B981">✓ تم إنشاء الحساب!</h3><button class="mx" onclick="closeModal()">×</button></div>'+
+    '<div class="mbd">'+
+      '<p style="font-size:13px;color:#8098BC;margin-bottom:12px">أعطِ هذه البيانات للمستخدم وطلب منه تغيير كلمة المرور.</p>'+
+      '<div class="creds">'+
+        '<div class="cl">الاسم</div><div class="cv">'+esc(name)+'</div>'+
+        '<div class="cl">الدور</div><div class="cv">'+esc(role)+'</div>'+
+        '<div class="cl">رابط الدخول</div>'+
+        '<div class="cv"><span>https://sulaimanothjp-stack.github.io/OE-Department-/index.html</span><button class="cpbtn" onclick="copyT(\'https://sulaimanothjp-stack.github.io/OE-Department-/index.html\')">نسخ</button></div>'+
+        '<div class="cl">البريد الإلكتروني</div>'+
+        '<div class="cv"><span>'+esc(email)+'</span><button class="cpbtn" onclick="copyT(\''+esc(email)+'\')">نسخ</button></div>'+
+        '<div class="cl">كلمة المرور المؤقتة</div>'+
+        '<div class="cv"><span>'+esc(pass)+'</span><button class="cpbtn" onclick="copyT(\''+esc(pass)+'\')">نسخ</button></div>'+
+      '</div>'+
+      '<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:9px;font-size:12px;color:#FCD34D;margin-top:10px">⚠️ يجب تغيير كلمة المرور عند أول دخول</div>'+
+    '</div>'+
+    '<div class="mf">'+
+      '<button class="btn" onclick="printCreds(\''+esc(name)+'\',\''+esc(email)+'\',\''+esc(pass)+'\',\''+esc(role)+'\')">🖨️ طباعة</button>'+
+      '<button class="btn p" onclick="closeModal()">تم</button>'+
+    '</div>','w');
+}
 
+function showManual(name,email,pass,role){
+  openModal(
+    '<div class="mh"><h3 style="color:#F59E0B">⚠️ أنشئ المستخدم يدوياً</h3><button class="mx" onclick="closeModal()">×</button></div>'+
+    '<div class="mbd">'+
+      '<ol style="font-size:13px;line-height:2;color:#8098BC;padding-right:18px;margin-bottom:12px">'+
+        '<li>روح <strong style="color:#818CF8">Supabase → Authentication → Users → Add user</strong></li>'+
+        '<li>أدخل الإيميل وكلمة المرور أدناه</li>'+
+        '<li>روح <strong style="color:#818CF8">Table Editor → profiles</strong> → عدّل role و division و full_name</li>'+
+      '</ol>'+
+      '<div class="creds">'+
+        '<div class="cl">الاسم</div><div class="cv">'+esc(name)+'</div>'+
+        '<div class="cl">الدور (في جدول profiles)</div><div class="cv">'+esc(role)+'</div>'+
+        '<div class="cl">البريد</div><div class="cv"><span>'+esc(email)+'</span><button class="cpbtn" onclick="copyT(\''+esc(email)+'\')">نسخ</button></div>'+
+        '<div class="cl">كلمة المرور</div><div class="cv"><span>'+esc(pass)+'</span><button class="cpbtn" onclick="copyT(\''+esc(pass)+'\')">نسخ</button></div>'+
+      '</div>'+
+      '<div style="background:rgba(79,70,229,.1);border:1px solid rgba(79,70,229,.2);border-radius:8px;padding:9px;font-size:12px;color:#818CF8;margin-top:10px">'+
+        '💡 لتفادي هذا: Supabase → Auth → Settings → <strong>Disable email confirmations</strong>'+
+      '</div>'+
+    '</div>'+
+    '<div class="mf">'+
+      '<button class="btn" onclick="window.open(\'https://supabase.com/dashboard/project/ekywcrlcjgbjtwnjozov/auth/users\',\'_blank\')">🔗 Supabase</button>'+
+      '<button class="btn p" onclick="closeModal()">فهمت</button>'+
+    '</div>','w');
+}
+
+/* ═══ EDIT USER ═══════════════════════════════════════════════ */
+async function openEU(id){
+  const data=await api('GET','/rest/v1/profiles?id=eq.'+id+'&select=*');
+  const u=Array.isArray(data)?data[0]:null;
+  if(!u){toast('خطأ في جلب البيانات','e');return;}
+  openModal(
+    '<div class="mh"><h3>تعديل — '+esc(u.full_name||'')+'</h3><button class="mx" onclick="closeModal()">×</button></div>'+
+    '<div class="mbd"><div class="fg">'+
+      '<div class="field"><label>الاسم (عربي)</label><input id="eu_n" value="'+esc(u.full_name||'')+'"></div>'+
+      '<div class="field"><label>الاسم (إنجليزي)</label><input id="eu_ne" value="'+esc(u.full_name_en||'')+'"></div>'+
+      '<div class="field"><label>الدور</label><select id="eu_rl">'+
+        Object.entries(RLA).map(function(e){return '<option value="'+e[0]+'"'+(u.role===e[0]?' selected':'')+'>'+e[1]+'</option>';}).join('')+
+      '</select></div>'+
+      '<div class="field"><label>الدائرة</label><select id="eu_dv">'+
+        '<option value="">—</option>'+
+        Object.entries(DIVS).map(function(e){return '<option value="'+e[0]+'"'+(u.division===e[0]?' selected':'')+'>'+e[1].icon+' '+e[1].ar+'</option>';}).join('')+
+      '</select></div>'+
+      '<div class="field"><label>المسمى (عربي)</label><input id="eu_tt" value="'+esc(u.job_title||'')+'"></div>'+
+      '<div class="field"><label>المسمى (إنجليزي)</label><input id="eu_te" value="'+esc(u.job_title_en||'')+'"></div>'+
+    '</div></div>'+
+    '<div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>'+
+    '<button class="btn p" onclick="saveEU(\''+id+'\')">حفظ</button></div>','w');
+}
+
+async function saveEU(id){
+  const sess=getStoredSession();
   try{
-    const {data:{session}} = await _SB.auth.getSession();
-    if(!session) return;
+    const res=await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({full_name:mv('eu_n'),full_name_en:mv('eu_ne')||null,role:mv('eu_rl'),division:mv('eu_dv')||null,job_title:mv('eu_tt')||null,job_title_en:mv('eu_te')||null})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    toast('تم الحفظ ✓','s');closeModal();loadUsers();
+  }catch(e){toast('خطأ: '+e.message,'e');}
+}
 
-    let profile = null;
-    try{
-      profile = await getProfileByUser(session.user);
-    }catch(e){}
+async function toggleU(id,isActive){
+  const sess=getStoredSession();
+  await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+id,{
+    method:'PATCH',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+    body:JSON.stringify({is_active:!isActive})
+  });
+  toast(isActive?'تم التعطيل':'تم التفعيل','s');
+  loadUsers();
+}
 
-    if(!profile) return;
+function openUC(id,name){
+  openModal(
+    '<div class="mh"><h3>🔑 '+esc(name)+'</h3><button class="mx" onclick="closeModal()">×</button></div>'+
+    '<div class="mbd">'+
+      '<div class="creds">'+
+        '<div class="cl">رابط الدخول</div>'+
+        '<div class="cv"><span style="font-size:11px">https://sulaimanothjp-stack.github.io/OE-Department-/index.html</span><button class="cpbtn" onclick="copyT(\'https://sulaimanothjp-stack.github.io/OE-Department-/index.html\')">نسخ</button></div>'+
+        '<div class="cl">الإيميل</div>'+
+        '<div class="cv">من Supabase → Auth → Users</div>'+
+      '</div>'+
+      '<button class="btn sm" style="margin-top:10px" onclick="window.open(\'https://supabase.com/dashboard/project/ekywcrlcjgbjtwnjozov/auth/users\',\'_blank\')">🔗 فتح Supabase Auth</button>'+
+    '</div>'+
+    '<div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>');
+}
 
-    const banner = document.createElement('div');
-    banner.className = 'session-banner';
-    banner.innerHTML = `
-      <span>${LNG==='ar'?'مرحباً':'Welcome'} ${profile.full_name || ''} — ${LNG==='ar'?'أنت مسجّل دخول':'You are already signed in'}</span>
-      <div style="display:flex;gap:8px">
-        <button class="go-btn" id="goPortalBtn">${LNG==='ar'?'العودة للبورتال':'Go to portal'}</button>
-        <button class="out-btn" id="logoutBtn">${LNG==='ar'?'تسجيل خروج':'Sign out'}</button>
-      </div>
-    `;
-    document.body.appendChild(banner);
+/* ═══ DIVS PAGE ══════════════════════════════════════════════ */
+async function renderDivs(){
+  const area=document.getElementById('pageArea');
+  area.innerHTML='<h1 style="font-family:\'Chakra Petch\',monospace;font-size:18px;color:#818CF8;margin-bottom:14px">🏛️ الدوائر</h1><div class="g4" id="divGrid"><div class="skr"></div><div class="skr"></div><div class="skr"></div><div class="skr"></div><div class="skr"></div></div>';
+  try{
+    const data=await api('GET','/rest/v1/profiles?select=*');
+    const grid=document.getElementById('divGrid');
+    if(!grid)return;
+    grid.innerHTML=Object.entries(DIVS).map(function(e){
+      const code=e[0],cfg=e[1];
+      const mgr=Array.isArray(data)?data.find(function(p){return p.division===code&&p.role&&p.role.indexOf('manager')>-1;}):null;
+      const cnt=Array.isArray(data)?data.filter(function(p){return p.division===code;}).length:0;
+      return '<div class="sc" style="border-color:'+cfg.color+'22">'+
+        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+          '<div style="font-size:24px">'+cfg.icon+'</div>'+
+          '<div><div style="font-weight:700;font-size:13px">'+cfg.ar+'</div>'+
+          '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:10px;color:'+cfg.color+'">'+code+'</div></div>'+
+        '</div>'+
+        '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between">'+
+          '<span style="font-size:12px;color:#8098BC">المدير</span>'+
+          '<span style="font-size:12px;font-weight:600">'+(mgr?esc(mgr.full_name):'غير محدد')+'</span>'+
+        '</div>'+
+        '<div style="padding:6px 0;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between">'+
+          '<span style="font-size:12px;color:#8098BC">الأعضاء</span>'+
+          '<span class="badge bg">'+cnt+' عضو</span>'+
+        '</div>'+
+        '<a href="'+(code==='national_grid'?'national-grid':code==='technical_alerts'?'technical-alerts':code)+'.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:'+cfg.color+';border-color:'+cfg.color+'33">فتح البورتال ←</a>'+
+      '</div>';
+    }).join('');
+  }catch(e){document.getElementById('divGrid').innerHTML='<div style="color:#EF4444">'+esc(e.message)+'</div>';}
+}
 
-    getEl('wrap').style.marginTop = '52px';
+/* ═══ SETTINGS ═══════════════════════════════════════════════ */
+function renderSettings(){
+  const area=document.getElementById('pageArea');
+  area.innerHTML=
+    '<h1 style="font-family:\'Chakra Petch\',monospace;font-size:18px;color:#818CF8;margin-bottom:14px">⚙️ الإعدادات</h1>'+
+    '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">'+
+      '<div class="panel">'+
+        '<div class="ph"><h3>🔐 تغيير كلمة المرور</h3></div>'+
+        '<div style="padding:14px">'+
+          '<div class="field"><label>كلمة المرور الجديدة</label>'+
+            '<div style="display:flex;gap:7px">'+
+              '<input type="text" id="cp_new" placeholder="كلمة مرور جديدة..." style="flex:1;background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:7px;padding:8px 11px;font-size:13.5px">'+
+              '<button class="btn sm" onclick="genCP()">🔀</button>'+
+            '</div>'+
+          '</div>'+
+          '<div id="cp_show" style="background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:7px;padding:10px;font-family:\'IBM Plex Mono\',monospace;font-size:14px;font-weight:700;color:#818CF8;margin-bottom:10px;display:none"></div>'+
+          '<button class="btn p" onclick="changePass()">حفظ كلمة المرور</button>'+
+          '<p style="font-size:11.5px;color:#3E5878;margin-top:8px">ستُسجَّل خارجاً بعد التغيير</p>'+
+        '</div>'+
+      '</div>'+
+      '<div class="panel">'+
+        '<div class="ph"><h3>✉️ تغيير البريد</h3></div>'+
+        '<div style="padding:14px">'+
+          '<div style="background:#0C1E38;border-radius:7px;padding:8px 10px;margin-bottom:10px">'+
+            '<div style="font-size:10px;color:#3E5878;margin-bottom:3px">البريد الحالي</div>'+
+            '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:13px;color:#818CF8" id="curEm">—</div>'+
+          '</div>'+
+          '<div class="field"><label>البريد الجديد</label><input type="email" id="ne_email" placeholder="new@se.com.sa" style="background:#060F1E;border:1px solid #152840;color:#E8F0FF;border-radius:7px;padding:8px 11px;font-size:13.5px;width:100%"></div>'+
+          '<button class="btn p" onclick="changeEmail()">حفظ البريد</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="panel" style="grid-column:1/-1">'+
+        '<div class="ph"><h3>🔗 Supabase</h3></div>'+
+        '<div style="padding:14px">'+
+          '<div class="field"><label>Project URL</label><input value="https://ekywcrlcjgbjtwnjozov.supabase.co" readonly style="background:#060F1E;border:1px solid #152840;color:#818CF8;border-radius:7px;padding:8px 11px;font-size:12px;width:100%;font-family:\'IBM Plex Mono\',monospace"></div>'+
+          '<div style="display:flex;gap:7px;flex-wrap:wrap">'+
+            '<button class="btn sm" onclick="testConn()">فحص الاتصال</button>'+
+            '<a href="https://supabase.com/dashboard/project/ekywcrlcjgbjtwnjozov" target="_blank" class="btn sm">🔗 Dashboard</a>'+
+            '<a href="https://supabase.com/dashboard/project/ekywcrlcjgbjtwnjozov/auth/users" target="_blank" class="btn sm">👥 Auth Users</a>'+
+          '</div>'+
+          '<div id="connSt" style="margin-top:10px;font-family:\'IBM Plex Mono\',monospace;font-size:13px;color:#8098BC"></div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  // Load current email
+  const sess=getStoredSession();
+  const em=document.getElementById('curEm');
+  if(em&&sess&&sess.user)em.textContent=sess.user.email||'—';
+  testConn();
+}
 
-    getEl('goPortalBtn').onclick = ()=> location.href = routeForRole(profile.role);
-    getEl('logoutBtn').onclick = async ()=>{
-      await _SB.auth.signOut();
-      location.reload();
-    };
+function genCP(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('cp_new');if(el)el.value=p;
+  const sh=document.getElementById('cp_show');if(sh){sh.textContent=p;sh.style.display='block';}
+  navigator.clipboard?.writeText(p).catch(function(){});
+}
+
+async function changePass(){
+  const np=mv('cp_new');
+  if(!np||np.length<6){toast('6 أحرف على الأقل','e');return;}
+  const sess=getStoredSession();
+  try{
+    const res=await fetch(SB_URL+'/auth/v1/user',{
+      method:'PUT',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
+      body:JSON.stringify({password:np})
+    });
+    const d=await res.json();
+    if(d.error)throw new Error(d.error_description||d.error);
+    toast('تم التغيير ✓ — جارٍ تسجيل الخروج...','s');
+    setTimeout(doLogout,2000);
+  }catch(e){toast('خطأ: '+e.message,'e');}
+}
+
+async function changeEmail(){
+  const ne=mv('ne_email');
+  if(!ne||!ne.includes('@')){toast('إيميل غير صحيح','e');return;}
+  const sess=getStoredSession();
+  try{
+    const res=await fetch(SB_URL+'/auth/v1/user',{
+      method:'PUT',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
+      body:JSON.stringify({email:ne})
+    });
+    const d=await res.json();
+    if(d.error)throw new Error(d.error_description||d.error);
+    toast('تم التغيير ✓ — سجّل دخول بالجديد','s');
+    setTimeout(doLogout,2000);
+  }catch(e){toast('خطأ: '+e.message,'e');}
+}
+
+async function testConn(){
+  const el=document.getElementById('connSt');if(!el)return;
+  el.textContent='جارٍ الفحص...';el.style.color='#8098BC';
+  try{
+    const res=await api('GET','/rest/v1/profiles?select=id&limit=1');
+    if(Array.isArray(res)){el.innerHTML='<span style="color:#10B981">✓ متصل — قاعدة البيانات تعمل</span>';}
+    else{el.innerHTML='<span style="color:#EF4444">✕ '+esc(JSON.stringify(res))+'</span>';}
+  }catch(e){el.innerHTML='<span style="color:#EF4444">✕ '+esc(e.message)+'</span>';}
+}
+
+/* ═══ HEALTH ══════════════════════════════════════════════════ */
+async function renderHealth(){
+  const area=document.getElementById('pageArea');
+  area.innerHTML='<h1 style="font-family:\'Chakra Petch\',monospace;font-size:18px;color:#818CF8;margin-bottom:14px">💡 صحة النظام</h1><div class="g4" id="hg"><div class="skr"></div><div class="skr"></div><div class="skr"></div><div class="skr"></div></div>';
+  try{
+    const [u,t,a,k,al]=await Promise.all([
+      api('GET','/rest/v1/profiles?select=id'),
+      api('GET','/rest/v1/tasks?select=id'),
+      api('GET','/rest/v1/afis?select=id'),
+      api('GET','/rest/v1/kpis?select=id'),
+      api('GET','/rest/v1/technical_alerts?select=id'),
+    ]);
+    const hg=document.getElementById('hg');if(!hg)return;
+    hg.innerHTML=[
+      {sl:'مستخدمون',sv:Array.isArray(u)?u.length:'—'},
+      {sl:'مهام',sv:Array.isArray(t)?t.length:'—'},
+      {sl:'AFIs',sv:Array.isArray(a)?a.length:'—'},
+      {sl:'KPIs',sv:Array.isArray(k)?k.length:'—'},
+      {sl:'تنبيهات',sv:Array.isArray(al)?al.length:'—'},
+      {sl:'الاتصال',sv:'✓',g:true},
+    ].map(function(s){return '<div class="sc"><div class="sl">'+s.sl+'</div><div class="sv'+(s.g?' grn':'')+'">'+s.sv+'</div></div>';}).join('');
+  }catch(e){const hg=document.getElementById('hg');if(hg)hg.innerHTML='<div style="color:#EF4444">'+esc(e.message)+'</div>';}
+}
+
+/* ═══ UTILS ══════════════════════════════════════════════════ */
+function copyT(t){navigator.clipboard?.writeText(t).then(function(){toast('تم النسخ ✓','s');}).catch(function(){toast('انسخه يدوياً','i');});}
+function printCreds(name,email,pass,role){
+  const w=window.open('','_blank');
+  w.document.write('<html dir="rtl"><head><title>بيانات دخول</title><style>body{font-family:Arial;padding:40px;direction:rtl}h2{color:#4F46E5}.f{margin:12px 0}.l{font-size:11px;color:#666}.v{font-size:14px;font-weight:bold;font-family:monospace;background:#f0f0f0;padding:8px;border-radius:4px;margin-top:4px}hr{border:1px solid #eee;margin:18px 0}.note{font-size:11px;color:#F59E0B;margin-top:14px}</style></head><body>'+
+    '<h2>🔐 بيانات دخول المنصة</h2><h3>Saudi Energy · OE Digital Twin Command Center</h3><hr>'+
+    '<div class="f"><div class="l">الاسم</div><div class="v">'+name+'</div></div>'+
+    '<div class="f"><div class="l">الدور</div><div class="v">'+role+'</div></div>'+
+    '<div class="f"><div class="l">رابط الدخول</div><div class="v">https://sulaimanothjp-stack.github.io/OE-Department-/index.html</div></div>'+
+    '<div class="f"><div class="l">البريد</div><div class="v">'+email+'</div></div>'+
+    '<div class="f"><div class="l">كلمة المرور</div><div class="v">'+pass+'</div></div>'+
+    '<hr><div class="note">⚠️ يرجى تغيير كلمة المرور عند أول دخول · '+new Date().toLocaleDateString('ar-SA')+'</div>'+
+    '</body></html>');
+  w.print();
+}
+
+/* ═══ INIT ═══════════════════════════════════════════════════ */
+(async function init(){
+  startClock();
+  
+  // Read session from localStorage directly - no Supabase JS needed
+  const sess = getStoredSession();
+  
+  if(!sess || !sess.access_token){
+    location.href='index.html';
+    return;
+  }
+  
+  // Verify token is not expired
+  try{
+    const payload = JSON.parse(atob(sess.access_token.split('.')[1]));
+    if(payload.exp && payload.exp * 1000 < Date.now()){
+      // Token expired - clear and redirect
+      Object.keys(localStorage).filter(function(k){return k.includes('supabase')||k.includes('sb-');}).forEach(function(k){localStorage.removeItem(k);});
+      location.href='index.html';
+      return;
+    }
   }catch(e){}
-}
-
-function drawCanvas(id,type,color){
-  const cv = getEl(id);
-  if(!cv) return ()=>{};
-
-  const cx = cv.getContext('2d');
-  let W=0,H=0,nodes=[],pts=[],raf=0,alive=true;
-
-  function h2(v){
-    return Math.max(0,Math.min(255,Math.floor(v*255))).toString(16).padStart(2,'0');
+  
+  // Get profile
+  document.getElementById('loadTxt').textContent='② جلب الملف الشخصي...';
+  try{
+    const data = await api('GET', '/rest/v1/profiles?id=eq.'+sess.user.id+'&select=*');
+    const profile = Array.isArray(data) ? data[0] : null;
+    
+    if(!profile){
+      document.getElementById('pageArea').innerHTML=
+        '<div style="display:flex;align-items:center;justify-content:center;height:70vh">'+
+        '<div style="text-align:center;padding:20px">'+
+          '<div style="font-size:42px;margin-bottom:12px">🗄️</div>'+
+          '<h2 style="color:#fff;margin-bottom:8px">Profile not found</h2>'+
+          '<p style="color:#8098BC;font-size:13px;margin-bottom:14px">شغّل هذا في Supabase SQL Editor:</p>'+
+          '<code style="background:#0C1E38;padding:10px;border-radius:8px;display:block;font-size:11px;color:#818CF8;direction:ltr;text-align:left">UPDATE public.profiles SET role=\'admin\' WHERE id=\''+sess.user.id+'\';</code>'+
+          '<button onclick="location.reload()" class="btn p" style="margin-top:14px">إعادة المحاولة</button>'+
+        '</div></div>';
+      return;
+    }
+    
+    if(profile.role !== 'admin'){
+      const portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
+      location.href = portals[profile.role] || 'index.html';
+      return;
+    }
+    
+    // Update UI
+    const init=(profile.full_name||'A').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    const av=document.getElementById('ubAv'),nm=document.getElementById('ubNm');
+    if(av)av.textContent=init;
+    if(nm)nm.textContent=profile.full_name||'Admin';
+    
+    // Render users page
+    renderUsers();
+    
+  }catch(e){
+    document.getElementById('pageArea').innerHTML=
+      '<div style="display:flex;align-items:center;justify-content:center;height:70vh">'+
+      '<div style="text-align:center;padding:20px">'+
+        '<div style="font-size:42px;margin-bottom:10px">⚠️</div>'+
+        '<div style="color:#EF4444;font-size:14px;margin-bottom:8px">'+esc(e.message)+'</div>'+
+        '<button onclick="location.reload()" class="btn p">إعادة المحاولة</button>'+
+        '<button onclick="doLogout()" class="btn" style="margin-right:8px">تسجيل خروج</button>'+
+      '</div></div>';
   }
-
-  function resize(){
-    const r = cv.parentElement.getBoundingClientRect();
-    W = cv.width = Math.floor(r.width);
-    H = cv.height = Math.floor(r.height);
-    build();
-  }
-
-  function build(){
-    nodes = [];
-    pts = [];
-
-    if(type==='net'){
-      const n = Math.max(18,Math.floor(W*H/4800));
-      for(let i=0;i<n;i++){
-        nodes.push({
-          x:Math.random()*W,y:Math.random()*H,
-          vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
-          r:Math.random()*2.5+1,p:Math.random()*6.28,hub:Math.random()>.82
-        });
-      }
-    }
-
-    if(type==='energy'){
-      for(let i=0;i<46;i++){
-        pts.push({
-          x:Math.random()*W,y:Math.random()*H,
-          vx:(Math.random()>.5?1:-1)*(Math.random()*1.5+.5),
-          vy:(Math.random()-.5)*.3,
-          r:Math.random()*2+1,
-          trail:[],mt:14
-        });
-      }
-    }
-
-    if(type==='grid'){
-      const cols=Math.floor(W/88)+1, rows=Math.floor(H/58)+1;
-      for(let c=0;c<cols;c++) for(let r=0;r<rows;r++){
-        nodes.push({x:c*88+44,y:r*58+29,hub:Math.random()>.72});
-      }
-    }
-
-    if(type==='city'){
-      const n = Math.max(20,Math.floor(W*H/6500));
-      for(let i=0;i<n;i++){
-        nodes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.9+.5,p:Math.random()*6.28,hub:Math.random()>.82});
-      }
-    }
-
-    if(type==='radar'){
-      nodes = [{cx:W/2,cy:H/2,R:Math.min(W,H)*.42,angle:0}];
-    }
-  }
-
-  function draw(){
-    if(!alive) return;
-    cx.clearRect(0,0,W,H);
-
-    if(type==='net'){
-      nodes.forEach(n=>{
-        n.x+=n.vx;n.y+=n.vy;n.p+=.018;
-        if(n.x<0||n.x>W)n.vx*=-1;
-        if(n.y<0||n.y>H)n.vy*=-1;
-      });
-      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
-        const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
-        if(d>130)continue;
-        const al=(1-d/130)*.22;
-        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
-        cx.strokeStyle=color+h2(al);cx.lineWidth=.6;cx.stroke();
-      }
-      nodes.forEach(n=>{
-        const g=Math.sin(n.p)*.4+.6;
-        if(n.hub){cx.beginPath();cx.arc(n.x,n.y,n.r*3,0,6.28);cx.strokeStyle=color+h2(.15*g);cx.stroke();}
-        cx.beginPath();cx.arc(n.x,n.y,n.r,0,6.28);cx.fillStyle=color+h2(n.hub?.85:.6*g);cx.fill();
-      });
-    }
-
-    if(type==='energy'){
-      pts.forEach(p=>{
-        p.x+=p.vx;p.y+=p.vy+Math.sin(Date.now()/800+p.x*.01)*.45;
-        if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<0||p.y>H)p.vy*=-1;
-        p.trail.unshift({x:p.x,y:p.y});if(p.trail.length>p.mt)p.trail.pop();
-        p.trail.forEach((pt,i)=>{
-          const al=(1-i/p.mt)*.5;
-          cx.beginPath();cx.arc(pt.x,pt.y,p.r*(1-i/p.mt*.65),0,6.28);
-          cx.fillStyle=color+h2(al);cx.fill();
-        });
-      });
-    }
-
-    if(type==='grid'){
-      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
-        const a=nodes[i],b=nodes[j];
-        if(Math.abs(a.x-b.x)>90||Math.abs(a.y-b.y)>60)continue;
-        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
-        cx.strokeStyle=color+h2(.18);cx.lineWidth=.6;cx.stroke();
-        if(Math.random()<.002)pts.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,p:0});
-      }
-      pts=pts.filter(p=>{p.p+=.04;return p.p<1});
-      pts.forEach(p=>{
-        const x=p.ax+(p.bx-p.ax)*p.p,y=p.ay+(p.by-p.ay)*p.p;
-        cx.beginPath();cx.arc(x,y,3,0,6.28);cx.fillStyle=color+h2(1-p.p);cx.fill();
-      });
-      nodes.forEach(n=>{
-        cx.beginPath();cx.arc(n.x,n.y,n.hub?3:1.5,0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();
-      });
-    }
-
-    if(type==='city'){
-      nodes.forEach(n=>n.p+=.014);
-      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
-        const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
-        if(d>105)continue;
-        cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);
-        cx.strokeStyle=color+h2((1-d/105)*.11);cx.lineWidth=.5;cx.stroke();
-      }
-      nodes.forEach(n=>{
-        const g=Math.sin(n.p)*.4+.6;
-        if(n.hub){cx.beginPath();cx.arc(n.x,n.y,8,0,6.28);cx.strokeStyle=color+h2(.1*g);cx.stroke();}
-        cx.beginPath();cx.arc(n.x,n.y,n.r*(n.hub?2.5:1),0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();
-      });
-    }
-
-    if(type==='radar'){
-      const nd=nodes[0];nd.angle+=.024;
-      for(let r2=.33;r2<=1;r2+=.33){
-        cx.beginPath();cx.arc(nd.cx,nd.cy,nd.R*r2,0,6.28);
-        cx.strokeStyle=color+h2(.18);cx.lineWidth=.7;cx.stroke();
-      }
-      for(let i=0;i<60;i++){
-        const a=nd.angle-i*.05,al=Math.max(0,(60-i)/60)*.42;
-        cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.arc(nd.cx,nd.cy,nd.R,a,a+.06);cx.closePath();
-        cx.fillStyle=color+h2(al);cx.fill();
-      }
-      cx.beginPath();cx.moveTo(nd.cx,nd.cy);
-      cx.lineTo(nd.cx+Math.cos(nd.angle)*nd.R,nd.cy+Math.sin(nd.angle)*nd.R);
-      cx.strokeStyle=color+'dd';cx.lineWidth=1.5;cx.stroke();
-      cx.beginPath();cx.arc(nd.cx,nd.cy,4,0,6.28);cx.fillStyle=color;cx.fill();
-    }
-
-    raf = requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize',resize);
-  draw();
-
-  return ()=>{
-    alive=false;
-    cancelAnimationFrame(raf);
-    window.removeEventListener('resize',resize);
-  };
-}
-
-function drawBg(){
-  const c=getEl('bgcv');
-  const cx=c.getContext('2d');
-  let W,H,pts=[],raf=0,alive=true;
-
-  function resize(){
-    W=c.width=window.innerWidth;
-    H=c.height=window.innerHeight;
-    pts=[];
-    const n=Math.floor(W*H/(isSmall()?50000:22000));
-    for(let i=0;i<n;i++){
-      pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.13,vy:(Math.random()-.5)*.13,r:Math.random()*1.2+.5});
-    }
-  }
-
-  function draw(){
-    if(!alive)return;
-    cx.clearRect(0,0,W,H);
-    pts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0||p.x>W)p.vx*=-1;
-      if(p.y<0||p.y>H)p.vy*=-1;
-    });
-    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
-      const dv=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);
-      if(dv>100)continue;
-      cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);
-      cx.strokeStyle=`rgba(37,99,235,${(1-dv/100)*.07})`;
-      cx.lineWidth=.5;cx.stroke();
-    }
-    pts.forEach(p=>{
-      cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);
-      cx.fillStyle='rgba(37,99,235,.18)';cx.fill();
-    });
-    raf=requestAnimationFrame(draw);
-  }
-
-  resize();
-  window.addEventListener('resize',resize);
-  draw();
-
-  return ()=>{
-    alive=false;
-    cancelAnimationFrame(raf);
-    window.removeEventListener('resize',resize);
-  };
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter') doLogin();
-});
-
-window.addEventListener('beforeunload',()=>{
-  if(currentSceneCleanup) currentSceneCleanup();
-  if(currentBgCleanup) currentBgCleanup();
-});
-
-ACT = 'adm';
-currentBgCleanup = drawBg();
-setL(LNG);
-checkExistingSession();
+})();
 </script>
 </body>
 </html>

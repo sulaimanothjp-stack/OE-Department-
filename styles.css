@@ -208,57 +208,172 @@ tbody tr:hover td{background:rgba(12,30,56,.5)}
 @keyframes fd{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 
 /* Responsive */
-@media(max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g21{grid-template-columns:1fr}}
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET & MOBILE
+════════════════════════════════════════════════════════ */
 
-/* ── TABLET ───────────────────────────────────────────────── */
-@media(max-width:900px){
-  :root{--sw:200px}
-  .sb-brand .sb-t2,.ub-nm,.ub-rl{display:none}
-  .ni span:not(.ic){display:none}
-  .ni{justify-content:center;padding:9px 6px}
+/* ── TABLET (900px) ──────────────────────────────────── */
+@media(max-width:1100px){
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g21{grid-template-columns:1fr}
 }
 
-/* ── MOBILE ───────────────────────────────────────────────── */
+@media(max-width:900px){
+  :root{--sw:180px}
+  .sb{width:180px}
+  .sb-brand .sb-t2,.ub-rl,.ub-nm{display:none}
+  .ni span:not(.ic){display:none}
+  .ni{justify-content:center;padding:10px 6px}
+  .sb-brand{justify-content:center;padding:10px}
+  .ub{justify-content:center}
+  .ub-av{width:32px;height:32px}
+  .on-dot{display:none}
+  .g4{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ── MOBILE (768px) ──────────────────────────────────── */
 @media(max-width:768px){
   :root{--sw:0px}
-  /* Sidebar becomes bottom nav bar */
-  .sb{position:fixed;bottom:0;left:0;right:0;top:auto;width:100%!important;height:auto;flex-direction:row;border-left:none;border-right:none;border-top:1px solid var(--bd);background:rgba(6,15,30,.97);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:300;padding-bottom:env(safe-area-inset-bottom,0px)}
+
+  /* Shell: stack vertically */
+  .shell{flex-direction:column}
+
+  /* Sidebar → bottom navigation bar */
+  .sb{
+    position:fixed;bottom:0;left:0;right:0;top:auto;
+    width:100%!important;height:auto;
+    flex-direction:row;
+    border-left:none;border-right:none;border-top:1px solid var(--bd);
+    background:rgba(6,15,30,.97);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    z-index:400;
+    padding-bottom:env(safe-area-inset-bottom,4px)
+  }
   .sb-brand,.ub,.sb-foot,.ng{display:none!important}
-  .nav{display:flex;flex-direction:row;padding:4px 6px;overflow-x:auto;width:100%;gap:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav{
+    display:flex;flex-direction:row;
+    padding:4px 6px;width:100%;
+    gap:2px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
   .nav::-webkit-scrollbar{display:none}
-  .ni{flex-direction:column;gap:2px;padding:7px 10px;border-radius:8px;min-width:52px;font-size:10px;align-items:center;text-align:center;white-space:nowrap;flex-shrink:0}
-  .ni .ic{font-size:16px}
+  .ni{
+    flex-direction:column;gap:2px;
+    padding:6px 10px;border-radius:8px;
+    min-width:54px;font-size:10px;
+    align-items:center;text-align:center;
+    white-space:nowrap;flex-shrink:0;
+  }
+  .ni .ic{font-size:15px}
   .ni::after{display:none!important}
-  .main{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
-  .page{padding:12px 10px}
+
+  /* Main content */
+  .main{padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+  .page{padding:10px 12px}
+
+  /* Topbar */
+  .topbar{padding:0 12px;height:46px}
+  .tb-ttl{font-size:13px}
+  #cd{display:none}
+  .ld{display:none}
+
   /* Grids */
   .g4,.g3{grid-template-columns:repeat(2,1fr);gap:8px}
-  .g2,.g21{grid-template-columns:1fr;gap:8px}
-  /* Cards */
-  .sc .sv{font-size:22px}
-  .sc{padding:10px 12px}
-  /* Tables scroll */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  table{min-width:500px}
-  /* Modal full screen on mobile */
+  .g2{grid-template-columns:1fr;gap:8px}
+  .g21{grid-template-columns:1fr}
+
+  /* Stat cards */
+  .sc{padding:10px 11px}
+  .sc .sv{font-size:20px}
+  .sc .sl{font-size:10.5px}
+
+  /* Hero card */
+  .hero{min-height:110px;padding:14px 16px}
+  .hi h1{font-size:15px}
+  .hi .hs{font-size:11px;display:none}
+  .hks{gap:10px;flex-wrap:wrap}
+  .hk .hv{font-size:16px}
+  .hk .hl{font-size:9px}
+
+  /* Panels */
+  .ph{padding:9px 12px}
+  .ph h3{font-size:12px}
+  .pb{padding:10px 12px}
+
+  /* Filters */
+  .filters{flex-direction:column;gap:6px;padding:8px 10px}
+  .fi{width:100%}
+
+  /* Tables — horizontal scroll */
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:0}
+  table{min-width:520px;font-size:12.5px}
+  th,td{padding:7px 9px}
+
+  /* Modals — slide up from bottom */
   .mbg{padding:0;align-items:flex-end}
-  .modal{border-radius:14px 14px 0 0;max-height:90vh;width:100%;max-width:100%}
-  /* Hero sections smaller */
-  .hero{min-height:130px}
-  .hi h1{font-size:16px}
-  .hi .hs{font-size:11px}
-  .hks{gap:12px}
-  .hk .hv{font-size:18px}
-  /* Topbar */
-  .topbar{padding:0 12px;height:48px}
-  .tb-ttl{font-size:13px}
-  /* Hide clock date on small screens */
-  #cd{display:none}
+  .modal{
+    border-radius:16px 16px 0 0;
+    max-height:88vh;width:100%;max-width:100%;
+    overflow-y:auto;
+  }
+  .mh{padding:12px 14px}
+  .mbd{padding:12px 14px}
+  .mf{padding:10px 14px}
+
+  /* Form grids */
+  .fg{grid-template-columns:1fr!important}
+  .ff{grid-column:auto}
+
+  /* Buttons */
+  .btn{font-size:12.5px;padding:6px 12px}
+
+  /* Progress bars */
+  .prog{height:5px}
+
+  /* User row on small screens */
+  .ur{flex-wrap:wrap;gap:6px}
+  .ur > div:last-child{width:100%;display:flex;justify-content:flex-start}
+
+  /* Badge text shorter on mobile */
+  .badge{font-size:9.5px;padding:2px 6px}
+
+  /* War room canvas hero */
+  .wr-in{flex-direction:column;padding:14px 16px}
+  .wclk .wt{font-size:26px}
+  .wstats{gap:10px}
+  .wkv .wv{font-size:18px}
+
+  /* Division nodes grid */
+  .dhx{grid-template-columns:repeat(3,1fr)!important;gap:7px}
+  .dn{padding:9px 7px}
+  .dn-ic{font-size:18px}
+  .dn-nm{font-size:9px}
+  .dn-sc{font-size:17px}
+  .dn-mt{display:none}
+
+  /* QPI cards */
+  .qpi-card .qv{font-size:26px}
+
+  /* Employee greeting */
+  .greet-card{padding:14px 16px}
+  .gc-in h1{font-size:16px}
+  .gc-in .gs{font-size:11px}
+
+  /* Task rows */
+  .tr2{flex-wrap:wrap}
+  .stg-row{gap:3px}
+  .stg-btn{padding:3px 8px;font-size:10.5px}
 }
 
-/* ── SMALL MOBILE ─────────────────────────────────────────── */
+/* ── SMALL MOBILE (390px) ────────────────────────────── */
 @media(max-width:390px){
   .g4,.g3,.g2{grid-template-columns:1fr}
-  .ni{min-width:44px;padding:6px 8px;font-size:9px}
-  .hi h1{font-size:14px}
+  .ni{min-width:46px;padding:5px 8px;font-size:9.5px}
+  .ni .ic{font-size:14px}
+  .page{padding:8px 10px}
+  .sc .sv{font-size:18px}
+  .dhx{grid-template-columns:repeat(2,1fr)!important}
+  .stg-btn{font-size:10px;padding:3px 7px}
+  table{min-width:420px}
 }

@@ -404,32 +404,33 @@ function openCU(){
   openModal(
     '<div class="mh"><h3>👤 إنشاء مستخدم جديد</h3><button class="mx" onclick="closeModal()">×</button></div>'+
     '<div class="mbd">'+
-      '<div class="note">سيُنشأ الحساب ← احفظ بيانات الدخول ← أعطها للمستخدم</div>'+
+      '<div class="note">ℹ️ الدخول بالرقم الوظيفي وكلمة المرور فقط — لا إيميل</div>'+
       '<div class="fg">'+
-        '<div class="field ff"><label>الاسم الكامل (عربي) *</label><input id="nu_n" placeholder="سليمان الخطيب"></div>'+
-        '<div class="field"><label>الاسم (إنجليزي)</label><input id="nu_ne" placeholder="Sulaiman Alkhateeb"></div>'+
-        '<div class="field"><label>البريد الإلكتروني *</label><input type="email" id="nu_em" placeholder="name@se.com.sa"></div>'+
+        '<div class="field ff"><label>الاسم الكامل *</label><input id="nu_n" placeholder="اسم المدير"></div>'+
+        '<div class="field">'+
+          '<label>الرقم الوظيفي / اسم المستخدم *</label>'+
+          '<input id="nu_uid" placeholder="مثال: 10001 أو admin" style="direction:ltr;text-align:right" autocomplete="off">'+
+          '<div style="font-size:11px;color:var(--t2);margin-top:3px">هذا هو ما يستخدمه المدير للدخول</div>'+
+        '</div>'+
+        '<div class="field"><label>الدور *</label>'+
+          '<select id="nu_rl">'+
+            '<option value="">اختر...</option>'+
+            '<option value="director">مدير الإدارة</option>'+
+            '<option value="governance_manager">مدير الحوكمة</option>'+
+            '<option value="generation_manager">مدير التوليد</option>'+
+            '<option value="national_grid_manager">مدير الشبكة الوطنية</option>'+
+            '<option value="distribution_manager">مدير التوزيع</option>'+
+            '<option value="technical_alerts_manager">مدير التنبيهات الفنية</option>'+
+          '</select>'+
+        '</div>'+
         '<div class="field ff">'+
-          '<label>كلمة المرور *</label>'+
+          '<label>كلمة المرور المؤقتة *</label>'+
           '<div style="display:flex;gap:7px">'+
-            '<input type="text" id="nu_pw" placeholder="كلمة مرور قوية...">'+
+            '<input type="text" id="nu_pw" placeholder="كلمة مرور...">'+
             '<button class="btn sm" onclick="genPW()">🔀 توليد</button>'+
           '</div>'+
         '</div>'+
-        '<div class="field"><label>الدور *</label>'+
-          '<select id="nu_rl" onchange="handleRC()">'+
-            '<option value="">اختر...</option>'+
-            Object.entries(RLA).map(function(e){return '<option value="'+e[0]+'">'+e[1]+'</option>';}).join('')+
-          '</select>'+
-        '</div>'+
-        '<div class="field" id="nu_divF" style="display:none"><label>الدائرة</label>'+
-          '<select id="nu_dv">'+
-            '<option value="">—</option>'+
-            Object.entries(DIVS).map(function(e){return '<option value="'+e[0]+'">'+e[1].icon+' '+e[1].ar+'</option>';}).join('')+
-          '</select>'+
-        '</div>'+
-        '<div class="field"><label>المسمى الوظيفي (عربي)</label><input id="nu_tt" placeholder="مدير دائرة..."></div>'+
-        '<div class="field"><label>المسمى الوظيفي (إنجليزي)</label><input id="nu_te" placeholder="Manager..."></div>'+
+        '<div class="field"><label>المسمى الوظيفي</label><input id="nu_tt" placeholder="مدير دائرة..."></div>'+
       '</div>'+
     '</div>'+
     '<div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>'+
@@ -439,15 +440,9 @@ function openCU(){
   genPW();
 }
 
-function handleRC(){
-  const r=mv('nu_rl');
-  const needDiv=['governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager','employee'].indexOf(r)>-1;
-  const f=document.getElementById('nu_divF');
-  if(f)f.style.display=needDiv?'block':'none';
-  const autoMap={governance_manager:'governance',generation_manager:'generation',national_grid_manager:'national_grid',distribution_manager:'distribution',technical_alerts_manager:'technical_alerts'};
-  const ad=autoMap[r];
-  if(ad){const d=document.getElementById('nu_dv');if(d)d.value=ad;}
-}
+
+
+
 
 function genPW(){
   const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
@@ -456,8 +451,33 @@ function genPW(){
 }
 
 async function createUser(){
-  const name=mv('nu_n'),email=mv('nu_em'),pass=mv('nu_pw'),role=mv('nu_rl');
-  if(!name||!email||!pass||!role){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
+  const name=mv('nu_n'),username=mv('nu_uid'),pass=mv('nu_pw'),role=mv('nu_rl');
+  if(!name||!username||!pass||!role){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
+  
+  // Internal email (user never sees this)
+  const email = username + '@se.local';
+  
+  // Check username not taken
+  try{
+    const sess=getStoredSession();
+    const chk=await fetch(SB_URL+'/rest/v1/profiles?username=eq.'+encodeURIComponent(username)+'&select=id&limit=1',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||'')}});
+    const ex=await chk.json();
+    if(Array.isArray(ex)&&ex.length>0){toast('⚠️ اسم المستخدم مستخدم مسبقاً','e');return;}
+  }catch(e){}
+  
+  // Check one manager per division
+  const divMap={governance_manager:'governance',generation_manager:'generation',national_grid_manager:'national_grid',distribution_manager:'distribution',technical_alerts_manager:'technical_alerts'};
+  const div=divMap[role];
+  if(div){
+    try{
+      const sess=getStoredSession();
+      const chk=await fetch(SB_URL+'/rest/v1/profiles?role=eq.'+role+'&select=id&limit=1',
+        {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||'')}});
+      const existing=await chk.json();
+      if(Array.isArray(existing)&&existing.length>0){toast('⚠️ يوجد مدير لهذه الدائرة مسبقاً — دائرة واحدة = مدير واحد','e');return;}
+    }catch(e){}
+  }
 
   const btn=document.getElementById('createBtn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ الإنشاء...';}
@@ -545,8 +565,8 @@ function showCreds(name,email,pass,role){
         '<div class="cl">الدور</div><div class="cv">'+esc(role)+'</div>'+
         '<div class="cl">رابط الدخول</div>'+
         '<div class="cv"><span>https://sulaimanothjp-stack.github.io/OE-Department-/index.html</span><button class="cpbtn" onclick="copyT(\'https://sulaimanothjp-stack.github.io/OE-Department-/index.html\')">نسخ</button></div>'+
-        '<div class="cl">البريد الإلكتروني</div>'+
-        '<div class="cv"><span>'+esc(email)+'</span><button class="cpbtn" onclick="copyT(\''+esc(email)+'\')">نسخ</button></div>'+
+        '<div class="cl">اسم المستخدم (للدخول)</div>'+
+        '<div class="cv"><span>'+esc(username)+'</span><button class="cpbtn" onclick="copyT(\''+esc(username)+'\')">نسخ</button></div>'+
         '<div class="cl">كلمة المرور المؤقتة</div>'+
         '<div class="cv"><span>'+esc(pass)+'</span><button class="cpbtn" onclick="copyT(\''+esc(pass)+'\')">نسخ</button></div>'+
       '</div>'+
@@ -814,7 +834,7 @@ function printCreds(name,email,pass,role){
     '<div class="f"><div class="l">الاسم</div><div class="v">'+name+'</div></div>'+
     '<div class="f"><div class="l">الدور</div><div class="v">'+role+'</div></div>'+
     '<div class="f"><div class="l">رابط الدخول</div><div class="v">https://sulaimanothjp-stack.github.io/OE-Department-/index.html</div></div>'+
-    '<div class="f"><div class="l">البريد</div><div class="v">'+email+'</div></div>'+
+    '<div class="f"><div class="l">اسم المستخدم</div><div class="v">'+username+'</div></div>'+
     '<div class="f"><div class="l">كلمة المرور</div><div class="v">'+pass+'</div></div>'+
     '<hr><div class="note">⚠️ يرجى تغيير كلمة المرور عند أول دخول · '+new Date().toLocaleDateString('ar-SA')+'</div>'+
     '</body></html>');

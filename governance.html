@@ -902,7 +902,7 @@ window.approveTask=async id=>{
   await dbUpd('tasks',id,{status:'closed',quality_score:100});
   await dbIns('task_comments',{task_id:id,author_id:App.profile?.id,content:'✅ اعتمد المدير الإنجاز',type:'manager_review'}).catch(()=>{});
   toast('تم اعتماد الإنجاز ✓','s');
-  document.querySelector('[onclick="filterRV('closed')"]')?.click();
+  if(window.filterRV) filterRV('closed');
 };
 
 window.returnTask=id=>{
@@ -920,7 +920,7 @@ window.doReturnTask=async id=>{
   await dbUpd('tasks',id,{status:'returned',returned_count:(await dbGet('tasks',id).then(t=>t.returned_count||0).catch(()=>0))+1});
   await dbIns('task_comments',{task_id:id,author_id:App.profile?.id,content:'↩ أُعيدت المهمة: '+reason,type:'manager_return'}).catch(()=>{});
   toast('أُعيدت المهمة للموظف','s');closeModal();
-  document.querySelector('[onclick="filterRV('closed')"]')?.click();
+  if(window.filterRV) filterRV('closed');
 };
 
 window.viewTaskHistory=async id=>{

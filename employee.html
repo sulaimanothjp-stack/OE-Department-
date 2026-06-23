@@ -38,6 +38,7 @@ body{background:#020912}
   <nav class="nav" id="navEl"></nav>
   <div class="sb-foot">
     <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
+    <button class="btn-lg" onclick="openChangePass()" title="تغيير كلمة المرور">🔐</button>
     <button class="btn-lg" onclick="toggleLang()">EN/ع</button>
   </div>
 </aside>
@@ -298,6 +299,46 @@ reg('signals',el=>{
 });
 
 ['tickets'].forEach(k=>reg(k,el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">${NAV.find(n=>n.k===k)?.ar||k}</h1></div><p style="color:var(--t2);padding:18px">يعمل بالكامل عند توصيل Supabase.</p>`;}));
+
+/* ═══ CHANGE PASSWORD (all portals) ══════════════════════════ */
+window.openChangePass = () => {
+  openModal(`<div class="mh"><h3>🔐 تغيير كلمة المرور</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field"><label>كلمة المرور الجديدة</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="cp_new" placeholder="كلمة مرور جديدة..." style="flex:1">
+          <button class="btn sm" onclick="genCPW()">🔀</button>
+        </div>
+      </div>
+      <div id="cp_show" style="background:#070F1D;border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:10px;font-family:var(--mono);font-size:15px;font-weight:700;color:#60A5FA;margin-bottom:10px;display:none"></div>
+      <p style="font-size:11.5px;color:var(--t2)">ستُسجَّل خارجاً بعد التغيير لتسجيل الدخول بالجديدة</p>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn p" onclick="doChangePass()">حفظ</button>
+    </div>`);
+};
+window.genCPW = () => {
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('cp_new');if(el)el.value=p;
+  const sh=document.getElementById('cp_show');if(sh){sh.textContent=p;sh.style.display='block';}
+  navigator.clipboard?.writeText(p).catch(()=>{});
+};
+window.doChangePass = async () => {
+  const np = mv('cp_new');
+  if(!np||np.length<6){toast('6 أحرف على الأقل','e');return;}
+  const sess = getStoredSession();
+  try{
+    const res = await fetch(SB_URL+'/auth/v1/user',{method:'PUT',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
+      body:JSON.stringify({password:np})});
+    const d = await res.json();
+    if(d.error)throw new Error(d.error_description||d.error);
+    toast('تم التغيير ✓ — جارٍ تسجيل الخروج...','s');
+    setTimeout(doLogout,2000);
+  }catch(e){toast('خطأ: '+e.message,'e');}
+};
 window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
 
 (async()=>{

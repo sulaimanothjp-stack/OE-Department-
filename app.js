@@ -209,7 +209,13 @@ const sb = {
 };
 
 /* ── App State ────────────────────────────────────────────────── */
-const App = { user: null, profile: null, lang: localStorage.getItem('se_lang') || 'ar' };
+// Language version reset — bump LANG_VER to force English reset for all users
+const LANG_VER = '3';
+if(localStorage.getItem('se_lang_ver') !== LANG_VER) {
+  localStorage.removeItem('se_lang_v2');
+  localStorage.setItem('se_lang_ver', LANG_VER);
+}
+const App = { user: null, profile: null, lang: localStorage.getItem('se_lang_v2') || 'en' };
 
 /* ── Config ───────────────────────────────────────────────────── */
 const DIVS = {
@@ -240,11 +246,38 @@ const t = k => T[App.lang]?.[k] ?? k;
 
 /* ── Language ─────────────────────────────────────────────────── */
 function setLang(l) {
-  App.lang = l; localStorage.setItem('se_lang', l);
+  App.lang = l; localStorage.setItem('se_lang_v2', l);
   document.documentElement.lang = l;
   document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
 }
-function toggleLang() { setLang(App.lang === 'ar' ? 'en' : 'ar'); location.reload(); }
+function toggleLang() {
+  const newLang = App.lang === 'ar' ? 'en' : 'ar';
+  setLang(newLang);
+  // Update nav
+  const navEl = document.getElementById('navEl');
+  if(navEl && window._currentNav && window._currentPage) {
+    buildNav(window._currentNav, window._currentPage);
+  }
+  // Update user badge
+  if(App.profile) _renderBadge();
+  // Update page title
+  if(window._currentNav && window._currentPage) {
+    const item = window._currentNav.find(n=>n.k===window._currentPage);
+    const ptEl = document.getElementById('pgtitle');
+    if(item && ptEl) ptEl.textContent = newLang==='ar' ? item.ar : item.en;
+  }
+  // Update sidebar footer buttons text
+  const btnLg = document.querySelector('.btn-lg[onclick="toggleLang()"]');
+  if(btnLg) btnLg.textContent = newLang==='ar' ? 'EN/ع' : 'ع/EN';
+  // Reload page content to update all rendered text
+  if(window._currentPage && window.PAGES && window.PAGES[window._currentPage]) {
+    const ct = document.getElementById('pgContent');
+    if(ct) {
+      ct.innerHTML = '<div class="fade" id="pg"></div>';
+      window.PAGES[window._currentPage](document.getElementById('pg'));
+    }
+  }
+}
 
 /* ── Auth ─────────────────────────────────────────────────────── */
 async function initAuth(roles) {
@@ -298,7 +331,10 @@ async function initAuth(roles) {
     }).catch(() => {});
 
     _renderBadge();
-    setLang(p.preferences?.lang || App.lang);
+    // User's browser choice takes priority over profile preferences
+    // Always use localStorage preference (defaults to 'en')
+    // Profile preferences are IGNORED for language
+    setLang(App.lang); // App.lang is already 'en' by default
     return p;
   } catch (e) {
     if (pg) pg.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:70vh"><div style="text-align:center;padding:20px"><div style="font-size:40px;margin-bottom:10px">⚠️</div><div style="color:#EF4444;font-size:14px;margin-bottom:10px">${esc(e.message)}</div><button onclick="location.reload()" style="padding:10px 20px;background:#2563EB;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:13px">إعادة المحاولة</button></div></div>`;
@@ -493,6 +529,8 @@ async function loadHealth() {
 
 /* ── Nav builder ──────────────────────────────────────────────── */
 function buildNav(items, active) {
+  window._currentNav = items;
+  window._currentPage = active;
   const el = document.getElementById('navEl'); if (!el) return;
   el.innerHTML = items.map(item => {
     if (item.g) return `<div class="ng">${App.lang==='ar'?item.g:item.ge}</div>`;
@@ -528,7 +566,10 @@ async function logAct(action, etype, eid, details = {}) {
 /* ── Page init ────────────────────────────────────────────────── */
 async function initPage(opts = {}) {
   const p = await initAuth(opts.roles); if (!p) return null;
-  setLang(App.lang); startClock(); return p;
+  // App.lang is already set correctly by initAuth
+  setLang(App.lang);
+  startClock();
+  return p;
 }
 
 /* ── SE Logo ──────────────────────────────────────────────────── */

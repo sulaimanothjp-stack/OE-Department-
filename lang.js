@@ -565,3 +565,66 @@ if(typeof window !== 'undefined') {
   window.translateDOM = translateDOM;
   window.DOM_MAP = DOM_MAP;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   AUTO-TRANSLATE OBSERVER
+   Watches for DOM changes and translates automatically
+   Works for ALL portals without modifying them
+═══════════════════════════════════════════════════════════ */
+
+let _translateTimer = null;
+
+function autoTranslate() {
+  const lang = (typeof App !== 'undefined' ? App.lang : null) 
+               || localStorage.getItem('se_lang_v2') || 'en';
+  if(lang === 'ar') return;
+  
+  clearTimeout(_translateTimer);
+  _translateTimer = setTimeout(() => {
+    const targets = [
+      document.getElementById('pgContent'),
+      document.getElementById('tc'),
+      document.getElementById('navEl'),
+      document.querySelector('.sb-brand'),
+      document.querySelector('.topbar'),
+    ].filter(Boolean);
+    
+    targets.forEach(el => {
+      if(el && el.innerHTML) translateDOM(el);
+    });
+  }, 80);
+}
+
+// Watch for DOM changes
+if(typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    // Observe the main content area
+    const observer = new MutationObserver((mutations) => {
+      const relevant = mutations.some(m => 
+        m.addedNodes.length > 0 || m.type === 'characterData'
+      );
+      if(relevant) autoTranslate();
+    });
+    
+    const config = { childList: true, subtree: true };
+    
+    // Start observing when pgContent exists
+    const startObserving = () => {
+      const pg = document.getElementById('pgContent');
+      const tc = document.getElementById('tc');
+      if(pg) observer.observe(pg, config);
+      if(tc) observer.observe(tc, config);
+    };
+    
+    startObserving();
+    // Retry if not found yet
+    setTimeout(startObserving, 500);
+    setTimeout(startObserving, 1500);
+    
+    // Also translate on page load
+    setTimeout(autoTranslate, 300);
+    setTimeout(autoTranslate, 800);
+  });
+  
+  window.autoTranslate = autoTranslate;
+}

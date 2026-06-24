@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<script>document.documentElement.lang="en";document.documentElement.dir="ltr";</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SE · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -138,7 +139,7 @@ button,input,select{font-family:inherit}
     </nav>
     <div class="sb-foot">
       <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
-      <button class="btn-lg" onclick="toggleDir()">EN/ع</button>
+      <button class="btn-lg" onclick="openLangPicker()">EN/ع</button>
     </div>
   </aside>
 
@@ -254,68 +255,6 @@ function showPage(name){
   else if(name==='health') renderHealth();
 }
 
-
-/* Admin reset user password */
-window.openResetPass = (id, name) => {
-  openModal(`<div class="mh"><h3>🔐 إعادة تعيين كلمة مرور ${esc(name)}</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd">
-      <div class="note">كلمة المرور الجديدة ستُرسل للمستخدم مباشرة — احفظها قبل الحفظ.</div>
-      <div class="field"><label>كلمة المرور الجديدة</label>
-        <div style="display:flex;gap:7px">
-          <input type="text" id="rp_pw" placeholder="كلمة مرور جديدة...">
-          <button class="btn sm" onclick="genRPW()">🔀 توليد</button>
-        </div>
-      </div>
-      <div id="rp_show" style="background:#070F1D;border:1px solid rgba(79,70,229,.25);border-radius:8px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:700;color:#818CF8;margin-bottom:10px;display:none"></div>
-    </div>
-    <div class="mf">
-      <button class="btn" onclick="closeModal()">إلغاء</button>
-      <button class="btn p" onclick="doResetPass('${id}','${esc(name)}')">حفظ كلمة المرور</button>
-    </div>`);
-  genRPW();
-};
-window.genRPW = () => {
-  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
-  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
-  const el=document.getElementById('rp_pw');if(el)el.value=p;
-  const sh=document.getElementById('rp_show');if(sh){sh.textContent=p;sh.style.display='block';}
-  navigator.clipboard?.writeText(p).catch(()=>{});
-};
-window.doResetPass = async (userId, name) => {
-  const np = mv('rp_pw');
-  if(!np||np.length<6){toast('6 أحرف على الأقل','e');return;}
-  const sess = getStoredSession();
-  try{
-    // Use admin endpoint via service role - fallback to showing manual instructions
-    const res = await fetch(SB_URL+'/auth/v1/admin/users/'+userId,{
-      method:'PUT',
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
-      body:JSON.stringify({password:np})
-    });
-    const d = await res.json();
-    if(d.error||res.status===403){
-      // Anon key can't use admin endpoint - show manual instructions
-      closeModal();
-      openModal(`<div class="mh"><h3>🔐 كلمة المرور الجديدة لـ ${esc(name)}</h3><button class="mx" onclick="closeModal()">×</button></div>
-        <div class="mbd">
-          <p style="font-size:13px;color:var(--t2);margin-bottom:10px">انسخ هذه البيانات وأعطها للمستخدم:</p>
-          <div class="creds">
-            <div class="cl">الاسم</div><div class="cv"><span>${esc(name)}</span></div>
-            <div class="cl">كلمة المرور الجديدة</div>
-            <div class="cv"><span>${esc(np)}</span><button class="cpbtn" onclick="copyT('${esc(np)}')">نسخ</button></div>
-          </div>
-          <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:9px;font-size:12px;color:#FCD34D;margin-top:10px">
-            ⚠️ لإعادة التعيين الفعلية: Supabase → Auth → Users → اختر المستخدم → Change password
-          </div>
-        </div>
-        <div class="mf"><button class="btn p" onclick="closeModal()">فهمت</button></div>`);
-      return;
-    }
-    toast('تم تغيير كلمة المرور ✓','s');
-    closeModal();
-  }catch(e){toast('خطأ: '+e.message,'e');}
-};
-
 /* ═══ USERS PAGE ════════════════════════════════════════════ */
 async function renderUsers(){
   const area=document.getElementById('pageArea');
@@ -404,33 +343,32 @@ function openCU(){
   openModal(
     '<div class="mh"><h3>👤 إنشاء مستخدم جديد</h3><button class="mx" onclick="closeModal()">×</button></div>'+
     '<div class="mbd">'+
-      '<div class="note">ℹ️ الدخول بالرقم الوظيفي وكلمة المرور فقط — لا إيميل</div>'+
+      '<div class="note">سيُنشأ الحساب ← احفظ بيانات الدخول ← أعطها للمستخدم</div>'+
       '<div class="fg">'+
-        '<div class="field ff"><label>الاسم الكامل *</label><input id="nu_n" placeholder="اسم المدير"></div>'+
-        '<div class="field">'+
-          '<label>الرقم الوظيفي / اسم المستخدم *</label>'+
-          '<input id="nu_uid" placeholder="مثال: 10001 أو admin" style="direction:ltr;text-align:right" autocomplete="off">'+
-          '<div style="font-size:11px;color:var(--t2);margin-top:3px">هذا هو ما يستخدمه المدير للدخول</div>'+
-        '</div>'+
-        '<div class="field"><label>الدور *</label>'+
-          '<select id="nu_rl">'+
-            '<option value="">اختر...</option>'+
-            '<option value="director">مدير الإدارة</option>'+
-            '<option value="governance_manager">مدير الحوكمة</option>'+
-            '<option value="generation_manager">مدير التوليد</option>'+
-            '<option value="national_grid_manager">مدير الشبكة الوطنية</option>'+
-            '<option value="distribution_manager">مدير التوزيع</option>'+
-            '<option value="technical_alerts_manager">مدير التنبيهات الفنية</option>'+
-          '</select>'+
-        '</div>'+
+        '<div class="field ff"><label>الاسم الكامل (عربي) *</label><input id="nu_n" placeholder="سليمان الخطيب"></div>'+
+        '<div class="field"><label>الاسم (إنجليزي)</label><input id="nu_ne" placeholder="Sulaiman Alkhateeb"></div>'+
+        '<div class="field"><label>البريد الإلكتروني *</label><input type="email" id="nu_em" placeholder="name@se.com.sa"></div>'+
         '<div class="field ff">'+
-          '<label>كلمة المرور المؤقتة *</label>'+
+          '<label>كلمة المرور *</label>'+
           '<div style="display:flex;gap:7px">'+
-            '<input type="text" id="nu_pw" placeholder="كلمة مرور...">'+
+            '<input type="text" id="nu_pw" placeholder="كلمة مرور قوية...">'+
             '<button class="btn sm" onclick="genPW()">🔀 توليد</button>'+
           '</div>'+
         '</div>'+
-        '<div class="field"><label>المسمى الوظيفي</label><input id="nu_tt" placeholder="مدير دائرة..."></div>'+
+        '<div class="field"><label>الدور *</label>'+
+          '<select id="nu_rl" onchange="handleRC()">'+
+            '<option value="">اختر...</option>'+
+            Object.entries(RLA).map(function(e){return '<option value="'+e[0]+'">'+e[1]+'</option>';}).join('')+
+          '</select>'+
+        '</div>'+
+        '<div class="field" id="nu_divF" style="display:none"><label>الدائرة</label>'+
+          '<select id="nu_dv">'+
+            '<option value="">—</option>'+
+            Object.entries(DIVS).map(function(e){return '<option value="'+e[0]+'">'+e[1].icon+' '+e[1].ar+'</option>';}).join('')+
+          '</select>'+
+        '</div>'+
+        '<div class="field"><label>المسمى الوظيفي (عربي)</label><input id="nu_tt" placeholder="مدير دائرة..."></div>'+
+        '<div class="field"><label>المسمى الوظيفي (إنجليزي)</label><input id="nu_te" placeholder="Manager..."></div>'+
       '</div>'+
     '</div>'+
     '<div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>'+
@@ -440,9 +378,15 @@ function openCU(){
   genPW();
 }
 
-
-
-
+function handleRC(){
+  const r=mv('nu_rl');
+  const needDiv=['governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager','employee'].indexOf(r)>-1;
+  const f=document.getElementById('nu_divF');
+  if(f)f.style.display=needDiv?'block':'none';
+  const autoMap={governance_manager:'governance',generation_manager:'generation',national_grid_manager:'national_grid',distribution_manager:'distribution',technical_alerts_manager:'technical_alerts'};
+  const ad=autoMap[r];
+  if(ad){const d=document.getElementById('nu_dv');if(d)d.value=ad;}
+}
 
 function genPW(){
   const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
@@ -451,107 +395,38 @@ function genPW(){
 }
 
 async function createUser(){
-  const name=mv('nu_n'),username=mv('nu_uid'),pass=mv('nu_pw'),role=mv('nu_rl');
-  if(!name||!username||!pass||!role){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
-  
-  // Internal email (user never sees this)
-  const email = username + '@se.local';
-  
-  // Check username not taken
-  try{
-    const sess=getStoredSession();
-    const chk=await fetch(SB_URL+'/rest/v1/profiles?username=eq.'+encodeURIComponent(username)+'&select=id&limit=1',
-      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||'')}});
-    const ex=await chk.json();
-    if(Array.isArray(ex)&&ex.length>0){toast('⚠️ اسم المستخدم مستخدم مسبقاً','e');return;}
-  }catch(e){}
-  
-  // Check one manager per division
-  const divMap={governance_manager:'governance',generation_manager:'generation',national_grid_manager:'national_grid',distribution_manager:'distribution',technical_alerts_manager:'technical_alerts'};
-  const div=divMap[role];
-  if(div){
-    try{
-      const sess=getStoredSession();
-      const chk=await fetch(SB_URL+'/rest/v1/profiles?role=eq.'+role+'&select=id&limit=1',
-        {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||'')}});
-      const existing=await chk.json();
-      if(Array.isArray(existing)&&existing.length>0){toast('⚠️ يوجد مدير لهذه الدائرة مسبقاً — دائرة واحدة = مدير واحد','e');return;}
-    }catch(e){}
-  }
-
+  const name=mv('nu_n'),email=mv('nu_em'),pass=mv('nu_pw'),role=mv('nu_rl');
+  if(!name||!email||!pass||!role){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
   const btn=document.getElementById('createBtn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span> جارٍ الإنشاء...';}
-
   try{
-    const sess=getStoredSession();
-    const tk=sess?.access_token||'';
-
-    // إنشاء المستخدم في Supabase Auth من داخل المنصة
+    // Sign up via Supabase Auth REST API
     const authRes=await fetch(SB_URL+'/auth/v1/signup',{
       method:'POST',
-      headers:{
-        'apikey':SB_KEY,
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        email:email,
-        password:pass,
-        data:{
-          full_name:name,
-          role:role,
-          division:mv('nu_dv')||null
-        }
-      })
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:email,password:pass,data:{full_name:name,role:role}})
     });
-
     const authData=await authRes.json();
-
-    if(!authRes.ok || authData.error || authData.msg){
-      throw new Error(authData.error_description||authData.msg||authData.error||'فشل إنشاء حساب Auth');
+    if(authData.error||authData.msg){throw new Error(authData.error_description||authData.msg||authData.error||'فشل إنشاء الحساب');}
+    const uid=authData.id||authData.user?.id;
+    if(uid){
+      const sess=getStoredSession();
+      const tk=sess?.access_token||'';
+      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{
+        method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+tk,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({full_name:name,full_name_en:mv('nu_ne')||null,role:role,division:mv('nu_dv')||null,job_title:mv('nu_tt')||null,job_title_en:mv('nu_te')||null,is_active:true})
+      });
     }
-
-    const uid=authData.id || authData.user?.id;
-    if(!uid) throw new Error('لم يرجع Supabase رقم المستخدم');
-
-    const profileRow={
-      id:uid,
-      email:email,
-      full_name:name,
-      full_name_en:mv('nu_ne')||null,
-      role:role,
-      division:mv('nu_dv')||null,
-      job_title:mv('nu_tt')||null,
-      job_title_en:mv('nu_te')||null,
-      is_active:true
-    };
-
-    // حفظ/تحديث بيانات المستخدم في جدول profiles
-    const profRes=await fetch(SB_URL+'/rest/v1/profiles?on_conflict=id',{
-      method:'POST',
-      headers:{
-        'apikey':SB_KEY,
-        'Authorization':'Bearer '+tk,
-        'Content-Type':'application/json',
-        'Prefer':'resolution=merge-duplicates,return=minimal'
-      },
-      body:JSON.stringify(profileRow)
-    });
-
-    if(!profRes.ok){
-      const errTxt=await profRes.text();
-      throw new Error('تم إنشاء Auth لكن فشل حفظ Profile: '+errTxt);
-    }
-
     closeModal();
     showCreds(name,email,pass,RLA[role]||role);
     loadUsers();
-
   }catch(e){
     toast('فشل: '+e.message,'e');
     if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}
-    if(e.message && (e.message.includes('already') || e.message.includes('registered'))){
-      toast('هذا الإيميل مسجّل مسبقاً','e');
-    }
+    // Show manual fallback
+    if(e.message&&e.message.indexOf('already')>-1){toast('هذا الإيميل مسجّل مسبقاً','e');}
+    else{closeModal();showManual(name,email,pass,role);}
   }
 }
 
@@ -565,8 +440,8 @@ function showCreds(name,email,pass,role){
         '<div class="cl">الدور</div><div class="cv">'+esc(role)+'</div>'+
         '<div class="cl">رابط الدخول</div>'+
         '<div class="cv"><span>https://sulaimanothjp-stack.github.io/OE-Department-/index.html</span><button class="cpbtn" onclick="copyT(\'https://sulaimanothjp-stack.github.io/OE-Department-/index.html\')">نسخ</button></div>'+
-        '<div class="cl">اسم المستخدم (للدخول)</div>'+
-        '<div class="cv"><span>'+esc(username)+'</span><button class="cpbtn" onclick="copyT(\''+esc(username)+'\')">نسخ</button></div>'+
+        '<div class="cl">البريد الإلكتروني</div>'+
+        '<div class="cv"><span>'+esc(email)+'</span><button class="cpbtn" onclick="copyT(\''+esc(email)+'\')">نسخ</button></div>'+
         '<div class="cl">كلمة المرور المؤقتة</div>'+
         '<div class="cv"><span>'+esc(pass)+'</span><button class="cpbtn" onclick="copyT(\''+esc(pass)+'\')">نسخ</button></div>'+
       '</div>'+
@@ -692,7 +567,7 @@ async function renderDivs(){
           '<span style="font-size:12px;color:#8098BC">الأعضاء</span>'+
           '<span class="badge bg">'+cnt+' عضو</span>'+
         '</div>'+
-        '<a href="'+(code==='national_grid'?'national-grid':code==='technical_alerts'?'technical-alerts':code)+'.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:'+cfg.color+';border-color:'+cfg.color+'33">فتح البورتال ←</a>'+
+        '<a href="'+(code==='national_grid'?'national-grid':code)+'.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:'+cfg.color+';border-color:'+cfg.color+'33">فتح البورتال ←</a>'+
       '</div>';
     }).join('');
   }catch(e){document.getElementById('divGrid').innerHTML='<div style="color:#EF4444">'+esc(e.message)+'</div>';}
@@ -834,7 +709,7 @@ function printCreds(name,email,pass,role){
     '<div class="f"><div class="l">الاسم</div><div class="v">'+name+'</div></div>'+
     '<div class="f"><div class="l">الدور</div><div class="v">'+role+'</div></div>'+
     '<div class="f"><div class="l">رابط الدخول</div><div class="v">https://sulaimanothjp-stack.github.io/OE-Department-/index.html</div></div>'+
-    '<div class="f"><div class="l">اسم المستخدم</div><div class="v">'+username+'</div></div>'+
+    '<div class="f"><div class="l">البريد</div><div class="v">'+email+'</div></div>'+
     '<div class="f"><div class="l">كلمة المرور</div><div class="v">'+pass+'</div></div>'+
     '<hr><div class="note">⚠️ يرجى تغيير كلمة المرور عند أول دخول · '+new Date().toLocaleDateString('ar-SA')+'</div>'+
     '</body></html>');

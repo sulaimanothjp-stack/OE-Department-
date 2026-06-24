@@ -235,20 +235,70 @@ const ROLE_AR = { admin:'مشرف النظام', director:'مدير الإدار
 
 /* ── i18n ─────────────────────────────────────────────────────── */
 const T = {
-  ar:{ save:'حفظ', cancel:'إلغاء', del:'حذف', search:'بحث...', nodata:'لا بيانات', logout:'خروج',
-       days:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
-       months:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'] },
-  en:{ save:'Save', cancel:'Cancel', del:'Delete', search:'Search...', nodata:'No data', logout:'Logout',
-       days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-       months:['January','February','March','April','May','June','July','August','September','October','November','December'] },
+  ar:{
+    save:'حفظ', cancel:'إلغاء', del:'حذف', search:'بحث...', nodata:'لا بيانات', logout:'خروج',
+    add:'إضافة', edit:'تعديل', close:'إغلاق', back:'رجوع', confirm:'تأكيد', send:'إرسال',
+    viewAll:'عرض الكل', newTask:'مهمة جديدة', refresh:'تحديث', details:'تفاصيل',
+    dashboard:'لوحة التحكم', tasks:'المهام', alerts:'التنبيهات', afis:'نقاط التحسين',
+    kpis:'مؤشرات الأداء', assessments:'التقييمات', team:'الفريق', tickets:'التذاكر',
+    initiatives:'المبادرات', documents:'الوثائق', meetings:'الاجتماعات',
+    openAFIs:'AFIs مفتوحة', overdueAFIs:'AFIs متأخرة', activeTasks:'مهام نشطة',
+    openAlerts:'تنبيهات مفتوحة', criticalAlerts:'تنبيهات حرجة', activeAssessments:'تقييمات نشطة',
+    noAlerts:'لا تنبيهات', noTasks:'لا مهام', noAFIs:'لا نقاط تحسين', noData:'لا بيانات',
+    noAssessments:'لا تقييمات', noTickets:'لا تذاكر', noTeam:'لا أعضاء',
+    priority:'الأولوية', status:'الحالة', dueDate:'الاستحقاق', title:'العنوان',
+    division:'الدائرة', owner:'المالك', action:'الإجراء', note:'ملاحظة',
+    total:'الإجمالي', open:'مفتوح', closed:'مغلق', overdue:'متأخر', inProgress:'قيد التنفيذ',
+    low:'منخفضة', medium:'متوسطة', high:'عالية', critical:'حرج',
+    health:'الصحة', score:'النتيجة', trend:'الاتجاه', target:'الهدف', actual:'الفعلي',
+    createdAt:'تاريخ الإنشاء', updatedAt:'آخر تحديث', all:'الكل',
+    loading:'جارٍ التحميل...', saving:'جارٍ الحفظ...', noItems:'لا عناصر',
+    activate:'تفعيل', deactivate:'تعطيل', approve:'اعتماد', reject:'رفض', return:'إعادة',
+    manager:'المدير', employee:'الموظف', role:'الدور', name:'الاسم', phone:'الهاتف',
+    days:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
+    months:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']
+  },
+  en:{
+    save:'Save', cancel:'Cancel', del:'Delete', search:'Search...', nodata:'No data', logout:'Logout',
+    add:'Add', edit:'Edit', close:'Close', back:'Back', confirm:'Confirm', send:'Send',
+    viewAll:'View All', newTask:'New Task', refresh:'Refresh', details:'Details',
+    dashboard:'Dashboard', tasks:'Tasks', alerts:'Alerts', afis:'AFIs',
+    kpis:'KPIs', assessments:'Assessments', team:'Team', tickets:'Tickets',
+    initiatives:'Initiatives', documents:'Documents', meetings:'Meetings',
+    openAFIs:'Open AFIs', overdueAFIs:'Overdue AFIs', activeTasks:'Active Tasks',
+    openAlerts:'Open Alerts', criticalAlerts:'Critical Alerts', activeAssessments:'Active Assessments',
+    noAlerts:'No alerts', noTasks:'No tasks', noAFIs:'No AFIs', noData:'No data',
+    noAssessments:'No assessments', noTickets:'No tickets', noTeam:'No members',
+    priority:'Priority', status:'Status', dueDate:'Due Date', title:'Title',
+    division:'Division', owner:'Owner', action:'Action', note:'Note',
+    total:'Total', open:'Open', closed:'Closed', overdue:'Overdue', inProgress:'In Progress',
+    low:'Low', medium:'Medium', high:'High', critical:'Critical',
+    health:'Health', score:'Score', trend:'Trend', target:'Target', actual:'Actual',
+    createdAt:'Created', updatedAt:'Updated', all:'All',
+    loading:'Loading...', saving:'Saving...', noItems:'No items',
+    activate:'Activate', deactivate:'Deactivate', approve:'Approve', reject:'Reject', return:'Return',
+    manager:'Manager', employee:'Employee', role:'Role', name:'Name', phone:'Phone',
+    days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    months:['January','February','March','April','May','June','July','August','September','October','November','December']
+  },
 };
 const t = k => T[App.lang]?.[k] ?? k;
+// Inline bilingual helper: t2('عربي', 'English')
+const t2 = (ar, en) => App.lang === 'ar' ? ar : en;
 
 /* ── Language ─────────────────────────────────────────────────── */
 function setLang(l) {
   App.lang = l; localStorage.setItem('se_lang_v2', l);
   document.documentElement.lang = l;
   document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  // Translate any elements with data-ar / data-en attributes
+  document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+    el.textContent = l === 'ar' ? el.dataset.ar : el.dataset.en;
+  });
+  // Translate placeholder attributes
+  document.querySelectorAll('[data-ar-placeholder]').forEach(el => {
+    el.placeholder = l === 'ar' ? el.dataset.arPlaceholder : el.dataset.enPlaceholder;
+  });
 }
 function toggleLang() {
   const newLang = App.lang === 'ar' ? 'en' : 'ar';
@@ -374,8 +424,17 @@ function startClock() {
   function tick() {
     const n = new Date(), h = n.getHours(), l = App.lang;
     const hh = String(h % 12 || 12).padStart(2, '0'), mm = String(n.getMinutes()).padStart(2, '0'), ss = String(n.getSeconds()).padStart(2, '0');
-    if (ct) ct.textContent = `${hh}:${mm}:${ss} ${h < 12 ? (l==='ar'?'ص':'AM') : (l==='ar'?'م':'PM')}`;
-    if (cd) { const ti = T[l]; cd.textContent = `${ti.days[n.getDay()]}، ${n.getDate()} ${ti.months[n.getMonth()]} ${n.getFullYear()}`; }
+    const ampm = h < 12 ? (l==='ar'||l==='ur'?'ص':'AM') : (l==='ar'||l==='ur'?'م':'PM');
+    if (ct) ct.textContent = `${hh}:${mm}:${ss} ${ampm}`;
+    if (cd) {
+      try {
+        const loc = LOCALE_MAP[l] || 'en-GB';
+        cd.textContent = n.toLocaleDateString(loc, {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      } catch(e) {
+        const ti = T[l] || T.en;
+        cd.textContent = `${ti.days[n.getDay()]}, ${n.getDate()} ${ti.months[n.getMonth()]} ${n.getFullYear()}`;
+      }
+    }
   }
   tick(); setInterval(tick, 1000);
 }
@@ -435,29 +494,30 @@ async function dbCnt(tbl, opts = {}) {
 }
 
 /* ── Formatters ───────────────────────────────────────────────── */
-const fmtD = d => d ? new Date(d).toLocaleDateString(App.lang === 'ar' ? 'ar-SA' : 'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const fmtN = n => n != null ? Number(n).toLocaleString(App.lang === 'ar' ? 'ar-SA' : 'en') : '—';
+const LOCALE_MAP = {ar:'ar-SA',en:'en-GB',fr:'fr-FR',es:'es-ES',it:'it-IT',pt:'pt-BR',de:'de-DE',ru:'ru-RU',ko:'ko-KR',zh:'zh-CN',ja:'ja-JP',ur:'ur-PK'};
+const fmtD = d => d ? new Date(d).toLocaleDateString(LOCALE_MAP[App.lang]||'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const fmtN = n => n != null ? Number(n).toLocaleString(LOCALE_MAP[App.lang]||'en') : '—';
 const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const isOD = (d, s) => d && !['closed', 'done', 'resolved'].includes(s) && new Date(d) < new Date();
 
 function priBadge(p) {
   const cls = { low: 'bg', medium: 'bb', high: 'by', critical: 'br' };
-  const lA = { low: 'منخفضة', medium: 'متوسطة', high: 'عالية', critical: 'حرجة' };
-  const lE = { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' };
-  return `<span class="badge ${cls[p]||'bg'}">${(App.lang==='ar'?lA:lE)[p]||p}</span>`;
+  const keyMap = { low:'pri_low', medium:'pri_medium', high:'pri_high', critical:'pri_critical' };
+  const label = (typeof tl==='function' && keyMap[p]) ? tl(keyMap[p]) : p;
+  return `<span class="badge ${cls[p]||'bg'}">${label}</span>`;
 }
 function stBadge(s) {
   const cls = { open:'bg', new:'bg', planning:'bg', in_progress:'bb', assigned:'bb', pending_review:'by', pending_verification:'by', closed:'bgn', resolved:'bgn', done:'bgn', overdue:'br', returned:'br', escalated:'br', assessment:'bb', review:'by', evidence_collection:'bb', approval:'by' };
-  const lA = { open:'مفتوح', new:'جديد', planning:'تخطيط', in_progress:'قيد التنفيذ', assigned:'مكلّف', pending_review:'بانتظار المراجعة', pending_verification:'بانتظار التحقق', closed:'مغلق', resolved:'محلول', done:'منجز', overdue:'متأخر', returned:'مُعاد', escalated:'مُصعَّد', assessment:'تقييم', review:'مراجعة', evidence_collection:'جمع أدلة', approval:'اعتماد' };
-  const lE = { open:'Open', new:'New', planning:'Planning', in_progress:'In Progress', assigned:'Assigned', pending_review:'Pending Review', pending_verification:'Pending Verify', closed:'Closed', resolved:'Resolved', done:'Done', overdue:'Overdue', returned:'Returned', escalated:'Escalated', assessment:'Assessment', review:'Review', evidence_collection:'Evidence', approval:'Approval' };
-  return `<span class="badge ${cls[s]||'bg'}">${(App.lang==='ar'?lA:lE)[s]||s}</span>`;
+  const keyMap = { open:'st_open', new:'st_new', in_progress:'st_in_progress', closed:'st_closed', resolved:'st_resolved', done:'st_closed', overdue:'st_overdue', returned:'st_returned', escalated:'st_escalated', pending_review:'st_pending', pending_verification:'st_pending', assigned:'st_pending' };
+  const label = (typeof tl==='function' && keyMap[s]) ? tl(keyMap[s]) : s;
+  return `<span class="badge ${cls[s]||'bg'}">${label}</span>`;
 }
 function progBar(pct, cl = '') {
   const c = cl || (pct >= 80 ? 'grn' : pct >= 50 ? '' : 'red');
   return `<div class="prog"><div class="pf ${c}" style="width:${pct}%"></div></div>`;
 }
 const skR = (n = 4) => Array.from({ length: n }, () => '<div class="sk skr"></div>').join('');
-const emptyEl = (msg, btn = '') => `<div class="empty"><div class="ei">📭</div><p>${msg}</p>${btn}</div>`;
+const emptyEl = (msg, btn = '') => `<div class="empty"><div class="ei">📭</div><p>${msg||(typeof tl==='function'?tl('msg_no_data'):'No data')}</p>${btn}</div>`;
 
 /* ── Canvas Animations ────────────────────────────────────────── */
 function initCanvas(id, type, color) {
@@ -533,10 +593,12 @@ function buildNav(items, active) {
   window._currentPage = active;
   const el = document.getElementById('navEl'); if (!el) return;
   el.innerHTML = items.map(item => {
-    if (item.g) return `<div class="ng">${App.lang==='ar'?item.g:item.ge}</div>`;
+    if (item.g) return `<div class="ng">${App.lang==='ar'?item.g:(item.ge||item.g)}</div>`;
     const badge = item.badge ? `<span class="badge">${item.badge}</span>` : '';
+    // Use tl() if tlKey provided, else fall back to ar/en
+    const label = (item.tlKey && typeof tl==='function') ? tl(item.tlKey) : (App.lang==='ar'?item.ar:item.en);
     return `<button class="ni ${item.k===active?'on':''}" onclick="${item.fn||`go('${item.k}')`}">
-      <span class="ic">${item.ic}</span><span>${App.lang==='ar'?item.ar:item.en}</span>${badge}
+      <span class="ic">${item.ic}</span><span>${label}</span>${badge}
     </button>`;
   }).join('');
 }
@@ -569,6 +631,12 @@ async function initPage(opts = {}) {
   // App.lang is already set correctly by initAuth
   setLang(App.lang);
   startClock();
+  // Translate sidebar static text
+  setTimeout(() => {
+    if(typeof translateDOM === 'function' && App.lang !== 'ar') {
+      translateDOM(document.querySelector('.sb'));
+    }
+  }, 100);
   return p;
 }
 
@@ -576,7 +644,7 @@ async function initPage(opts = {}) {
 const LOGO = '<img src="se-logo.png.PNG" alt="Saudi Energy" style="height:32px;width:auto;object-fit:contain;display:block">';
 
 /* ── Export ───────────────────────────────────────────────────── */
-Object.assign(window, {
+Object.assign(window, { t2,
   App, sb, DIVS, PORTALS, T, t,
   setLang, toggleLang, doLogout,
   initAuth, initPage, _renderBadge, startClock,

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="root">
+<html lang="en" dir="ltr" id="root">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta charset="UTF-8">
+<script>document.documentElement.lang="en";document.documentElement.dir="ltr";</script><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SE · غرفة العمليات التنفيذية</title>
 <link rel="stylesheet" href="styles.css">
 <style>
@@ -82,8 +83,7 @@ body{background:#020912}
   <div class="sb-brand"><div id="lgEl"></div><div><div class="sb-t1" style="color:#D4AF37">se</div><div class="sb-t2" style="color:#6B5520">إدارة التميز التشغيلي</div></div></div>
   <div id="ubEl" class="ub"></div>
   <nav class="nav" id="navEl"></nav>
-  <div class="sb-foot"><button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
-    <button class="btn-lg" onclick="openChangePass()" title="تغيير كلمة المرور">🔐</button><button class="btn-lg" onclick="toggleLang()">EN/ع</button></div>
+  <div class="sb-foot"><button class="btn-lo" onclick="doLogout()">🚪 خروج</button><button class="btn-lg" onclick="openLangPicker()" title="Language / اللغة">🌐</button></div>
 </aside>
 <div class="main">
   <div class="topbar" style="background:rgba(2,9,18,.97)">
@@ -100,6 +100,7 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
+<script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 const NAV = [

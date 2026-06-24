@@ -1,9 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="root">
+<html lang="en" dir="ltr" id="root">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta charset="UTF-8">
+<script>document.documentElement.lang="en";document.documentElement.dir="ltr";</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>SE · الحوكمة والتقييم</title>
 <link rel="stylesheet" href="styles.css">
+<script>
+// Set language before render to prevent flash
+(function(){
+  var l=localStorage.getItem('se_lang_v2')||'en';
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  document.getElementById('root')&&(document.getElementById('root').lang=l);
+})();
+</script>
 <style>
 :root{--DC:#7C3AED;--DR:124,58,237}
 body{background:#020912}
@@ -31,7 +42,7 @@ body{background:#020912}
   <div class="sb-foot">
     <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
     <button class="btn-lg" onclick="openChangePass()" title="تغيير كلمة المرور">🔐</button>
-    <button class="btn-lg" onclick="toggleLang()">EN/ع</button>
+    <button class="btn-lg" onclick="openLangPicker()" title="Language / اللغة">🌐</button>
   </div>
 </aside>
 <div class="main">
@@ -47,6 +58,7 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
+<script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 const BL = 'governance';
@@ -60,7 +72,7 @@ const NAV = [
   {k:'ntask',  ar:'مهمة جديدة',           en:'New Task',      ic:'➕', fn:"go('ntask')"},
   {g:'التحسين',ge:'IMPROVEMENT'},
   {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
-  {k:'kpis',   ar:'مؤشرات الأداء',        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
+  {k:'kpis',   ar:t2('مؤشرات الأداء','KPIs'),        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
   {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
   {g:'الفريق',ge:'TEAM'},
   {k:'team',   ar:'الفريق',               en:'Team',          ic:'👥', fn:"go('team')"},
@@ -108,7 +120,7 @@ reg('dash',async el=>{
     <div class="g4 mb2" id="s4">${skR()}</div>
     <div class="g21 mb2">
       <div class="panel">
-        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ نقاط التحسين المفتوحة</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
+        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ t2('نقاط التحسين المفتوحة','Open AFIs')</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
         <div id="afiPnl">${skR()}</div>
       </div>
       <div>
@@ -156,10 +168,10 @@ reg('dash',async el=>{
     ].map(k=>`<div class="hk ${k.cl}"><div class="hv">${k.v}</div><div class="hl">${k.l}</div></div>`).join('');
 
     document.getElementById('s4').innerHTML=[
-      {sl:'AFIs مفتوحة',sv:afiO,cl:afiO>5?'red':''},
-      {sl:'AFIs متأخرة',sv:afiL,cl:afiL?'red':'grn'},
+      {sl:t2('AFIs مفتوحة','Open AFIs'),sv:afiO,cl:afiO>5?'red':''},
+      {sl:t2('AFIs متأخرة','Overdue AFIs'),sv:afiL,cl:afiL?'red':'grn'},
       {sl:'تنبيهات فنية',sv:alrO,cl:alrO?'ylw':'grn'},
-      {sl:'مهام نشطة',sv:tskO,cl:''},
+      {sl:t2('مهام نشطة','Active Tasks'),sv:tskO,cl:''},
     ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
 
     document.getElementById('afiPnl').innerHTML=afis.data.length
@@ -169,7 +181,7 @@ reg('dash',async el=>{
           <div style="font-size:11.5px;color:var(--t2)">${a.afi_number||''} · ${fmtD(a.due_date)}</div></div>
           ${priBadge(a.priority)} ${stBadge(a.status)}
         </div>`).join('')
-      :emptyEl('لا AFIs مفتوحة ✓');
+      :emptyEl(t2('لا AFIs مفتوحة ✓','No Open AFIs ✓'));
 
     document.getElementById('alrPnl').innerHTML=alrs.data.length
       ?alrs.data.map(a=>`<div class="dr">
@@ -181,7 +193,7 @@ reg('dash',async el=>{
 
     document.getElementById('asmPnl').innerHTML=asms.data.length
       ?asms.data.map(a=>`<div class="dr"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>${stBadge(a.stage)}<div style="min-width:60px">${progBar(a.progress||0)}</div></div>`).join('')
-      :emptyEl('لا تقييمات');
+      :emptyEl(t2('لا تقييمات','No assessments'));
 
     document.getElementById('taskPnl').innerHTML=tsks.data.length
       ?tsks.data.map(tk=>`<div class="tr2" onclick="openTD('${tk.id}')">
@@ -193,7 +205,7 @@ reg('dash',async el=>{
             <div class="tm2">${priBadge(tk.priority)} <span style="color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</span> ${stBadge(tk.status)}</div>
           </div>
         </div>`).join('')
-      :emptyEl('لا مهام نشطة');
+      :emptyEl(t2('لا مهام نشطة ✓','No Active Tasks ✓'));
 
     document.getElementById('kpiPnl').innerHTML=kpis.data.length
       ?kpis.data.map(k=>{
@@ -205,7 +217,7 @@ reg('dash',async el=>{
             <div style="min-width:65px">${progBar(pct)}</div>
           </div>`;
         }).join('')
-      :emptyEl('لا مؤشرات');
+      :emptyEl(t2('لا مؤشرات','No KPIs'));
   }catch(e){toast(e.message,'e');}
 });
 
@@ -226,7 +238,7 @@ reg('daily',el=>{
         {n:'1',t:'مراجعة المهام المتأخرة',d:'تأكد من وجود خطط للمهام المتأخرة',k:'tasks',ic:'✓'},
         {n:'2',t:'AFIs المفتوحة',d:'تابع خطط المعالجة والإغلاق',k:'afis',ic:'▲'},
         {n:'3',t:'التنبيهات الفنية',d:'هل هناك تنبيهات تحتاج إجراء؟',k:'alerts',ic:'⚠️'},
-        {n:'4',t:'مؤشرات الأداء',d:'راجع KPIs الأسبوعية',k:'kpis',ic:'📈'},
+        {n:'4',t:t2('مؤشرات الأداء','KPIs'),d:'راجع KPIs الأسبوعية',k:'kpis',ic:'📈'},
         {n:'5',t:'فريقي',d:'من يحتاج دعماً أو توجيهاً؟',k:'team',ic:'👥'},
         {n:'6',t:'التحديث الأسبوعي',d:'ابعث تحديثك للحوكمة',k:'weekly',ic:'📊'},
       ].map(s=>`<div class="card ptr" onclick="go('${s.k}')" style="border-color:rgba(${DR},.2)">
@@ -259,7 +271,7 @@ reg('tasks',async el=>{
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">✓ إدارة المهام</h1>
       <div style="font-size:12.5px;color:var(--t2)">أنشئ المهام وتابعها وراجع تحديثات الفريق</div></div>
-      <button class="btn p" onclick="go('ntask')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ مهمة جديدة</button>
+      <button class="btn p" onclick="go('ntask')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ مهمة جديدة','+ New Task')}</button>
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
@@ -286,9 +298,9 @@ reg('tasks',async el=>{
       const opts={eq:{division:BL}};
       if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};if(pr)opts.eq={...opts.eq,priority:pr};
       const{data}=await dbList('tasks',opts);
-      if(!data.length){el2.innerHTML=emptyEl('لا مهام',`<button class="btn p sm" onclick="go('ntask')">+ مهمة جديدة</button>`);return;}
+      if(!data.length){el2.innerHTML=emptyEl(t2('لا مهام','No tasks'),`<button class="btn p sm" onclick="go('ntask')">${t2('+ مهمة جديدة','+ New Task')}</button>`);return;}
       el2.innerHTML=`<div class="tw"><table>
-        <thead><tr><th>الرقم</th><th>المهمة</th><th>المكلّف</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+        <thead><tr><th>${t2('الرقم','#')}</th><th>${t2('المهمة','Task')}</th><th>المكلّف</th><th>${t2('الأولوية','Priority')}</th><th>${t2('الاستحقاق','Due Date')}</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
         <tbody>${data.map(tk=>`<tr>
           <td class="fmono" style="font-size:11px;color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</td>
           <td><div style="font-weight:600">${esc(tk.title)}</div>${tk.description?`<div style="font-size:11px;color:var(--t2)">${esc(tk.description.slice(0,55))}...</div>`:''}</td>
@@ -299,7 +311,7 @@ reg('tasks',async el=>{
           <td><div class="ta">
             <button class="btn sm" onclick="openTD('${tk.id}')">تفاصيل</button>
             <button class="btn sm" onclick="openTE('${tk.id}')">تعديل</button>
-            <button class="btn sm d" onclick="confirm2('حذف المهمة؟',async()=>{await dbDel('tasks','${tk.id}');load();toast('تم الحذف','s')})">حذف</button>
+            <button class="btn sm d" onclick="confirm2('حذف المهمة؟',async()=>{await dbDel('tasks','${tk.id}');load();toast(t2('تم الحذف','Deleted'),'s')})">حذف</button>
           </div></td>
         </tr>`).join('')}</tbody>
       </table></div>`;
@@ -323,8 +335,8 @@ window.openTD=async id=>{
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${priBadge(tk.priority)} ${stBadge(tk.status)} ${isOD(tk.due_date,tk.status)?'<span class="badge br">متأخرة</span>':''}</div>
       ${tk.description?`<div class="field"><label>الوصف</label><p style="font-size:13px;color:var(--t2)">${esc(tk.description)}</p></div>`:''}
       <div style="display:flex;gap:14px;margin-bottom:12px">
-        <div><div style="font-size:10.5px;color:var(--t3)">الاستحقاق</div><div style="font-family:var(--mono);font-size:12.5px">${fmtD(tk.due_date)}</div></div>
-        <div><div style="font-size:10.5px;color:var(--t3)">الحالة</div><div>${stBadge(tk.status)}</div></div>
+        <div><div style="font-size:10.5px;color:var(--t3)">${t2('الاستحقاق','Due Date')}</div><div style="font-family:var(--mono);font-size:12.5px">${fmtD(tk.due_date)}</div></div>
+        <div><div style="font-size:10.5px;color:var(--t3)">${t2('الحالة','Status')}</div><div>${stBadge(tk.status)}</div></div>
       </div>
       <div style="font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.08em;margin-bottom:7px">التعليقات والتحديثات (${cmts.length})</div>
       <div id="cmtList" style="max-height:180px;overflow-y:auto;margin-bottom:10px">
@@ -356,7 +368,7 @@ window.updTS=async(id,status)=>{
   if(status==='in_progress')u.started_at=new Date().toISOString();
   if(status==='closed')u.completed_at=new Date().toISOString();
   await dbUpd('tasks',id,u);
-  toast('تم التحديث ✓','s');closeModal();window._rl?.();
+  toast(t2('تم التحديث ✓','Updated ✓'),'s');closeModal();window._rl?.();
 };
 
 /* Task Edit */
@@ -374,13 +386,13 @@ window.openTE=async id=>{
             ${team.map(m=>`<option value="${m.id}" ${tk.assigned_to===m.id?'selected':''}>${esc(m.full_name||'')}</option>`).join('')}
           </select>
         </div>
-        <div class="field"><label>الأولوية</label>
+        <div class="field"><label>${t2('الأولوية','Priority')}</label>
           <select id="et_p">
             ${['low','medium','high','critical'].map(p=>`<option value="${p}" ${tk.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}
           </select>
         </div>
-        <div class="field"><label>الاستحقاق</label><input type="date" id="et_due" value="${tk.due_date||''}"></div>
-        <div class="field"><label>الحالة</label>
+        <div class="field"><label>${t2('الاستحقاق','Due Date')}</label><input type="date" id="et_due" value="${tk.due_date||''}"></div>
+        <div class="field"><label>${t2('الحالة','Status')}</label>
           <select id="et_s">
             ${['new','open','in_progress','pending_review','returned','closed'].map(s=>`<option value="${s}" ${tk.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
           </select>
@@ -392,7 +404,7 @@ window.openTE=async id=>{
 window.saveTE=async id=>{
   const upd={title:mv('et_t'),description:mv('et_d')||null,assigned_to:mv('et_a')||null,priority:mv('et_p'),due_date:mv('et_due')||null,status:mv('et_s')};
   if(!upd.title){toast('العنوان مطلوب','e');return;}
-  try{await dbUpd('tasks',id,upd);toast('تم الحفظ ✓','s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
+  try{await dbUpd('tasks',id,upd);toast(t2('تم الحفظ ✓','Saved ✓'),'s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
 };
 
 /* ═══ NEW TASK ═════════════════════════════════════════════ */
@@ -414,7 +426,7 @@ reg('ntask',async el=>{
               ${team.map(m=>`<option value="${m.id}">${esc(m.full_name||'')}</option>`).join('')}
             </select>
           </div>
-          <div class="field"><label>الأولوية</label>
+          <div class="field"><label>${t2('الأولوية','Priority')}</label>
             <select id="nt_p">
               <option value="medium">متوسطة</option><option value="high">عالية</option>
               <option value="critical">حرجة</option><option value="low">منخفضة</option>
@@ -450,7 +462,7 @@ reg('afis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▲ نقاط التحسين (AFIs)</h1></div>
-      <button class="btn p" onclick="openAA()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ AFI جديد</button>
+      <button class="btn p" onclick="openAA()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ AFI جديد','+ New AFI')}</button>
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
@@ -470,7 +482,7 @@ reg('afis',async el=>{
       const{data}=await dbList('afis',opts);
       if(!data.length){el2.innerHTML=emptyEl('لا AFIs',`<button class="btn p sm" onclick="openAA()">+ إضافة</button>`);return;}
       el2.innerHTML=`<div class="tw"><table>
-        <thead><tr><th>الرقم</th><th>العنوان</th><th>المالك</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+        <thead><tr><th>${t2('الرقم','#')}</th><th>العنوان</th><th>المالك</th><th>${t2('الأولوية','Priority')}</th><th>${t2('الاستحقاق','Due Date')}</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
         <tbody>${data.map(a=>`<tr>
           <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.afi_number||a.id.slice(0,8))}</td>
           <td style="font-weight:600">${esc(a.title)}</td>
@@ -495,11 +507,11 @@ function _afiFrm(r={}){return `
     <div class="field ff"><label>العنوان *</label><input id="af_t" value="${esc(r.title||'')}"></div>
     <div class="field ff"><label>الوصف</label><textarea id="af_d">${esc(r.description||'')}</textarea></div>
     <div class="field"><label>المالك</label><input id="af_o" value="${esc(r.owner_name||'')}"></div>
-    <div class="field"><label>الأولوية</label>
+    <div class="field"><label>${t2('الأولوية','Priority')}</label>
       <select id="af_p">${['low','medium','high','critical'].map(p=>`<option value="${p}" ${r.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}</select>
     </div>
-    <div class="field"><label>الاستحقاق</label><input type="date" id="af_due" value="${r.due_date||''}"></div>
-    <div class="field"><label>الحالة</label>
+    <div class="field"><label>${t2('الاستحقاق','Due Date')}</label><input type="date" id="af_due" value="${r.due_date||''}"></div>
+    <div class="field"><label>${t2('الحالة','Status')}</label>
       <select id="af_s">${['open','assigned','in_progress','pending_verification','returned','closed'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
     </div>
     <div class="field ff"><label>السبب الجذري</label><textarea id="af_rc">${esc(r.root_cause||'')}</textarea></div>
@@ -519,12 +531,12 @@ reg('kpis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📈 مؤشرات الأداء</h1></div>
-      <button class="btn p" onclick="openAK()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ KPI جديد</button>
+      <button class="btn p" onclick="openAK()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ KPI جديد','+ New KPI')}</button>
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)"><div id="kpiList">${skR()}</div></div>`;
   const{data}=await dbList('kpis',{eq:{business_line:BL}}).catch(()=>({data:[]}));
   document.getElementById('kpiList').innerHTML=data.length?`<div class="tw"><table>
-    <thead><tr><th>المؤشر</th><th>الهدف</th><th>الفعلي</th><th>الإنجاز</th><th>الاتجاه</th><th>الحالة</th><th></th></tr></thead>
+    <thead><tr><th>المؤشر</th><th>الهدف</th><th>الفعلي</th><th>الإنجاز</th><th>الاتجاه</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
     <tbody>${data.map(k=>{
       const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
       const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
@@ -537,7 +549,7 @@ reg('kpis',async el=>{
         <td><span class="badge ${k.status==='green'?'bgn':k.status==='yellow'?'by':'br'}">${k.status==='green'?'ضمن الهدف':k.status==='yellow'?'تحذير':'دون الهدف'}</span></td>
         <td><div class="ta"><button class="btn sm" onclick="openEK('${k.id}')">تعديل</button></div></td>
       </tr>`;
-    }).join('')}</tbody></table></div>`:emptyEl('لا مؤشرات',`<button class="btn p sm" onclick="openAK()">+ إضافة</button>`);
+    }).join('')}</tbody></table></div>`:emptyEl(t2('لا مؤشرات','No KPIs'),`<button class="btn p sm" onclick="openAK()">+ إضافة</button>`);
   window._rlk=()=>go('kpis');
 });
 function _kpiFrm(r={}){return `
@@ -551,7 +563,7 @@ function _kpiFrm(r={}){return `
     <div class="field"><label>الاتجاه</label>
       <select id="kf_tr"><option value="up" ${r.trend==='up'?'selected':''}>↑ صاعد</option><option value="down" ${r.trend==='down'?'selected':''}>↓ هابط</option><option value="stable" ${r.trend==='stable'?'selected':''}>→ مستقر</option></select>
     </div>
-    <div class="field"><label>الحالة</label>
+    <div class="field"><label>${t2('الحالة','Status')}</label>
       <select id="kf_st"><option value="green" ${r.status==='green'?'selected':''}>🟢 ضمن الهدف</option><option value="yellow" ${r.status==='yellow'?'selected':''}>🟡 تحذير</option><option value="red" ${r.status==='red'?'selected':''}>🔴 دون الهدف</option></select>
     </div>
     <div class="field"><label>المالك</label><input id="kf_own" value="${esc(r.owner_name||'')}"></div>
@@ -577,7 +589,7 @@ reg('team',async el=>{
       <div style="font-size:11px;color:var(--t2);font-family:var(--mono);margin-top:3px">${esc(m.job_title||ROLE_AR[m.role]||'')}</div>
       <button class="btn sm p" style="width:100%;margin-top:10px;background:linear-gradient(135deg,${DC}44,${DC}22);border:1px solid ${DC}44;color:${DC}" onclick="go('ntask')">+ مهمة</button>
     </div>`;
-  }).join(''):emptyEl('لا أعضاء في هذه الدائرة');
+  }).join(''):emptyEl(t2('لا أعضاء','No team members'));
 });
 
 /* ═══ ASSESSMENTS ══════════════════════════════════════════ */
@@ -585,12 +597,12 @@ reg('assess',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▤ التقييمات</h1></div>
-      <button class="btn p" onclick="openASM()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ تقييم جديد</button>
+      <button class="btn p" onclick="openASM()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ تقييم جديد','+ New Assessment')}</button>
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)"><div id="asmList">${skR()}</div></div>`;
   const{data}=await dbList('assessments',{eq:{business_line:BL}}).catch(()=>({data:[]}));
   document.getElementById('asmList').innerHTML=data.length?`<div class="tw"><table>
-    <thead><tr><th>الرقم</th><th>عنوان التقييم</th><th>المقيّم</th><th>المرحلة</th><th>الإنجاز</th><th>الاستحقاق</th><th></th></tr></thead>
+    <thead><tr><th>${t2('الرقم','#')}</th><th>عنوان التقييم</th><th>المقيّم</th><th>المرحلة</th><th>الإنجاز</th><th>${t2('الاستحقاق','Due Date')}</th><th></th></tr></thead>
     <tbody>${data.map(a=>`<tr>
       <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.assessment_number||a.id.slice(0,8))}</td>
       <td style="font-weight:600">${esc(a.title)}</td>
@@ -599,7 +611,7 @@ reg('assess',async el=>{
       <td><div style="display:flex;align-items:center;gap:6px">${progBar(a.progress||0)}<span class="fmono" style="font-size:11px">${a.progress||0}%</span></div></td>
       <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(a.due_date)}</td>
       <td><button class="btn sm" onclick="openEASM('${a.id}')">تعديل</button></td>
-    </tr>`).join('')}</tbody></table></div>`:emptyEl('لا تقييمات',`<button class="btn p sm" onclick="openASM()">+ إضافة</button>`);
+    </tr>`).join('')}</tbody></table></div>`:emptyEl(t2('لا تقييمات','No assessments'),`<button class="btn p sm" onclick="openASM()">+ إضافة</button>`);
   window._rlass=()=>go('assess');
 });
 function _asmFrm(r={}){return `
@@ -641,7 +653,7 @@ reg('weekly', el=>{
     <button class="btn p" onclick="saveW()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 إرسال للحوكمة</button>
   </div></div>`;
 });
-window.saveW=async()=>{await logAct('weekly_update',null,null,{done:mv('wu_d'),ch:mv('wu_c'),next:mv('wu_n')});toast('تم الإرسال ✓','s');};
+window.saveW=async()=>{await logAct('weekly_update',null,null,{done:mv('wu_d'),ch:mv('wu_c'),next:mv('wu_n')});toast(t2('تم الإرسال ✓','Sent ✓'),'s');};
 
 /* ═══ CHANGE PASSWORD (all portals) ══════════════════════════ */
 window.openChangePass = () => {
@@ -788,9 +800,9 @@ window.doCreateEmp = async () => {
       <div class="mbd">
         <p style="font-size:13px;color:var(--t2);margin-bottom:12px">أعطِ هذه البيانات للموظف</p>
         <div style="background:#070F1D;border:1px solid rgba(124,58,237,.25);border-radius:8px;padding:14px;font-family:var(--mono)">
-          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">الاسم</div>
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">${t2('الاسم','Name')}</div>
           <div style="font-size:13px;font-weight:700;color:#7C3AED;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px">${esc(name)}</div>
-          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">الدائرة</div>
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">${t2('الدائرة','Division')}</div>
           <div style="font-size:13px;font-weight:700;color:#7C3AED;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px">الحوكمة والتقييم</div>
           <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">الرقم الوظيفي (للدخول)</div>
           <div style="font-size:14px;font-weight:700;color:#7C3AED;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
@@ -864,7 +876,7 @@ reg('reviews',async el=>{
     rvList.innerHTML=skR();
     const opts=st?{eq:{division:BL,status:st}}:{eq:{division:BL},neq:{status:'open'}};
     const{data}=await dbList('tasks',opts).catch(()=>({data:[]}));
-    if(!data.length){rvList.innerHTML=emptyEl('لا مهام');return;}
+    if(!data.length){rvList.innerHTML=emptyEl(t2('لا مهام','No tasks'));return;}
     rvList.innerHTML=await Promise.all(data.map(async tk=>{
       const{data:cmts}=await dbList('task_comments',{eq:{task_id:tk.id},lim:5}).catch(()=>({data:[]}));
       const lastCmt=cmts.find(c=>c.type==='closure'||c.type==='stage_update');

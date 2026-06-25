@@ -120,7 +120,7 @@ reg('dash',async el=>{
     <div class="g4 mb2" id="s4">${skR()}</div>
     <div class="g21 mb2">
       <div class="panel">
-        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ t2('نقاط التحسين المفتوحة','Open AFIs')</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
+        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ ${t2('نقاط التحسين المفتوحة','Open AFIs')}</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
         <div id="afiPnl">${skR()}</div>
       </div>
       <div>
@@ -181,7 +181,7 @@ reg('dash',async el=>{
           <div style="font-size:11.5px;color:var(--t2)">${a.afi_number||''} · ${fmtD(a.due_date)}</div></div>
           ${priBadge(a.priority)} ${stBadge(a.status)}
         </div>`).join('')
-      :emptyEl(t2('لا AFIs مفتوحة ✓','No Open AFIs ✓'));
+      :emptyEl(t2('لا AFIs مفتوحة','No Open AFIs'));
 
     document.getElementById('alrPnl').innerHTML=alrs.data.length
       ?alrs.data.map(a=>`<div class="dr">

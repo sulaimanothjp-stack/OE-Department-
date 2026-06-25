@@ -284,7 +284,21 @@ const T = {
 };
 const t = k => T[App.lang]?.[k] ?? k;
 // Inline bilingual helper: t2('عربي', 'English')
-const t2 = (ar, en) => App.lang === 'ar' ? ar : en;
+const t2 = (ar, en) => {
+  if(App.lang === 'ar') return ar;
+  if(App.lang === 'en') return en;
+  // Use DOM_MAP for other languages
+  if(typeof DOM_MAP !== 'undefined' && DOM_MAP[ar] && DOM_MAP[ar][App.lang])
+    return DOM_MAP[ar][App.lang];
+  // Try TR dictionary
+  if(typeof TR !== 'undefined') {
+    for(const key of Object.keys(TR)) {
+      if(TR[key] && TR[key].ar === ar && TR[key][App.lang])
+        return TR[key][App.lang];
+    }
+  }
+  return en; // fallback English
+};
 
 /* ── Language ─────────────────────────────────────────────────── */
 function setLang(l) {

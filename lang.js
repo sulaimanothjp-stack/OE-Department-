@@ -308,8 +308,43 @@ function selectLang(code) {
   document.documentElement.lang = code;
   document.documentElement.dir = info.dir;
   if(typeof closeModal !== 'undefined') closeModal();
-  // Reload page to apply all translations
-  location.reload();
+  
+  // Re-render current page with new language
+  setTimeout(() => {
+    // Re-run current page function
+    if(typeof window._currentPage !== 'undefined' && typeof window.PAGES !== 'undefined') {
+      const fn = window.PAGES[window._currentPage];
+      const ct = document.getElementById('pgContent');
+      if(fn && ct) {
+        ct.innerHTML = '<div class="fade" id="pg"></div>';
+        fn(document.getElementById('pg'));
+      }
+    }
+    // Re-render nav
+    if(typeof window._currentNav !== 'undefined' && typeof buildNav !== 'undefined') {
+      buildNav(window._currentNav, window._currentPage);
+    }
+    // Update page title
+    if(window._currentNav && window._currentPage) {
+      const item = window._currentNav.find(n => n.k === window._currentPage);
+      const ptEl = document.getElementById('pgtitle');
+      if(item && ptEl) ptEl.textContent = code === 'ar' ? item.ar : item.en;
+    }
+    // Update sidebar foot buttons
+    document.querySelectorAll('.btn-lo').forEach(b => {
+      if(b.textContent.includes('خروج') || b.textContent.includes('Sign Out') || b.textContent.includes('Out')) {
+        b.textContent = translateWord('خروج', code);
+      }
+    });
+    // Translate static sidebar text
+    autoTranslate();
+  }, 50);
+}
+
+function translateWord(ar, lang) {
+  if(lang === 'ar') return ar;
+  if(DOM_MAP[ar] && DOM_MAP[ar][lang]) return DOM_MAP[ar][lang];
+  return ar;
 }
 
 
@@ -602,7 +637,7 @@ let _translateTimer = null;
 function autoTranslate() {
   const lang = (typeof App !== 'undefined' ? App.lang : null) 
                || localStorage.getItem('se_lang_v2') || 'en';
-  if(lang === 'ar') return;
+  if(lang === 'ar') return; // Arabic is source — no translation needed
   
   clearTimeout(_translateTimer);
   _translateTimer = setTimeout(() => {

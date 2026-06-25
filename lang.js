@@ -504,6 +504,31 @@ const DOM_MAP = {
   'إرسال الملاحظة':         { en:'Submit Note',      fr:'Soumettre la note', es:'Enviar nota',     it:'Invia nota',       pt:'Enviar nota',      de:'Notiz senden',    ru:'Отправить примечание',ko:'메모 제출',zh:'提交备注',ja:'メモを送信',ur:'نوٹ بھیجیں' },
   'سجل التحديثات':          { en:'Update History',   fr:'Historique des mises à jour',es:'Historial de actualizaciones',it:'Cronologia aggiornamenti',pt:'Histórico de atualizações',de:'Aktualisierungsverlauf',ru:'История обновлений',ko:'업데이트 이력',zh:'更新历史',ja:'更新履歴',ur:'اپ ڈیٹ تاریخ' },
   'ستُسجَّل خارجاً بعد التغيير':{ en:'You will be signed out after the change',fr:'Vous serez déconnecté après le changement',es:'Cerrarás sesión tras el cambio',it:'Sarai disconnesso dopo il cambiamento',pt:'Você será desconectado após a alteração',de:'Sie werden nach der Änderung abgemeldet',ru:'Вы будете выведены из системы',ko:'변경 후 로그아웃됩니다',zh:'更改后将退出登录',ja:'変更後ログアウトされます',ur:'تبدیلی کے بعد لاگ آؤٹ' },
+
+  'المايسترو':               { en:'The Maestro',      fr:'Le Maestro',      es:'El Maestro',      it:'Il Maestro',      pt:'O Maestro',       de:'Der Maestro',     ru:'Маэстро',          ko:'마에스트로',        zh:'大师',            ja:'マエストロ',      ur:'ماسٹرو' },
+  'التقييمات':               { en:'Assessments',      fr:'Évaluations',     es:'Evaluaciones',    it:'Valutazioni',     pt:'Avaliações',      de:'Bewertungen',     ru:'Оценки',           ko:'평가',             zh:'评估',            ja:'評価',            ur:'تشخیص' },
+  'نقاط التحسين':            { en:'AFIs',             fr:'AFIs',            es:'AFIs',            it:'AFIs',            pt:'AFIs',            de:'AFIs',            ru:'AFIs',             ko:'AFIs',             zh:'AFIs',            ja:'AFIs',            ur:'AFIs' },
+  'مهمة جديدة':              { en:'New Task',         fr:'Nouvelle tâche',  es:'Nueva tarea',     it:'Nuovo compito',   pt:'Nova tarefa',     de:'Neue Aufgabe',    ru:'Новая задача',     ko:'새 작업',          zh:'新任务',          ja:'新しいタスク',     ur:'نیا کام' },
+  'اختر الدائرة':            { en:'Select Division',  fr:'Sélectionner la division', es:'Seleccionar división', it:'Seleziona divisione', pt:'Selecionar divisão', de:'Abteilung wählen', ru:'Выбрать подразделение', ko:'부서 선택',      zh:'选择部门',        ja:'部署を選択',      ur:'ڈویژن منتخب کریں' },
+  'يومي':                    { en:'My Day',           fr:'Mon Jour',        es:'Mi Día',          it:'La Mia Giornata', pt:'Meu Dia',         de:'Mein Tag',        ru:'Мой день',        ko:'오늘 하루',        zh:'我的今天',        ja:'今日',            ur:'میرا دن' },
+  'مهامي':                   { en:'My Tasks',         fr:'Mes Tâches',      es:'Mis Tareas',      it:'Le Mie Attività', pt:'Minhas Tarefas',  de:'Meine Aufgaben',  ru:'Мои задачи',      ko:'내 작업',          zh:'我的任务',        ja:'私のタスク',      ur:'میرے کام' },
+  'المُنجزة':                { en:'Completed',        fr:'Terminées',       es:'Completadas',     it:'Completate',      pt:'Concluídas',      de:'Abgeschlossen',   ru:'Завершённые',     ko:'완료됨',           zh:'已完成',          ja:'完了済み',        ur:'مکمل' },
+  'مؤشر أدائي':              { en:'My Performance',   fr:'Ma Performance',  es:'Mi Rendimiento',  it:'La Mia Performance', pt:'Meu Desempenho', de:'Meine Leistung', ru:'Моя производительность', ko:'내 성과', zh:'我的绩效',        ja:'私の成績',        ur:'میری کارکردگی' },
+  'تحديث نهاية اليوم':       { en:'Daily Update',     fr:'Mise à jour',     es:'Actualización',   it:'Aggiornamento',   pt:'Atualização',     de:'Tagesupdate',     ru:'Обновление',      ko:'일일 업데이트',    zh:'日常更新',        ja:'日次更新',        ur:'روزانہ اپ ڈیٹ' },
+  'تذاكري':                  { en:'My Tickets',       fr:'Mes Tickets',     es:'Mis Tickets',     it:'I Miei Ticket',   pt:'Meus Tickets',    de:'Meine Tickets',   ru:'Мои тикеты',      ko:'내 티켓',          zh:'我的工单',        ja:'私のチケット',    ur:'میرے ٹکٹ' },
+  'AFIs مكلّف بها':          { en:'My AFIs',          fr:'Mes AFIs',        es:'Mis AFIs',        it:'I Miei AFI',      pt:'Meus AFIs',       de:'Meine AFIs',      ru:'Мои AFIs',        ko:'내 AFIs',          zh:'我的AFIs',        ja:'私のAFIs',        ur:'میرے AFIs' },
+  'إنشاء حساب موظف':         { en:'Create Employee Account', fr:'Créer compte employé', es:'Crear cuenta empleado', it:'Crea account dipendente', pt:'Criar conta funcionário', de:'Mitarbeiterkonto erstellen', ru:'Создать аккаунт сотрудника', ko:'직원 계정 생성', zh:'创建员工账户', ja:'従業員アカウント作成', ur:'ملازم اکاؤنٹ' },
+  'فتح البورتال':            { en:'Open Portal',      fr:'Ouvrir le portail',es:'Abrir portal',    it:'Apri portale',    pt:'Abrir portal',    de:'Portal öffnen',   ru:'Открыть портал',  ko:'포털 열기',        zh:'打开门户',        ja:'ポータルを開く',  ur:'پورٹل کھولیں' },
+  'اتصال نشط':               { en:'Active Connection',fr:'Connexion active', es:'Conexión activa', it:'Connessione attiva', pt:'Conexão ativa',  de:'Aktive Verbindung', ru:'Активное соединение', ko:'활성 연결', zh:'活跃连接',        ja:'アクティブな接続', ur:'فعال کنکشن' },
+  'مرحباً':                  { en:'Welcome',          fr:'Bienvenue',       es:'Bienvenido',      it:'Benvenuto',       pt:'Bem-vindo',       de:'Willkommen',      ru:'Добро пожаловать', ko:'환영합니다',      zh:'欢迎',            ja:'ようこそ',        ur:'خوش آمدید' },
+  'مركز قيادة التميز التشغيلي':{ en:'OE Command Center',fr:'Centre de commandement OE',es:'Centro de mando OE',it:'Centro di comando OE',pt:'Centro de comando OE',de:'OE-Kommandozentrum',ru:'Командный центр OE',ko:'OE 지휘 센터',zh:'OE指挥中心',ja:'OE指揮センター',ur:'OE کمانڈ سینٹر' },
+  'بوابة الموظف':            { en:'Employee Portal',  fr:'Portail employé', es:'Portal empleado', it:'Portale dipendente', pt:'Portal do funcionário', de:'Mitarbeiterportal', ru:'Портал сотрудника', ko:'직원 포털', zh:'员工门户',        ja:'従業員ポータル',  ur:'ملازم پورٹل' },
+  'لوحة الأدمن':             { en:'Admin Panel',      fr:'Panneau admin',   es:'Panel admin',     it:'Pannello admin',  pt:'Painel admin',    de:'Admin-Panel',     ru:'Панель администратора', ko:'관리자 패널',      zh:'管理面板',        ja:'管理パネル',      ur:'ایڈمن پینل' },
+  'مدير الإدارة':            { en:'Director',         fr:'Directeur',       es:'Director',        it:'Direttore',       pt:'Diretor',         de:'Direktor',        ru:'Директор',        ko:'이사',             zh:'总监',            ja:'ディレクター',    ur:'ڈائریکٹر' },
+  'تأكيد الإغلاق':           { en:'Confirm Closure',  fr:'Confirmer fermeture',es:'Confirmar cierre',it:'Conferma chiusura',pt:'Confirmar fechamento',de:'Schließung bestätigen',ru:'Подтвердить закрытие',ko:'완료 확인',zh:'确认关闭',ja:'完了確認',ur:'بندش تصدیق' },
+  'أُغلقت المهمة':           { en:'Task closed',      fr:'Tâche fermée',    es:'Tarea cerrada',   it:'Attività chiusa', pt:'Tarefa fechada',  de:'Aufgabe geschlossen',ru:'Задача закрыта', ko:'작업 완료',        zh:'任务关闭',        ja:'タスク完了',      ur:'کام بند' },
+  'أرسل الموظف الإنجاز بالإيميل':{ en:'Employee sent completion email', fr:'L\'employé a envoyé l\'email de finalisation', es:'El empleado envió el email de finalización', it:'Il dipendente ha inviato l\'email di completamento', pt:'O funcionário enviou o email de conclusão', de:'Mitarbeiter hat Abschluss-E-Mail gesendet', ru:'Сотрудник отправил письмо о завершении', ko:'직원이 완료 이메일을 보냈습니다', zh:'员工发送了完成邮件', ja:'従業員が完了メールを送信', ur:'ملازم نے تکمیل ای میل بھیجی' },
+  'لم يرسل بالإيميل بعد':   { en:'Email not sent yet',fr:'Email pas encore envoyé',es:'Email aún no enviado',it:'Email non ancora inviata',pt:'Email ainda não enviado',de:'E-Mail noch nicht gesendet',ru:'Письмо ещё не отправлено',ko:'이메일 아직 미발송',zh:'邮件尚未发送',ja:'メール未送信',ur:'ای میل ابھی نہیں بھیجی' },
   'تم إغلاق المهمة وإرسالها للمدير ✓':{ en:'Task closed and sent to manager ✓',fr:'Tâche fermée et envoyée au responsable ✓',es:'Tarea cerrada y enviada al gerente ✓',it:'Attività chiusa e inviata al responsabile ✓',pt:'Tarefa fechada e enviada ao gerente ✓',de:'Aufgabe geschlossen und an Manager gesendet ✓',ru:'Задача закрыта и отправлена менеджеру ✓',ko:'작업 완료 및 관리자에게 전송됨 ✓',zh:'任务关闭并发送给经理 ✓',ja:'タスク完了・マネージャーに送信 ✓',ur:'ٹاسک بند اور مینیجر کو بھیجا ✓' },
 };
 
@@ -583,16 +608,25 @@ function autoTranslate() {
   _translateTimer = setTimeout(() => {
     const targets = [
       document.getElementById('pgContent'),
+      document.getElementById('pg'),
       document.getElementById('tc'),
       document.getElementById('navEl'),
       document.querySelector('.sb-brand'),
+      document.querySelector('.sb-foot'),
       document.querySelector('.topbar'),
+      document.querySelector('.hero'),
     ].filter(Boolean);
     
     targets.forEach(el => {
-      if(el && el.innerHTML) translateDOM(el);
+      if(el) translateDOM(el);
     });
-  }, 80);
+  }, 120);
+  
+  // Second pass for async content
+  setTimeout(() => {
+    const pg = document.getElementById('pg') || document.getElementById('pgContent');
+    if(pg) translateDOM(pg);
+  }, 600);
 }
 
 // Watch for DOM changes
@@ -621,9 +655,11 @@ if(typeof window !== 'undefined') {
     setTimeout(startObserving, 500);
     setTimeout(startObserving, 1500);
     
-    // Also translate on page load
-    setTimeout(autoTranslate, 300);
-    setTimeout(autoTranslate, 800);
+    // Also translate on page load - multiple passes for async content
+    setTimeout(autoTranslate, 200);
+    setTimeout(autoTranslate, 500);
+    setTimeout(autoTranslate, 1000);
+    setTimeout(autoTranslate, 2000);
   });
   
   window.autoTranslate = autoTranslate;

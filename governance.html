@@ -65,6 +65,7 @@ const BL = 'governance';
 const DC = '#7C3AED';
 const DR = '124,58,237';
 const NAV = [
+  {k:'tower',  ar:'برج السيطرة',          en:'Control Tower', ic:'🏛️', fn:"go('tower')"},
   {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚖️', fn:"go('dash')"},
   {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
   {g:'المهام',ge:'TASKS'},
@@ -952,7 +953,7 @@ window.viewTaskHistory=async id=>{
   const p=await initPage({roles:['governance_manager','admin','director','governance_manager']});
   if(!p)return;
   document.getElementById('lgEl').innerHTML=LOGO;
-  buildNav(NAV,'dash');go('dash');
+  buildNav(NAV,'tower');go('tower');
 })();
 </script>
 </body>

@@ -68,18 +68,18 @@ const NAV = [
   {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚠️', fn:"go('dash')"},
   {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
   {g:'المهام',ge:'TASKS'},
-  {k:'tasks',  ar:'المهام',               en:'Tasks',         ic:'✓',  fn:"go('tasks')"},
-  {k:'ntask',  ar:'مهمة جديدة',           en:'New Task',      ic:'➕', fn:"go('ntask')"},
+  {k:'tasks',  ar:'المهام',               en:'المهام',         ic:'✓',  fn:"go('tasks')"},
+  {k:'ntask',  ar:'مهمة جديدة',           en:'مهمة جديدة',      ic:'➕', fn:"go('ntask')"},
   {g:'التحسين',ge:'IMPROVEMENT'},
   {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
   {k:'kpis',   ar:t2('مؤشرات الأداء','KPIs'),        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
   {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
   {g:'الفريق',ge:'TEAM'},
-  {k:'team',   ar:'الفريق',               en:'Team',          ic:'👥', fn:"go('team')"},
+  {k:'team',   ar:'الفريق',               en:'الفريق',          ic:'👥', fn:"go('team')"},
   {k:'reviews', ar:'مراجعة الإنجازات',    en:'Review Completions', ic:'✅', fn:"go('reviews')"},
-  {k:'tickets',ar:'التذاكر',              en:'Tickets',       ic:'🎫', fn:"go('tickets')"},
+  {k:'tickets',ar:'التذاكر',              en:'التذاكر',       ic:'🎫', fn:"go('tickets')"},
   {g:'متابعة',ge:'TRACKING'},
-  {k:'alerts', ar:'التنبيهات',            en:'Alerts',        ic:'⚠️', fn:"go('alerts')"},
+  {k:'alerts', ar:'التنبيهات',            en:'التنبيهات',        ic:'⚠️', fn:"go('alerts')"},
   {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
 ];
 const PAGES = {};
@@ -238,7 +238,7 @@ reg('daily',el=>{
         {n:'1',t:'مراجعة المهام المتأخرة',d:'تأكد من وجود خطط للمهام المتأخرة',k:'tasks',ic:'✓'},
         {n:'2',t:'AFIs المفتوحة',d:'تابع خطط المعالجة والإغلاق',k:'afis',ic:'▲'},
         {n:'3',t:'التنبيهات الفنية',d:'هل هناك تنبيهات تحتاج إجراء؟',k:'alerts',ic:'⚠️'},
-        {n:'4',t:t2('مؤشرات الأداء','KPIs'),d:'راجع KPIs الأسبوعية',k:'kpis',ic:'📈'},
+        {n:'4',t:t2('مؤشرات الأداء','KPIs'),d:'راجع مؤشرات الأداء الأسبوعية',k:'kpis',ic:'📈'},
         {n:'5',t:'فريقي',d:'من يحتاج دعماً أو توجيهاً؟',k:'team',ic:'👥'},
         {n:'6',t:'التحديث الأسبوعي',d:'ابعث تحديثك للحوكمة',k:'weekly',ic:'📊'},
       ].map(s=>`<div class="card ptr" onclick="go('${s.k}')" style="border-color:rgba(${DR},.2)">
@@ -298,7 +298,7 @@ reg('tasks',async el=>{
       const opts={eq:{division:BL}};
       if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};if(pr)opts.eq={...opts.eq,priority:pr};
       const{data}=await dbList('tasks',opts);
-      if(!data.length){el2.innerHTML=emptyEl(t2('لا مهام','No tasks'),`<button class="btn p sm" onclick="go('ntask')">${t2('+ مهمة جديدة','+ New Task')}</button>`);return;}
+      if(!data.length){el2.innerHTML=emptyEl(t2('لا مهام','لا توجد مهام'),`<button class="btn p sm" onclick="go('ntask')">${t2('+ مهمة جديدة','+ New Task')}</button>`);return;}
       el2.innerHTML=`<div class="tw"><table>
         <thead><tr><th>${t2('الرقم','#')}</th><th>${t2('المهمة','Task')}</th><th>المكلّف</th><th>${t2('الأولوية','Priority')}</th><th>${t2('الاستحقاق','Due Date')}</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
         <tbody>${data.map(tk=>`<tr>
@@ -876,7 +876,7 @@ reg('reviews',async el=>{
     rvList.innerHTML=skR();
     const opts=st?{eq:{division:BL,status:st}}:{eq:{division:BL},neq:{status:'open'}};
     const{data}=await dbList('tasks',opts).catch(()=>({data:[]}));
-    if(!data.length){rvList.innerHTML=emptyEl(t2('لا مهام','No tasks'));return;}
+    if(!data.length){rvList.innerHTML=emptyEl(t2('لا مهام','لا توجد مهام'));return;}
     rvList.innerHTML=await Promise.all(data.map(async tk=>{
       const{data:cmts}=await dbList('task_comments',{eq:{task_id:tk.id},lim:5}).catch(()=>({data:[]}));
       const lastCmt=cmts.find(c=>c.type==='closure'||c.type==='stage_update');

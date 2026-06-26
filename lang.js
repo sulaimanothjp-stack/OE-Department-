@@ -1,4 +1,3 @@
-```javascript
 /* ═══════════════════════════════════════════════════════════════
    Saudi Energy · OE Command Center
    lang.js — Translation Dictionary & Safe Localization

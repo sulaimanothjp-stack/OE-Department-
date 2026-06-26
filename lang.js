@@ -1,8 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    Saudi Energy · OE Command Center
-   lang.js — 12-Language Translation Dictionary
-   Languages: ar, en, fr, es, it, pt, de, ru, ko, zh, ja, ur
+   lang.js — 12-Language Translation Dictionary (Safe LocalStorage)
 ═══════════════════════════════════════════════════════════════ */
+
+function lsGet(k, def) { try { return localStorage.getItem(k) || def; } catch (e) { return def; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
 const LANGS = {
   ar: { name:'العربية',    dir:'rtl', flag:'🇸🇦' },
@@ -29,11 +31,8 @@ const TR = {
   nav_alerts:       { ar:'التنبيهات',      en:'Alerts',          fr:'Alertes',          es:'Alertas',        it:'Avvisi',           pt:'Alertas',         de:'Warnungen',        ru:'Оповещения',       ko:'경보',             zh:'警报',            ja:'アラート',        ur:'اطلاعات' },
   nav_assessments:  { ar:'التقييمات',      en:'Assessments',     fr:'Évaluations',      es:'Evaluaciones',   it:'Valutazioni',      pt:'Avaliações',      de:'Bewertungen',      ru:'Оценки',           ko:'평가',             zh:'评估',            ja:'評価',            ur:'تشخیص' },
   nav_tickets:      { ar:'التذاكر',        en:'Tickets',         fr:'Tickets',          es:'Tickets',        it:'Ticket',           pt:'Tickets',         de:'Tickets',          ru:'Тикеты',           ko:'티켓',             zh:'工单',            ja:'チケット',        ur:'ٹکٹ' },
-  nav_docs:         { ar:'الوثائق',        en:'Documents',       fr:'Documents',        es:'Documentos',     it:'Documenti',        pt:'Documentos',      de:'Dokumente',        ru:'Документы',        ko:'문서',             zh:'文件',            ja:'書類',            ur:'دستاویزات' },
   nav_meetings:     { ar:'الاجتماعات',     en:'Meetings',        fr:'Réunions',         es:'Reuniones',      it:'Riunioni',         pt:'Reuniões',        de:'Besprechungen',    ru:'Встречи',          ko:'회의',             zh:'会议',            ja:'会議',            ur:'میٹنگز' },
-  nav_initiatives:  { ar:'المبادرات',      en:'Initiatives',     fr:'Initiatives',      es:'Iniciativas',    it:'Iniziative',       pt:'Iniciativas',     de:'Initiativen',      ru:'Инициативы',       ko:'이니셔티브',         zh:'计划',            ja:'イニシアチブ',    ur:'اقدامات' },
   nav_settings:     { ar:'الإعدادات',      en:'Settings',        fr:'Paramètres',       es:'Configuración',  it:'Impostazioni',     pt:'Configurações',   de:'Einstellungen',    ru:'Настройки',        ko:'설정',             zh:'设置',            ja:'設定',            ur:'ترتیبات' },
-  nav_signals:      { ar:'مؤشر أدائي',     en:'My Performance',  fr:'Ma Performance',   es:'Mi Rendimiento', it:'La Mia Performance',pt:'Meu Desempenho',  de:'Meine Leistung',   ru:'Моя Производительность',ko:'내 성과',           zh:'我的绩效',         ja:'私の成績',        ur:'میری کارکردگی' },
   nav_daily_update: { ar:'تحديث اليوم',    en:'Daily Update',    fr:'Mise à jour',      es:'Actualización',  it:'Aggiornamento',    pt:'Atualização',     de:'Tagesupdate',      ru:'Обновление',       ko:'일일 업데이트',      zh:'日常更新',         ja:'日次更新',        ur:'روزانہ اپ ڈیٹ' },
   nav_reviews:      { ar:'مراجعة الإنجازات',en:'Review Completions',fr:'Révisions',     es:'Revisiones',     it:'Revisioni',        pt:'Revisões',        de:'Überprüfungen',    ru:'Обзоры',           ko:'완료 검토',         zh:'完成审查',         ja:'完了レビュー',    ur:'نظرثانی' },
   nav_users:        { ar:'إدارة المستخدمين',en:'User Management', fr:'Gestion utilisateurs',es:'Gestión de usuarios',it:'Gestione utenti',pt:'Gestão de utilizadores',de:'Benutzerverwaltung',ru:'Управление пользователями',ko:'사용자 관리',        zh:'用户管理',         ja:'ユーザー管理',    ur:'صارف انتظام' },
@@ -44,19 +43,6 @@ const TR = {
   nav_escalations:  { ar:'صندوق التصعيد',  en:'Escalations',     fr:'Escalades',        es:'Escaladas',      it:'Escalation',       pt:'Escaladas',       de:'Eskalationen',     ru:'Эскалации',        ko:'에스컬레이션',       zh:'升级',            ja:'エスカレーション',ur:'اضافہ' },
   nav_approvals:    { ar:'موافقات معلقة',  en:'Approvals',       fr:'Approbations',     es:'Aprobaciones',   it:'Approvazioni',     pt:'Aprovações',      de:'Genehmigungen',    ru:'Одобрения',        ko:'승인',             zh:'批准',            ja:'承認',            ur:'منظوری' },
   nav_qpi:          { ar:'التقرير الربعي', en:'QPI Report',      fr:'Rapport QPI',      es:'Informe QPI',    it:'Rapporto QPI',     pt:'Relatório QPI',   de:'QPI-Bericht',      ru:'Отчёт QPI',        ko:'QPI 보고서',        zh:'QPI报告',         ja:'QPI報告',         ur:'QPI رپورٹ' },
-
-  /* ── Buttons ──────────────────────────────────────────── */
-  btn_save:         { ar:'حفظ',           en:'Save',            fr:'Enregistrer',      es:'Guardar',        it:'Salva',            pt:'Salvar',          de:'Speichern',        ru:'Сохранить',        ko:'저장',             zh:'保存',            ja:'保存',            ur:'محفوظ کریں' },
-  btn_cancel:       { ar:'إلغاء',         en:'Cancel',          fr:'Annuler',          es:'Cancelar',       it:'Annulla',          pt:'Cancelar',        de:'Abbrechen',        ru:'Отмена',           ko:'취소',             zh:'取消',            ja:'キャンセル',      ur:'منسوخ کریں' },
-  btn_close:        { ar:'إغلاق',         en:'Close',           fr:'Fermer',           es:'Cerrar',         it:'Chiudi',           pt:'Fechar',          de:'Schließen',        ru:'Закрыть',          ko:'닫기',             zh:'关闭',            ja:'閉じる',          ur:'بند کریں' },
-  btn_edit:         { ar:'تعديل',         en:'Edit',            fr:'Modifier',         es:'Editar',         it:'Modifica',         pt:'Editar',          de:'Bearbeiten',       ru:'Редактировать',    ko:'편집',             zh:'编辑',            ja:'編集',            ur:'ترمیم' },
-  btn_delete:       { ar:'حذف',           en:'Delete',          fr:'Supprimer',        es:'Eliminar',       it:'Elimina',          pt:'Excluir',         de:'Löschen',          ru:'Удалить',          ko:'삭제',             zh:'删除',            ja:'削除',            ur:'حذف کریں' },
-  btn_add:          { ar:'إضافة',         en:'Add',             fr:'Ajouter',          es:'Agregar',        it:'Aggiungi',         pt:'Adicionar',       de:'Hinzufügen',       ru:'Добавить',         ko:'추가',             zh:'添加',            ja:'追加',            ur:'شامل کریں' },
-  btn_view_all:     { ar:'عرض الكل',      en:'View All',        fr:'Voir tout',        es:'Ver todo',       it:'Vedi tutto',       pt:'Ver tudo',        de:'Alle anzeigen',    ru:'Показать все',     ko:'모두 보기',         zh:'查看全部',         ja:'全て表示',        ur:'سب دیکھیں' },
-  btn_details:      { ar:'تفاصيل',        en:'Details',         fr:'Détails',          es:'Detalles',       it:'Dettagli',         pt:'Detalhes',        de:'Details',          ru:'Детали',           ko:'세부사항',          zh:'详情',            ja:'詳細',            ur:'تفصیل' },
-  btn_send:         { ar:'إرسال',         en:'Send',            fr:'Envoyer',          es:'Enviar',         it:'Invia',            pt:'Enviar',          de:'Senden',           ru:'Отправить',        ko:'보내기',            zh:'发送',            ja:'送信',            ur:'بھیجیں' },
-  btn_new_task:     { ar:'مهمة جديدة',    en:'New Task',        fr:'Nouvelle tâche',   es:'Nueva tarea',    it:'Nuovo compito',    pt:'Nova tarefa',     de:'Neue Aufgabe',     ru:'Новая задача',     ko:'새 작업',           zh:'新任务',          ja:'新しいタスク',    ur:'نیا کام' },
-  btn_new_emp:      { ar:'إضافة موظف',    en:'Add Employee',    fr:'Ajouter employé',  es:'Agregar empleado',it:'Aggiungi dipendente',pt:'Adicionar funcionário',de:'Mitarbeiter hinzufügen',ru:'Добавить сотрудника',ko:'직원 추가',         zh:'添加员工',         ja:'従業員追加',      ur:'ملازم شامل کریں' },
 
   /* ── Status / Priority ────────────────────────────────── */
   st_open:          { ar:'مفتوح',         en:'Open',            fr:'Ouvert',           es:'Abierto',        it:'Aperto',           pt:'Aberto',          de:'Offen',            ru:'Открыт',           ko:'열림',             zh:'开放',            ja:'オープン',        ur:'کھلا' },
@@ -71,10 +57,9 @@ const TR = {
   pri_low:          { ar:'منخفضة',        en:'Low',             fr:'Faible',           es:'Bajo',           it:'Bassa',            pt:'Baixo',           de:'Niedrig',          ru:'Низкий',           ko:'낮음',             zh:'低',              ja:'低',              ur:'کم' },
   pri_medium:       { ar:'متوسطة',        en:'Medium',          fr:'Moyen',            es:'Medio',          it:'Media',            pt:'Médio',           de:'Mittel',           ru:'Средний',          ko:'보통',             zh:'中',              ja:'中',              ur:'درمیانہ' },
   pri_high:         { ar:'عالية',         en:'High',            fr:'Élevé',            es:'Alto',           it:'Alta',             pt:'Alto',            de:'Hoch',             ru:'Высокий',          ko:'높음',             zh:'高',              ja:'高',              ur:'زیادہ' },
-  pri_critical:     { ar:'حرج',           en:'Critical',        fr:'Critique',         es:'Crítico',        it:'Critico',          pt:'Crítico',         de:'Kritisch',         ru:'Критический',      ko:'위험',             zh:'紧急',            ja:'重大',            ur:'نازک' }
+  pri_critical:     { ar:'حرج',           en:'Critical',        fr:'Critique',         es:'Crítico',        it:'Critico',          pt:'Crítico',         de:'Kritisch',         ru:'Критический',      ko:'위험',             zh:'紧急',            ja:'重大',            ur:'نازک' },
 };
 
-/* ── DOM Auto-Translate Map ──────────────────────────────── */
 const DOM_MAP = {
   /* Dashboard / Hero */
   'لوحة المتابعة':           { en:'Dashboard', fr:'Tableau de bord', es:'Panel', it:'Pannello', pt:'Painel', de:'Dashboard', ru:'Панель', ko:'대시보드', zh:'仪表板', ja:'ダッシュボード', ur:'ڈیش بورڈ' },
@@ -84,6 +69,7 @@ const DOM_MAP = {
   'الشبكة الوطنية':          { en:'National Grid', fr:'Réseau National', es:'Red Nacional', it:'Rete Nazionale', pt:'Rede Nacional', de:'Nationales Netz', ru:'Национальная сеть',ko:'국가 전력망', zh:'国家电网', ja:'国家電力網', ur:'قومی گرڈ' },
   'دائرة التوزيع':           { en:'Distribution OE', fr:'Distribution', es:'Distribución', it:'Distribuzione', pt:'Distribuição', de:'Verteilung', ru:'Распределение', ko:'배전', zh:'配电', ja:'配電', ur:'تقسیم' },
   'التنبيهات الفنية':        { en:'Technical Alerts', fr:'Alertes Tech.', es:'Alertas Téc.', it:'Avvisi Tecnici', pt:'Alertas Téc.', de:'Tech. Warnungen', ru:'Тех. оповещения', ko:'기술 경보', zh:'技术警报', ja:'技術アラート', ur:'تکنیکی اطلاعات' },
+  'إدارة التميز التشغيلي':  { en:'OE Department', fr:'Département OE', es:'Depto. OE', it:'Reparto OE', pt:'Depto. OE', de:'OE-Abteilung', ru:'Отдел OE', ko:'OE 부서', zh:'OE部门', ja:'OE部署', ur:'OE ڈیپارٹمنٹ' },
   
   /* Sections */
   'المهام':                  { en:'Tasks', fr:'Tâches', es:'Tareas', it:'Attività', pt:'Tarefas', de:'Aufgaben', ru:'Задачи', ko:'작업', zh:'任务', ja:'タスク', ur:'کام' },
@@ -93,7 +79,7 @@ const DOM_MAP = {
   'القرارات':                { en:'Decisions', fr:'Décisions', es:'Decisiones', it:'Decisioni', pt:'Decisões', de:'Entscheidungen', ru:'Решения', ko:'결정', zh:'决定', ja:'決定', ur:'فیصلے' },
   'الاجتماعات':              { en:'Meetings', fr:'Réunions', es:'Reuniones', it:'Riunioni', pt:'Reuniões', de:'Besprechungen', ru:'Встречи', ko:'회의', zh:'会议', ja:'会議', ur:'میٹنگز' },
   
-  /* Labels */
+  /* Buttons & Labels */
   'عرض الكل':               { en:'View All', fr:'Voir tout', es:'Ver todo', it:'Vedi tutto', pt:'Ver tudo', de:'Alle anzeigen', ru:'Показать все', ko:'모두 보기', zh:'查看全部', ja:'全て表示', ur:'سب دیکھیں' },
   '+ مهمة جديدة':           { en:'+ New Task', fr:'+ Nouvelle tâche',es:'+ Nueva tarea', it:'+ Nuovo compito', pt:'+ Nova tarefa', de:'+ Neue Aufgabe', ru:'+ Новая задача', ko:'+ 새 작업', zh:'+ 新任务', ja:'+ 新タスク', ur:'+ نیا کام' },
   '+ تقييم جديد':           { en:'+ New Assessment', fr:'+ Nouvelle évaluation',es:'+ Nueva evaluación',it:'+ Nuova valutazione',pt:'+ Nova avaliação',de:'+ Neue Bewertung',ru:'+ Новая оценка', ko:'+ 새 평가', zh:'+ 新评估', ja:'+ 新評価', ur:'+ نئی تشخیص' },
@@ -117,12 +103,12 @@ const DOM_MAP = {
 };
 
 function tl(key) {
-  const lang = (typeof App !== 'undefined' ? App.lang : null) || localStorage.getItem('se_lang_v2') || 'en';
+  const lang = (typeof App !== 'undefined' ? App.lang : null) || lsGet('se_lang_v2', 'en');
   return (TR[key] && TR[key][lang]) || (TR[key] && TR[key]['en']) || key;
 }
 
 function openLangPicker() {
-  const current = (typeof App !== 'undefined' ? App.lang : null) || localStorage.getItem('se_lang_v2') || 'en';
+  const current = (typeof App !== 'undefined' ? App.lang : null) || lsGet('se_lang_v2', 'en');
   const items = Object.entries(LANGS).map(([code, info]) =>
     `<button onclick="selectLang('${code}')" style="
       display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;
@@ -139,7 +125,7 @@ function openLangPicker() {
 
   if(typeof openModal !== 'undefined') {
     openModal(`
-      <div class="mh"><h3 style="font-family:var(--hud)">🌐 ${current === 'ar' ? 'اللغة' : 'Language'}</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mh"><h3 style="font-family:var(--hud)">🌐 Language / اللغة</h3><button class="mx" onclick="closeModal()">×</button></div>
       <div class="mbd" style="max-height:70vh;overflow-y:auto">${items}</div>
     `);
   }
@@ -147,8 +133,8 @@ function openLangPicker() {
 
 function selectLang(code) {
   if(typeof App !== 'undefined') App.lang = code;
-  localStorage.setItem('se_lang_v2', code);
-  localStorage.setItem('se_lang_ver', '3');
+  lsSet('se_lang_v2', code);
+  lsSet('se_lang_ver', '3');
   const info = LANGS[code];
   document.documentElement.lang = code;
   document.documentElement.dir = info.dir;
@@ -182,7 +168,7 @@ function selectLang(code) {
 }
 
 if(typeof window !== 'undefined') {
-  Object.assign(window, { LANGS, TR, DOM_MAP, tl, openLangPicker, selectLang });
+  Object.assign(window, { LANGS, TR, DOM_MAP, tl, openLangPicker, selectLang, lsGet, lsSet });
 }
 
 

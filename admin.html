@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en" dir="ltr" id="root">
 <head>
@@ -144,7 +145,7 @@ button,input,select{font-family:inherit}
     </nav>
     <div class="sb-foot">
       <button class="btn-lo" onclick="doLogout()" id="b_logout">🚪 خروج</button>
-      <button class="btn-lg" onclick="toggleLang()" id="b_lang">🌐</button>
+      <button class="btn-lg" onclick="openLangPicker()" id="b_lang">🌐</button>
     </div>
   </aside>
 
@@ -616,8 +617,6 @@ async function renderHealth(){
 
 /* ═══ INIT ═══════════════════════════════════════════════════ */
 (async function init(){
-  startClock();
-  translateAdminNav();
   
   const sess = getStoredSession();
   if(!sess || !sess.access_token){ location.href='index.html'; return; }
@@ -650,11 +649,10 @@ async function renderHealth(){
       return;
     }
     
-    // Set App.lang context for t2()
-    App.lang = localStorage.getItem('se_lang_v2') || 'ar';
-    document.documentElement.lang = App.lang;
-    document.documentElement.dir = App.lang === 'ar' ? 'rtl' : 'ltr';
+    App.user = sess.user; App.profile = profile;
+    setLang(App.lang);
     translateAdminNav();
+    startClock();
 
     const init=(profile.full_name||'A').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     const av=document.getElementById('ubAv'),nm=document.getElementById('ubNm');
@@ -677,5 +675,6 @@ async function renderHealth(){
 </script>
 </body>
 </html>
+
 
 ```

@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en" dir="ltr" id="root">
 <head>
@@ -23,192 +24,56 @@ body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:ce
   <div class="scene" id="scene"><div class="sg" id="sg"></div><canvas id="scv"></canvas><div class="si"><div class="si-logo"><img src="se-logo.png.PNG" alt="Saudi Energy" onerror="this.style.display='none'"></div><div class="si-ic" id="siIc">🏛️</div><div class="si-nm" id="siNm">مركز قيادة التميز التشغيلي</div><div class="si-sb" id="siSb">OE COMMAND CENTER</div><div class="si-ds" id="siDs">المنصة الرقمية لإدارة التميز التشغيلي · Saudi Energy</div></div><div class="sbar" id="sbar"></div></div>
   <div class="lp"><div class="lg-row"><button class="lg-btn" id="lgGlobe" onclick="openIndexLangPicker()" style="display:flex;align-items:center;gap:5px;padding:4px 12px">🌐 <span id="lgCurr">English</span> ▾</button></div>
     <div id="lgDrop" style="display:none;position:absolute;top:52px;right:24px;left:24px;background:#0C1E38;border:1px solid #152840;border-radius:10px;padding:8px;z-index:999;display:none"></div>
-    <div class="tabs-row" id="tabsRow">
-      <div class="tab" id="t_adm" onclick="activate('adm')">⚙️ <span class="tl">الأدمن</span></div>
-      <div class="tab" id="t_dept" onclick="activate('dept')">🏛️ <span class="tl">الإدارة</span></div>
-      <div class="tab" id="t_gov" onclick="activate('gov')">⚖️ <span class="tl">الحوكمة</span></div>
-      <div class="tab" id="t_gen" onclick="activate('gen')">⚡ <span class="tl">التوليد</span></div>
-      <div class="tab" id="t_grid" onclick="activate('grid')">🔌 <span class="tl">الشبكة</span></div>
-      <div class="tab" id="t_dist" onclick="activate('dist')">🏘️ <span class="tl">التوزيع</span></div>
-      <div class="tab" id="t_alr" onclick="activate('alr')">⚠️ <span class="tl">التنبيهات</span></div>
-      <div class="tab" id="t_emp" onclick="activate('emp')">👤 <span class="tl">الموظفون</span></div>
-    </div>
-    <div class="lf-title" id="lfTitle">تسجيل الدخول</div><div class="lf-sub" id="lfSub">أدخل بريدك الإلكتروني وكلمة المرور</div><div class="lerr" id="lerr"></div><div class="lok" id="lok"></div>
-    <div class="lfield" id="fUname" style="display:none"><label id="lUname">اسم المستخدم</label><input type="text" id="iUname" placeholder="الرقم الوظيفي" autocomplete="username"></div>
-    <div class="lfield" id="fEmail"><label id="lEmail">البريد الإلكتروني</label><input type="email" id="iEmail" placeholder="name@se.com.sa" autocomplete="username"></div>
-    <div class="lfield"><label id="lPass">كلمة المرور</label><input type="password" id="iPass" placeholder="••••••••" autocomplete="current-password"></div>
-    <button class="btn-si" id="siBtn" onclick="doLogin()"><span id="siLbl">دخول</span></button><div class="lp-foot">SE · OE Command Center v4<br>إدارة التميز التشغيلي · Chief Engineer BU · Saudi Energy</div>
+    <div class="tabs-row" id="tabsRow"><div class="tab" id="t_adm" onclick="activate('adm')">⚙️ <span class="tl" data-ar="الأدمن" data-en="Admin">Admin</span></div><div class="tab" id="t_dept" onclick="activate('dept')">🏛️ <span class="tl" data-ar="الإدارة" data-en="Department">Department</span></div><div class="tab" id="t_gov" onclick="activate('gov')">⚖️ <span class="tl" data-ar="الحوكمة" data-en="Governance">Governance</span></div><div class="tab" id="t_gen" onclick="activate('gen')">⚡ <span class="tl" data-ar="التوليد" data-en="Generation">Generation</span></div><div class="tab" id="t_grid" onclick="activate('grid')">🔌 <span class="tl" data-ar="الشبكة" data-en="Grid">Grid</span></div><div class="tab" id="t_dist" onclick="activate('dist')">🏘️ <span class="tl" data-ar="التوزيع" data-en="Distribution">Distribution</span></div><div class="tab" id="t_alr" onclick="activate('alr')">⚠️ <span class="tl" data-ar="التنبيهات" data-en="Alerts">Alerts</span></div><div class="tab" id="t_emp" onclick="activate('emp')">👤 <span class="tl" data-ar="الموظفون" data-en="Employees">Employees</span></div></div>
+    <div class="lf-title" id="lfTitle">Sign In</div><div class="lf-sub" id="lfSub">Enter your email and password</div><div class="lerr" id="lerr"></div><div class="lok" id="lok"></div>
+    <div class="lfield" id="fUname" style="display:none"><label id="lUname">Username / Employee ID</label><input type="text" id="iUname" placeholder="Employee ID" autocomplete="username"></div>
+    <div class="lfield" id="fEmail"><label id="lEmail">Email Address</label><input type="email" id="iEmail" placeholder="name@se.com.sa" autocomplete="username"></div>
+    <div class="lfield"><label id="lPass">Password</label><input type="password" id="iPass" placeholder="••••••••" autocomplete="current-password"></div>
+    <button class="btn-si" id="siBtn" onclick="doLogin()"><span id="siLbl">Sign In</span></button><div class="lp-foot">SE · OE Command Center v5.0<br>Operational Excellence Dept · Chief Engineer BU · Saudi Energy</div>
   </div>
 </div>
 <script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 'use strict';
+const _SB = window.sb;
 const PORTALS_FALLBACK={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
 const PORTALS_MAP=window.PORTALS||PORTALS_FALLBACK;
-
-const TABS={
-  adm:{ic:'⚙️',ar:'مشرف النظام',en:'System Admin',nAr:'لوحة إدارة النظام',nEn:'System Administration',dAr:'إدارة المستخدمين · الصلاحيات · صحة النظام · إعدادات المنصة',dEn:'Users · Roles · System Health · Platform Settings',color:'#4F46E5',cv:'net',isEmp:true,roles:['admin']},
-  dept:{ic:'🏛️',ar:'الإدارة',en:'Department',nAr:'إدارة التميز التشغيلي',nEn:'Operational Excellence',dAr:'غرفة العمليات التنفيذية · نظرة شاملة على الدوائر والمؤشرات',dEn:'Executive command room · Cross-division overview and KPIs',color:'#D4AF37',cv:'net',isEmp:true,roles:['director','admin']},
-  gov:{ic:'⚖️',ar:'الحوكمة والتقييم',en:'Governance',nAr:'دائرة الحوكمة والتقييم',nEn:'Governance & Assessment',dAr:'الإطار المؤسسي · التقييمات · مؤشرات الأداء · التحسين المستمر',dEn:'Governance framework · Assessments · KPIs · Continuous improvement',color:'#7C3AED',cv:'net',isEmp:true,roles:['governance_manager']},
-  gen:{ic:'⚡',ar:'التوليد',en:'Generation',nAr:'دائرة التوليد',nEn:'Generation OE',dAr:'أداء التوليد · كفاءة الطاقة · الاعتمادية · التحسين المستمر',dEn:'Generation performance · Efficiency · Reliability · Improvement',color:'#F59E0B',cv:'energy',isEmp:true,roles:['generation_manager']},
-  grid:{ic:'🔌',ar:'الشبكة الوطنية',en:'National Grid',nAr:'الشبكة الوطنية للنقل',nEn:'National Grid',dAr:'موثوقية النقل · شبكة الطاقة العالية · مؤشرات الشبكة',dEn:'Transmission reliability · High-voltage grid · Grid indicators',color:'#0EA5E9',cv:'grid',isEmp:true,roles:['national_grid_manager']},
-  dist:{ic:'🏘️',ar:'التوزيع',en:'Distribution',nAr:'دائرة التوزيع',nEn:'Distribution OE',dAr:'شبكة التوزيع · SAIDI · موثوقية الخدمة · تجربة المستفيد',dEn:'Distribution network · SAIDI · Service reliability · Customer impact',color:'#10B981',cv:'city',isEmp:true,roles:['distribution_manager']},
-  alr:{ic:'⚠️',ar:'التنبيهات الفنية',en:'Technical Alerts',nAr:'دائرة التنبيهات الفنية',nEn:'Technical Alerts',dAr:'الرادار الفني · رصد المخاطر المبكر · التصعيد والمعالجة',dEn:'Technical radar · Early warning · Escalation and resolution',color:'#EF4444',cv:'radar',isEmp:true,roles:['technical_alerts_manager']},
-  emp:{ic:'👤',ar:'الموظفون',en:'Employees',nAr:'بوابة الموظف',nEn:'Employee Portal',dAr:'المهام اليومية · التحديثات · متابعة الأداء الشخصي',dEn:'Daily tasks · Updates · Personal performance tracking',color:'#6366F1',cv:'net',isEmp:true,roles:['employee']}
-};
-
-let ACT='adm', LNG=(function(){if(localStorage.getItem('se_lang_ver')!=='3'){localStorage.removeItem('se_lang_v2');localStorage.setItem('se_lang_ver','3');}return localStorage.getItem('se_lang_v2')||'en';})(), currentSceneCleanup=null, currentBgCleanup=null;
-
-function getEl(id){return document.getElementById(id)}
-function isSmall(){return window.innerWidth<768}
-function showErr(msg){const e=getEl('lerr'),ok=getEl('lok');ok.style.display='none';e.textContent=msg;e.style.display='block';getEl('wrap').style.animation='sk .3s ease';setTimeout(()=>getEl('wrap').style.animation='',300)}
-function showOk(msg){getEl('lerr').style.display='none';const ok=getEl('lok');ok.textContent=msg;ok.style.display='block'}
-function resetBtn(){const btn=getEl('siBtn');btn.disabled=false;btn.innerHTML=`<span id="siLbl">${LNG==='ar'?'دخول':'Sign In'}</span>`}
-function loadingBtn(){const btn=getEl('siBtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>'}
-function routeForRole(role){return PORTALS_MAP[role]||'employee.html'}
-
-function activate(k){
-  ACT=k; const tb=TABS[k];
-  Object.keys(TABS).forEach(id=>{
-    const el=getEl('t_'+id); if(!el)return;
-    el.classList.remove('on'); el.style.background=''; el.style.color=''; el.style.borderColor=''; el.style.boxShadow='';
-  });
-  const tabEl=getEl('t_'+k);
-  if(tabEl){
-    tabEl.classList.add('on'); tabEl.style.background=tb.color+'20'; tabEl.style.color=tb.color; tabEl.style.borderColor=tb.color+'44'; tabEl.style.boxShadow='0 0 12px '+tb.color+'20'
-  }
-  document.documentElement.style.setProperty('--active',tb.color);
-  getEl('scene').style.background='linear-gradient(145deg,'+tb.color+'0A,#020912)';
-  getEl('sg').style.background='radial-gradient(circle at 50% 40%,'+tb.color+' 0%,transparent 70%)';
-  getEl('siIc').textContent=tb.ic;
-  getEl('siNm').textContent=LNG==='ar'?tb.nAr:tb.nEn;
-  getEl('siSb').textContent=LNG==='ar'?tb.ar:tb.nEn.toUpperCase();
-  getEl('siDs').textContent=LNG==='ar'?tb.dAr:tb.dEn;
-  getEl('sbar').style.background='linear-gradient(90deg,transparent,'+tb.color+','+tb.color+'88,transparent)';
-  getEl('lfTitle').textContent=tb.ic+' '+(LNG==='ar'?tb.nAr:tb.nEn);
-  getEl('lfTitle').style.color=tb.color;
-  getEl('siBtn').style.background='linear-gradient(135deg,'+tb.color+','+tb.color+'aa)';
-  
-  if(tb.isEmp){
-    getEl('fEmail').style.display='none'; getEl('fUname').style.display='block';
-    getEl('lfSub').textContent=LNG==='ar'?'أدخل اسم المستخدم وكلمة المرور':'Enter username and password';
-  }else{
-    getEl('fEmail').style.display='block'; getEl('fUname').style.display='none';
-    getEl('lfSub').textContent=LNG==='ar'?'أدخل بريدك الإلكتروني وكلمة المرور':'Enter email and password';
-  }
-  
-  getEl('lerr').style.display='none'; getEl('lok').style.display='none';
-  if(!isSmall()){ if(currentSceneCleanup)currentSceneCleanup(); currentSceneCleanup=drawCanvas('scv',tb.cv,tb.color) }
-}
-
+const TABS={adm:{ic:'⚙️',ar:'مشرف النظام',en:'System Admin',nAr:'لوحة إدارة النظام',nEn:'System Administration',dAr:'إدارة المستخدمين · الصلاحيات · صحة النظام · إعدادات المنصة',dEn:'Users · Roles · System Health · Platform Settings',color:'#4F46E5',cv:'net',isEmp:true,roles:['admin']},dept:{ic:'🏛️',ar:'الإدارة',en:'Department',nAr:'إدارة التميز التشغيلي',nEn:'Operational Excellence Department',dAr:'غرفة العمليات التنفيذية · نظرة شاملة على الدوائر والمؤشرات',dEn:'Executive command room · Cross-division overview and KPIs',color:'#D4AF37',cv:'net',isEmp:true,roles:['director','admin']},gov:{ic:'⚖️',ar:'الحوكمة والتقييم',en:'Governance',nAr:'دائرة الحوكمة والتقييم',nEn:'Governance & Assessment',dAr:'الإطار المؤسسي · التقييمات · مؤشرات الأداء · التحسين المستمر',dEn:'Governance framework · Assessments · KPIs · Continuous improvement',color:'#7C3AED',cv:'net',isEmp:true,roles:['governance_manager']},gen:{ic:'⚡',ar:'التوليد',en:'Generation',nAr:'دائرة التوليد',nEn:'Generation OE',dAr:'أداء التوليد · كفاءة الطاقة · الاعتمادية · التحسين المستمر',dEn:'Generation performance · Efficiency · Reliability · Improvement',color:'#F59E0B',cv:'energy',isEmp:true,roles:['generation_manager']},grid:{ic:'🔌',ar:'الشبكة الوطنية',en:'National Grid',nAr:'الشبكة الوطنية للنقل',nEn:'National Grid',dAr:'موثوقية النقل · شبكة الطاقة العالية · مؤشرات الشبكة',dEn:'Transmission reliability · High-voltage grid · Grid indicators',color:'#0EA5E9',cv:'grid',isEmp:true,roles:['national_grid_manager']},dist:{ic:'🏘️',ar:'التوزيع',en:'Distribution',nAr:'دائرة التوزيع',nEn:'Distribution OE',dAr:'شبكة التوزيع · SAIDI · موثوقية الخدمة · تجربة المستفيد',dEn:'Distribution network · SAIDI · Service reliability · Customer impact',color:'#10B981',cv:'city',isEmp:true,roles:['distribution_manager']},alr:{ic:'⚠️',ar:'التنبيهات الفنية',en:'Technical Alerts',nAr:'دائرة التنبيهات الفنية',nEn:'Technical Alerts',dAr:'الرادار الفني · رصد المخاطر المبكر · التصعيد والمعالجة',dEn:'Technical radar · Early warning · Escalation and resolution',color:'#EF4444',cv:'radar',isEmp:true,roles:['technical_alerts_manager']},emp:{ic:'👤',ar:'الموظفون',en:'Employees',nAr:'بوابة الموظف',nEn:'Employee Portal',dAr:'المهام اليومية · التحديثات · متابعة الأداء الشخصي',dEn:'Daily tasks · Updates · Personal performance tracking',color:'#6366F1',cv:'net',isEmp:true,roles:['employee']}};
+let ACT='adm',LNG=localStorage.getItem('se_lang_v2')||'en',currentSceneCleanup=null,currentBgCleanup=null;
+function getEl(id){return document.getElementById(id)}function isSmall(){return window.innerWidth<768}function showErr(msg){const e=getEl('lerr'),ok=getEl('lok');ok.style.display='none';e.textContent=msg;e.style.display='block';getEl('wrap').style.animation='sk .3s ease';setTimeout(()=>getEl('wrap').style.animation='',300)}function showOk(msg){getEl('lerr').style.display='none';const ok=getEl('lok');ok.textContent=msg;ok.style.display='block'}function resetBtn(){const btn=getEl('siBtn');btn.disabled=false;btn.innerHTML=`<span id="siLbl">${LNG==='ar'?'دخول':'Sign In'}</span>`}function loadingBtn(){const btn=getEl('siBtn');btn.disabled=true;btn.innerHTML='<span class="spin"></span>'}function routeForRole(role){return PORTALS_MAP[role]||'employee.html'}
+function activate(k){ACT=k;const tb=TABS[k];Object.keys(TABS).forEach(id=>{const el=getEl('t_'+id);if(!el)return;el.classList.remove('on');el.style.background='';el.style.color='';el.style.borderColor='';el.style.boxShadow=''});const tabEl=getEl('t_'+k);if(tabEl){tabEl.classList.add('on');tabEl.style.background=tb.color+'20';tabEl.style.color=tb.color;tabEl.style.borderColor=tb.color+'44';tabEl.style.boxShadow='0 0 12px '+tb.color+'20'}document.documentElement.style.setProperty('--active',tb.color);getEl('scene').style.background='linear-gradient(145deg,'+tb.color+'0A,#020912)';getEl('sg').style.background='radial-gradient(circle at 50% 40%,'+tb.color+' 0%,transparent 70%)';getEl('siIc').textContent=tb.ic;getEl('siNm').textContent=LNG==='ar'?tb.nAr:tb.nEn;getEl('siSb').textContent=LNG==='ar'?tb.ar:tb.nEn.toUpperCase();getEl('siDs').textContent=LNG==='ar'?tb.dAr:tb.dEn;getEl('sbar').style.background='linear-gradient(90deg,transparent,'+tb.color+','+tb.color+'88,transparent)';getEl('lfTitle').textContent=tb.ic+' '+(LNG==='ar'?tb.nAr:tb.nEn);getEl('lfTitle').style.color=tb.color;getEl('siBtn').style.background='linear-gradient(135deg,'+tb.color+','+tb.color+'aa)';if(tb.isEmp){getEl('fEmail').style.display='none';getEl('fUname').style.display='block';getEl('lfSub').textContent=LNG==='ar'?'أدخل اسم المستخدم وكلمة المرور':'Enter username and password'}else{getEl('fEmail').style.display='block';getEl('fUname').style.display='none';getEl('lfSub').textContent=LNG==='ar'?'أدخل بريدك الإلكتروني وكلمة المرور':'Enter your email and password'}getEl('lerr').style.display='none';getEl('lok').style.display='none';if(!isSmall()){if(currentSceneCleanup)currentSceneCleanup();currentSceneCleanup=drawCanvas('scv',tb.cv,tb.color)}}
 function openIndexLangPicker(){
   const drop = document.getElementById('lgDrop');
   if(!drop) return;
   if(drop.style.display === 'block') { drop.style.display='none'; return; }
-  const langs = { ar:{name:'العربية',flag:'🇸🇦'}, en:{name:'English',flag:'🇬🇧'} };
+  const langs = typeof LANGS !== 'undefined' ? LANGS : {
+    ar:{name:'العربية',flag:'🇸🇦'},en:{name:'English',flag:'🇬🇧'}
+  };
   drop.innerHTML = Object.entries(langs).map(([code,info]) =>
-    `<button onclick="setL('${code}');document.getElementById('lgDrop').style.display='none';" style="display:flex;align-items:center;gap:8px;width:calc(50% - 4px);padding:7px 10px;background:${LNG===code?'rgba(37,99,235,.15)':'transparent'};border:1px solid ${LNG===code?'rgba(37,99,235,.35)':'transparent'};border-radius:7px;cursor:pointer;color:${LNG===code?'#60A5FA':'#E8F0FF'};font-family:'IBM Plex Sans Arabic',sans-serif;font-size:12.5px;float:left;box-sizing:border-box;margin:2px"><span>${info.flag}</span><span>${info.name}</span></button>`
+    '<button onclick="setL(\''+code+'\');document.getElementById(\'lgDrop\').style.display=\'none\';" style="display:flex;align-items:center;gap:8px;width:calc(50% - 4px);padding:7px 10px;background:'+(LNG===code?'rgba(37,99,235,.15)':'transparent')+';border:1px solid '+(LNG===code?'rgba(37,99,235,.35)':'transparent')+';border-radius:7px;cursor:pointer;color:'+(LNG===code?'#60A5FA':'#E8F0FF')+';font-family:\'IBM Plex Sans Arabic\',sans-serif;font-size:12.5px;float:left;box-sizing:border-box;margin:2px"><span>'+info.flag+'</span><span>'+info.name+'</span></button>'
   ).join('') + '<div style="clear:both"></div>';
   drop.style.display = 'block';
   setTimeout(()=>{ document.addEventListener('click', function h(e){ if(!drop.contains(e.target)&&e.target.id!=='lgGlobe'){drop.style.display='none';document.removeEventListener('click',h);} }); }, 10);
 }
 
-function setL(l){
-  LNG=l; localStorage.setItem('se_lang_v2',l); localStorage.setItem('se_lang_ver','3');
-  const r=getEl('root'); r.lang=l; r.dir=l==='ar'?'rtl':'ltr';
-  const currEl=document.getElementById('lgCurr'); if(currEl) currEl.textContent = l==='ar'?'العربية':'English';
-  
-  // Translate Tabs text
-  Object.keys(TABS).forEach(k => {
-    const span = document.querySelector(`#t_${k} .tl`);
-    if(span) span.textContent = l === 'ar' ? TABS[k].ar : TABS[k].en;
-  });
-
+function setL(l){LNG=l;localStorage.setItem('se_lang_v2',l);localStorage.setItem('se_lang_ver','3');const r=getEl('root');r.lang=l;r.dir=(typeof LANGS !== 'undefined' && LANGS[l]) ? LANGS[l].dir : (l==='ar'||l==='ur'?'rtl':'ltr');const currEl=document.getElementById('lgCurr');if(currEl&&typeof LANGS!=='undefined'&&LANGS[l])currEl.textContent=LANGS[l].name;else if(currEl)currEl.textContent=l==='ar'?'العربية':'English';document.querySelectorAll('.tl').forEach(el=>{el.textContent=l==='ar'?el.dataset.ar:el.dataset.en});
   const _siLbl=getEl('siLbl'),_lEmail=getEl('lEmail'),_lUname=getEl('lUname'),_lPass=getEl('lPass');
-  if(_siLbl)_siLbl.textContent = l==='ar'?'دخول':'Sign In';
-  if(_lEmail)_lEmail.textContent = l==='ar'?'البريد الإلكتروني':'Email Address';
-  if(_lUname)_lUname.textContent = l==='ar'?'الرقم الوظيفي / اسم المستخدم':'Username / Employee ID';
-  if(_lPass)_lPass.textContent = l==='ar'?'كلمة المرور':'Password';
-  activate(ACT);
+  const _dm = typeof DOM_MAP!=='undefined'?DOM_MAP:{};
+  if(_siLbl)_siLbl.textContent = l==='ar'?'دخول':(_dm['دخول']&&_dm['دخول'][l])||'Sign In';
+  if(_lEmail)_lEmail.textContent = l==='ar'?'البريد الإلكتروني':(_dm['البريد الإلكتروني']&&_dm['البريد الإلكتروني'][l])||'Email Address';
+  if(_lUname)_lUname.textContent = l==='ar'?'اسم المستخدم / الرقم الوظيفي':(_dm['اسم المستخدم']&&_dm['اسم المستخدم'][l]?_dm['اسم المستخدم'][l]+' / ':'')+( _dm['الرقم الوظيفي']&&_dm['الرقم الوظيفي'][l]||'Employee ID');
+  if(_lPass)_lPass.textContent = l==='ar'?'كلمة المرور':(_dm['كلمة المرور']&&_dm['كلمة المرور'][l])||'Password';activate(ACT);
 }
-
-async function getProfileByUser(user){
-  if(!user?.id) return null;
-  // Use pure fetch instead of window.sb if needed, or safely use window.sb
-  const sbClient = window.sb;
-  if(sbClient) {
-    const {data:p, error} = await sbClient.from('profiles').select('role,division,full_name').eq('id',user.id).single();
-    if(!error) return p;
-  }
-  return null;
-}
-
-async function doLogin(){
-  const sbClient = window.sb;
-  if(!sbClient?.auth){ showErr(LNG==='ar'?'السكربتات لم تكتمل بعد، يرجى تحديث الصفحة':'Scripts not fully loaded, please refresh'); return; }
-  
-  const tb=TABS[ACT], pass=getEl('iPass').value; let email='';
-  getEl('lerr').style.display='none'; getEl('lok').style.display='none';
-  
-  if(tb.isEmp){
-    const un=getEl('iUname').value.trim();
-    if(!un||!pass){ showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields'); return; }
-    email = un.includes('@') ? un : un+'@se.local';
-  }else{
-    email=getEl('iEmail').value.trim();
-    if(!email||!pass){ showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields'); return; }
-  }
-  
-  try{
-    loadingBtn();
-    const {data, error} = await sbClient.auth.signInWithPassword({email, password:pass});
-    if(error) throw error;
-    
-    const profile = await getProfileByUser(data.user);
-    if(!profile) throw new Error('Profile not found');
-    
-    if(tb.roles?.length && !tb.roles.includes(profile.role) && profile.role!=='admin'){
-      await sbClient.auth.signOut();
-      showErr(LNG==='ar'?'هذا الحساب غير مصرّح له بهذا التبويب — اختر التبويب الصحيح':'Account not authorized for this tab');
-      resetBtn(); return;
-    }
-    
-    showOk(LNG==='ar'?'تم تسجيل الدخول بنجاح':'Signed in successfully');
-    setTimeout(() => { location.href = routeForRole(profile.role) }, 350);
-  }catch(e){
-    showErr(LNG==='ar'?'اسم المستخدم أو كلمة المرور غير صحيحة':'Invalid username or password');
-    resetBtn();
-  }
-}
-
-async function checkExistingSession(){
-  const sbClient = window.sb;
-  if(!sbClient?.auth) return;
-  try{
-    const {data:{session}} = await sbClient.auth.getSession();
-    if(!session) return;
-    let profile = await getProfileByUser(session.user);
-    if(!profile) return;
-    
-    const banner=document.createElement('div'); banner.className='session-banner';
-    banner.innerHTML=`<span>${LNG==='ar'?'مرحباً':'Welcome'} ${profile.full_name||''} — ${LNG==='ar'?'أنت مسجّل دخول':'You are already signed in'}</span><div style="display:flex;gap:8px"><button class="go-btn" id="goPortalBtn">${LNG==='ar'?'العودة للبورتال':'Go to portal'}</button><button class="out-btn" id="logoutBtn">${LNG==='ar'?'تسجيل خروج':'Sign out'}</button></div>`;
-    document.body.appendChild(banner); getEl('wrap').style.marginTop='52px';
-    getEl('goPortalBtn').onclick = () => location.href=routeForRole(profile.role);
-    getEl('logoutBtn').onclick = async () => { await sbClient.auth.signOut(); location.reload(); }
-  }catch(e){}
-}
-
-function drawCanvas(id,type,color){const cv=getEl(id);if(!cv)return()=>{};const cx=cv.getContext('2d');let W=0,H=0,nodes=[],pts=[],raf=0,alive=true;function h2(v){return Math.max(0,Math.min(255,Math.floor(v*255))).toString(16).padStart(2,'0')}function resize(){const r=cv.parentElement.getBoundingClientRect();W=cv.width=Math.floor(r.width);H=cv.height=Math.floor(r.height);build()}function build(){nodes=[];pts=[];if(type==='net'){const n=Math.max(18,Math.floor(W*H/4800));for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2.5+1,p:Math.random()*6.28,hub:Math.random()>.82})}if(type==='energy'){for(let i=0;i<46;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()>.5?1:-1)*(Math.random()*1.5+.5),vy:(Math.random()-.5)*.3,r:Math.random()*2+1,trail:[],mt:14})}if(type==='grid'){const cols=Math.floor(W/88)+1,rows=Math.floor(H/58)+1;for(let c=0;c<cols;c++)for(let r=0;r<rows;r++)nodes.push({x:c*88+44,y:r*58+29,hub:Math.random()>.72})}if(type==='city'){const n=Math.max(20,Math.floor(W*H/6500));for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.9+.5,p:Math.random()*6.28,hub:Math.random()>.82})}if(type==='radar')nodes=[{cx:W/2,cy:H/2,R:Math.min(W,H)*.42,angle:0}]}function draw(){if(!alive)return;cx.clearRect(0,0,W,H);if(type==='net'){nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;n.p+=.018;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>130)continue;const al=(1-d/130)*.22;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(al);cx.lineWidth=.6;cx.stroke()}nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,n.r*3,0,6.28);cx.strokeStyle=color+h2(.15*g);cx.stroke()}cx.beginPath();cx.arc(n.x,n.y,n.r,0,6.28);cx.fillStyle=color+h2(n.hub?.85:.6*g);cx.fill()})}if(type==='energy'){pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy+Math.sin(Date.now()/800+p.x*.01)*.45;if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<0||p.y>H)p.vy*=-1;p.trail.unshift({x:p.x,y:p.y});if(p.trail.length>p.mt)p.trail.pop();p.trail.forEach((pt,i)=>{const al=(1-i/p.mt)*.5;cx.beginPath();cx.arc(pt.x,pt.y,p.r*(1-i/p.mt*.65),0,6.28);cx.fillStyle=color+h2(al);cx.fill()})})}if(type==='grid'){for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j];if(Math.abs(a.x-b.x)>90||Math.abs(a.y-b.y)>60)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(.18);cx.lineWidth=.6;cx.stroke();if(Math.random()<.002)pts.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,p:0})}pts=pts.filter(p=>{p.p+=.04;return p.p<1});pts.forEach(p=>{const x=p.ax+(p.bx-p.ax)*p.p,y=p.ay+(p.by-p.ay)*p.p;cx.beginPath();cx.arc(x,y,3,0,6.28);cx.fillStyle=color+h2(1-p.p);cx.fill()});nodes.forEach(n=>{cx.beginPath();cx.arc(n.x,n.y,n.hub?3:1.5,0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill()})}if(type==='city'){nodes.forEach(n=>n.p+=.014);for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>105)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2((1-d/105)*.11);cx.lineWidth=.5;cx.stroke()}nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,8,0,6.28);cx.strokeStyle=color+h2(.1*g);cx.stroke()}cx.beginPath();cx.arc(n.x,n.y,n.r*(n.hub?2.5:1),0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill()})}if(type==='radar'){const nd=nodes[0];nd.angle+=.024;for(let r2=.33;r2<=1;r2+=.33){cx.beginPath();cx.arc(nd.cx,nd.cy,nd.R*r2,0,6.28);cx.strokeStyle=color+h2(.18);cx.lineWidth=.7;cx.stroke()}for(let i=0;i<60;i++){const a=nd.angle-i*.05,al=Math.max(0,(60-i)/60)*.42;cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.arc(nd.cx,nd.cy,nd.R,a,a+.06);cx.closePath();cx.fillStyle=color+h2(al);cx.fill()}cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.lineTo(nd.cx+Math.cos(nd.angle)*nd.R,nd.cy+Math.sin(nd.angle)*nd.R);cx.strokeStyle=color+'dd';cx.lineWidth=1.5;cx.stroke();cx.beginPath();cx.arc(nd.cx,nd.cy,4,0,6.28);cx.fillStyle=color;cx.fill()}raf=requestAnimationFrame(draw)}resize();window.addEventListener('resize',resize);draw();return()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener('resize',resize)}
-}
-
+async function getProfileByUser(user){if(!user?.id)return null;const{data:p,error}=await _SB.from('profiles').select('role,division,full_name,preferences').eq('id',user.id).single();if(error)throw error;return p}
+async function doLogin(){if(!_SB?.auth){showErr(LNG==='ar'?'خطأ داخلي - يرجى تحديث الصفحة':'Internal error - please refresh');return}const tb=TABS[ACT],pass=getEl('iPass').value;let email='';getEl('lerr').style.display='none';getEl('lok').style.display='none';if(tb.isEmp){const un=getEl('iUname').value.trim();if(!un||!pass){showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields');return}email=un+'@se.local'}else{email=getEl('iEmail').value.trim();if(!email||!pass){showErr(LNG==='ar'?'يرجى تعبئة جميع الحقول':'Please fill all fields');return}}try{loadingBtn();const{data,error}=await _SB.auth.signInWithPassword({email,password:pass});if(error)throw error;const profile=await getProfileByUser(data.user);if(!profile)throw new Error('Profile not found');if(tb.roles?.length&&!tb.roles.includes(profile.role)&&profile.role!=='admin'){await _SB.auth.signOut();showErr(LNG==='ar'?'هذا الحساب غير مصرّح له بهذا التبويب — اختر التبويب الصحيح':'This account is not authorized for this tab');resetBtn();return}showOk(LNG==='ar'?'تم تسجيل الدخول بنجاح':'Signed in successfully');setTimeout(()=>{location.href=routeForRole(profile.role)},350)}catch(e){showErr(LNG==='ar'?'اسم المستخدم أو كلمة المرور غير صحيحة':'Invalid username or password');resetBtn()}}
+async function checkExistingSession(){if(!_SB?.auth)return;try{const{data:{session}}=await _SB.auth.getSession();if(!session)return;let profile=null;try{profile=await getProfileByUser(session.user)}catch(e){}if(!profile)return;const banner=document.createElement('div');banner.className='session-banner';banner.innerHTML=`<span>${LNG==='ar'?'مرحباً':'Welcome'} ${profile.full_name||''} — ${LNG==='ar'?'أنت مسجّل دخول':'You are already signed in'}</span><div style="display:flex;gap:8px"><button class="go-btn" id="goPortalBtn">${LNG==='ar'?'العودة للبورتال':'Go to portal'}</button><button class="out-btn" id="logoutBtn">${LNG==='ar'?'تسجيل خروج':'Sign out'}</button></div>`;document.body.appendChild(banner);getEl('wrap').style.marginTop='52px';getEl('goPortalBtn').onclick=()=>location.href=routeForRole(profile.role);getEl('logoutBtn').onclick=async()=>{await _SB.auth.signOut();location.reload()}}catch(e){}}
+function drawCanvas(id,type,color){const cv=getEl(id);if(!cv)return()=>{};const cx=cv.getContext('2d');let W=0,H=0,nodes=[],pts=[],raf=0,alive=true;function h2(v){return Math.max(0,Math.min(255,Math.floor(v*255))).toString(16).padStart(2,'0')}function resize(){const r=cv.parentElement.getBoundingClientRect();W=cv.width=Math.floor(r.width);H=cv.height=Math.floor(r.height);build()}function build(){nodes=[];pts=[];if(type==='net'){const n=Math.max(18,Math.floor(W*H/4800));for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2.5+1,p:Math.random()*6.28,hub:Math.random()>.82})}if(type==='energy'){for(let i=0;i<46;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()>.5?1:-1)*(Math.random()*1.5+.5),vy:(Math.random()-.5)*.3,r:Math.random()*2+1,trail:[],mt:14})}if(type==='grid'){const cols=Math.floor(W/88)+1,rows=Math.floor(H/58)+1;for(let c=0;c<cols;c++)for(let r=0;r<rows;r++)nodes.push({x:c*88+44,y:r*58+29,hub:Math.random()>.72})}if(type==='city'){const n=Math.max(20,Math.floor(W*H/6500));for(let i=0;i<n;i++)nodes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.9+.5,p:Math.random()*6.28,hub:Math.random()>.82})}if(type==='radar')nodes=[{cx:W/2,cy:H/2,R:Math.min(W,H)*.42,angle:0}]}function draw(){if(!alive)return;cx.clearRect(0,0,W,H);if(type==='net'){nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;n.p+=.018;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1});for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>130)continue;const al=(1-d/130)*.22;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(al);cx.lineWidth=.6;cx.stroke()}nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,n.r*3,0,6.28);cx.strokeStyle=color+h2(.15*g);cx.stroke()}cx.beginPath();cx.arc(n.x,n.y,n.r,0,6.28);cx.fillStyle=color+h2(n.hub?.85:.6*g);cx.fill()})}if(type==='energy'){pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy+Math.sin(Date.now()/800+p.x*.01)*.45;if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<0||p.y>H)p.vy*=-1;p.trail.unshift({x:p.x,y:p.y});if(p.trail.length>p.mt)p.trail.pop();p.trail.forEach((pt,i)=>{const al=(1-i/p.mt)*.5;cx.beginPath();cx.arc(pt.x,pt.y,p.r*(1-i/p.mt*.65),0,6.28);cx.fillStyle=color+h2(al);cx.fill()})})}if(type==='grid'){for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j];if(Math.abs(a.x-b.x)>90||Math.abs(a.y-b.y)>60)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(.18);cx.lineWidth=.6;cx.stroke();if(Math.random()<.002)pts.push({ax:a.x,ay:a.y,bx:b.x,by:b.y,p:0})}pts=pts.filter(p=>{p.p+=.04;return p.p<1});pts.forEach(p=>{const x=p.ax+(p.bx-p.ax)*p.p,y=p.ay+(p.by-p.ay)*p.p;cx.beginPath();cx.arc(x,y,3,0,6.28);cx.fillStyle=color+h2(1-p.p);cx.fill()});nodes.forEach(n=>{cx.beginPath();cx.arc(n.x,n.y,n.hub?3:1.5,0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill()})}if(type==='city'){nodes.forEach(n=>n.p+=.014);for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>105)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2((1-d/105)*.11);cx.lineWidth=.5;cx.stroke()}nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,8,0,6.28);cx.strokeStyle=color+h2(.1*g);cx.lineWidth=1;cx.stroke();}cx.beginPath();cx.arc(n.x,n.y,n.r*(n.hub?2.5:1),0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill()})}if(type==='radar'){const nd=nodes[0];nd.angle+=.024;for(let r2=.33;r2<=1;r2+=.33){cx.beginPath();cx.arc(nd.cx,nd.cy,nd.R*r2,0,6.28);cx.strokeStyle=color+h2(.18);cx.lineWidth=.7;cx.stroke()}for(let i=0;i<60;i++){const a=nd.angle-i*.05,al=Math.max(0,(60-i)/60)*.42;cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.arc(nd.cx,nd.cy,nd.R,a,a+.06);cx.closePath();cx.fillStyle=color+h2(al);cx.fill()}cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.lineTo(nd.cx+Math.cos(nd.angle)*nd.R,nd.cy+Math.sin(nd.angle)*nd.R);cx.strokeStyle=color+'dd';cx.lineWidth=1.5;cx.stroke();cx.beginPath();cx.arc(nd.cx,nd.cy,4,0,6.28);cx.fillStyle=color;cx.fill()}raf=requestAnimationFrame(draw)}resize();window.addEventListener('resize',resize);draw();return()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener('resize',resize)}}
 function drawBg(){const c=getEl('bgcv'),cx=c.getContext('2d');let W,H,pts=[],raf=0,alive=true;function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;pts=[];const n=Math.floor(W*H/(isSmall()?50000:22000));for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.13,vy:(Math.random()-.5)*.13,r:Math.random()*1.2+.5})}function draw(){if(!alive)return;cx.clearRect(0,0,W,H);pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dv=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(dv>100)continue;cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=`rgba(37,99,235,${(1-dv/100)*.07})`;cx.lineWidth=.5;cx.stroke()}pts.forEach(p=>{cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle='rgba(37,99,235,.18)';cx.fill()});raf=requestAnimationFrame(draw)}resize();window.addEventListener('resize',resize);draw();return()=>{alive=false;cancelAnimationFrame(raf);window.removeEventListener('resize',resize)}}
-
-document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-window.addEventListener('beforeunload',()=>{if(currentSceneCleanup)currentSceneCleanup();if(currentBgCleanup)currentBgCleanup()});
-ACT='adm'; currentBgCleanup=drawBg(); setL(LNG); checkExistingSession();
+document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});window.addEventListener('beforeunload',()=>{if(currentSceneCleanup)currentSceneCleanup();if(currentBgCleanup)currentBgCleanup()});ACT='adm';currentBgCleanup=drawBg();setL(LNG);checkExistingSession();
 </script>
 </body>
 </html>
+
 
 ```

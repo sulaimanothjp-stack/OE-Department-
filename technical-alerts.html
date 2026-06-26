@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="root">
+<head>
+<meta charset="UTF-8">
+<script>document.documentElement.lang="en";document.documentElement.dir="ltr";</script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>SE · التنبيهات الفنية</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+// Set language before render to prevent flash
+(function(){
+  var l=localStorage.getItem('se_lang_v2')||'en';
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==='ar'?'rtl':'ltr';
+  document.getElementById('root')&&(document.getElementById('root').lang=l);
+})();
+</script>
+<style>
+:root{--DC:#EF4444;--DR:239,68,68}
+body{background:#020912}
+.sb{--SB:linear-gradient(180deg,#EF44440A,#020912)}
+.ni.on{color:#EF4444;background:rgba(239,68,68,.13)}
+.ni.on::after{background:#EF4444}
+.ni:hover{color:#FCA5A5}
+.tb-ttl{color:#EF4444!important}
+.clk .ct{color:#EF4444!important}
+.hero{background:linear-gradient(135deg,#EF444408,#020912)}
+.ld .d{color:#EF4444;background:#EF4444}
+/* Task accent */
+.tr2:hover{background:rgba(239,68,68,.05)}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sb">
+  <div class="sb-brand">
+    <div id="lgEl"></div>
+    <div><div class="sb-t1" style="color:#EF4444">se</div><div class="sb-t2">التنبيهات الفنية</div></div>
+  </div>
+  <div id="ubEl" class="ub"></div>
+  <nav class="nav" id="navEl"></nav>
+  <div class="sb-foot">
+    <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
+    <button class="btn-lg" onclick="openChangePass()" title="تغيير كلمة المرور">🔐</button>
+    <button class="btn-lg" onclick="openLangPicker()" title="Language / اللغة">🌐</button>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div class="tb-ttl fhud" id="pgtitle">التنبيهات الفنية</div>
+    <div class="tb-r">
+      <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
+      <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
+      <div class="ld"><div class="d" style="color:#EF4444;background:#EF4444;box-shadow:0 0 6px #EF4444"></div><span style="color:#EF444444;font-family:var(--mono);font-size:11px">LIVE</span></div>
+    </div>
+  </div>
+  <div class="page" id="pgContent"></div>
+</div>
+</div>
+<div id="tc"></div>
+<script src="lang.js"></script>
+<script src="app.js"></script>
+<script>
+const BL = 'technical_alerts';
+const DC = '#EF4444';
+const DR = '239,68,68';
+const NAV = [
+  {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚠️', fn:"go('dash')"},
+  {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
+  {g:'المهام',ge:'TASKS'},
+  {k:'tasks',  ar:'المهام',               en:'المهام',         ic:'✓',  fn:"go('tasks')"},
+  {k:'ntask',  ar:'مهمة جديدة',           en:'مهمة جديدة',      ic:'➕', fn:"go('ntask')"},
+  {g:'التحسين',ge:'IMPROVEMENT'},
+  {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
+  {k:'kpis',   ar:t2('مؤشرات الأداء','KPIs'),        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
+  {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
+  {g:'الفريق',ge:'TEAM'},
+  {k:'team',   ar:'الفريق',               en:'الفريق',          ic:'👥', fn:"go('team')"},
+  {k:'reviews', ar:'مراجعة الإنجازات',    en:'Review Completions', ic:'✅', fn:"go('reviews')"},
+  {k:'tickets',ar:'التذاكر',              en:'التذاكر',       ic:'🎫', fn:"go('tickets')"},
+  {g:'متابعة',ge:'TRACKING'},
+  {k:'alerts', ar:'التنبيهات',            en:'التنبيهات',        ic:'⚠️', fn:"go('alerts')"},
+  {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
+];
+const PAGES = {};
+function reg(k,fn){PAGES[k]=fn;}
+let _cur='dash';
+
+function go(k){
+  _cur=k;
+  const item=NAV.find(n=>n.k===k);
+  document.getElementById('pgtitle').textContent=item?(App.lang==='ar'?item.ar:item.en):k;
+  buildNav(NAV,k);
+  const ct=document.getElementById('pgContent');
+  ct.innerHTML='<div class="fade" id="pg"></div>';
+  const fn=PAGES[k];
+  if(fn)fn(document.getElementById('pg'));
+  else document.getElementById('pg').innerHTML='<p style="padding:40px;color:var(--t3)">قيد البناء…</p>';
+  window.scrollTo(0,0);
+}
+
+/* ═══ DASHBOARD ════════════════════════════════════════════ */
+reg('dash',async el=>{
+  el.innerHTML=`
+    <div class="hero mb2">
+      <canvas class="hcv" id="hcv"></canvas>
+      <div class="hi">
+        <h1>📡 الرادار الفني — Early Warning System</h1>
+        <div class="hs">"رصد التنبيهات الفنية عبر قطاعات التوليد والنقل والتوزيع · تصنيف وتصعيد"</div>
+        <div class="hks" id="hks">
+          <div class="hk"><div class="hv">—</div><div class="hl">AFIs</div></div>
+          <div class="hk rd"><div class="hv">—</div><div class="hl">OVERDUE</div></div>
+          <div class="hk"><div class="hv">—</div><div class="hl">TASKS</div></div>
+          <div class="hk yw"><div class="hv">—</div><div class="hl">ALERTS</div></div>
+          <div class="hk"><div class="hv">—</div><div class="hl">ASSESS</div></div>
+        </div>
+      </div>
+      <div class="hb"></div>
+    </div>
+    <div class="g4 mb2" id="s4">${skR()}</div>
+    <div class="g21 mb2">
+      <div class="panel">
+        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ ${t2('نقاط التحسين المفتوحة','Open AFIs')}</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
+        <div id="afiPnl">${skR()}</div>
+      </div>
+      <div>
+        <div class="panel mb2">
+          <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">⚠️ التنبيهات</h3></div>
+          <div id="alrPnl">${skR(3)}</div>
+        </div>
+        <div class="panel">
+          <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▤ التقييمات</h3></div>
+          <div id="asmPnl">${skR(2)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="panel">
+        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">✓ آخر المهام</h3><button class="btn sm" onclick="go('tasks')">إدارة المهام</button></div>
+        <div id="taskPnl">${skR(4)}</div>
+      </div>
+      <div class="panel">
+        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">✦ مؤشرات الأداء</h3><button class="btn sm" onclick="go('kpis')">عرض الكل</button></div>
+        <div id="kpiPnl">${skR(3)}</div>
+      </div>
+    </div>`;
+
+  initCanvas('hcv','radar','#EF4444');
+
+  try{
+    const[afiO,afiL,alrO,asmO,tskO,afis,alrs,asms,tsks,kpis]=await Promise.all([
+      dbCnt('afis',{eq:{business_line:BL},neq:{status:'closed'}}),
+      dbCnt('afis',{eq:{business_line:BL,status:'overdue'}}),
+      dbCnt('technical_alerts',{eq:{source_division:BL},neq:{status:'resolved'}}),
+      dbCnt('assessments',{eq:{business_line:BL},neq:{stage:'closed'}}),
+      dbCnt('tasks',{eq:{division:BL},neq:{status:'closed'}}),
+      dbList('afis',{eq:{business_line:BL},neq:{status:'closed'},lim:6}),
+      dbList('technical_alerts',{eq:{source_division:BL},neq:{status:'resolved'},lim:4}),
+      dbList('assessments',{eq:{business_line:BL},neq:{stage:'closed'},lim:3}),
+      dbList('tasks',{eq:{division:BL},neq:{status:'closed'},lim:5}),
+      dbList('kpis',{eq:{business_line:BL},lim:4}),
+    ]);
+
+    document.getElementById('hks').innerHTML=[
+      {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
+      {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
+      {v:asmO,l:'ASSESS',cl:''},
+    ].map(k=>`<div class="hk ${k.cl}"><div class="hv">${k.v}</div><div class="hl">${k.l}</div></div>`).join('');
+
+    document.getElementById('s4').innerHTML=[
+      {sl:t2('AFIs مفتوحة','Open AFIs'),sv:afiO,cl:afiO>5?'red':''},
+      {sl:t2('AFIs متأخرة','Overdue AFIs'),sv:afiL,cl:afiL?'red':'grn'},
+      {sl:'تنبيهات فنية',sv:alrO,cl:alrO?'ylw':'grn'},
+      {sl:t2('مهام نشطة','Active Tasks'),sv:tskO,cl:''},
+    ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
+
+    document.getElementById('afiPnl').innerHTML=afis.data.length
+      ?afis.data.map(a=>`<div class="dr ptr" onclick="go('afis')">
+          <div class="dd" style="background:${a.status==='overdue'?'var(--danger)':a.priority==='critical'?'var(--warning)':DC}"></div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
+          <div style="font-size:11.5px;color:var(--t2)">${a.afi_number||''} · ${fmtD(a.due_date)}</div></div>
+          ${priBadge(a.priority)} ${stBadge(a.status)}
+        </div>`).join('')
+      :emptyEl(t2('لا AFIs مفتوحة','No Open AFIs'));
+
+    document.getElementById('alrPnl').innerHTML=alrs.data.length
+      ?alrs.data.map(a=>`<div class="dr">
+          <div class="dd" style="background:${a.severity==='critical'?'var(--danger)':'var(--warning)'}"></div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>
+          <span class="badge ${a.severity==='critical'?'br':'by'}">${a.severity==='critical'?'حرج':'عالٍ'}</span>
+        </div>`).join('')
+      :`<div style="padding:12px;text-align:center;color:var(--success);font-size:13px">✓ لا تنبيهات</div>`;
+
+    document.getElementById('asmPnl').innerHTML=asms.data.length
+      ?asms.data.map(a=>`<div class="dr"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>${stBadge(a.stage)}<div style="min-width:60px">${progBar(a.progress||0)}</div></div>`).join('')
+      :emptyEl(t2('لا تقييمات','No assessments'));
+
+    document.getElementById('taskPnl').innerHTML=tsks.data.length
+      ?tsks.data.map(tk=>`<div class="tr2" onclick="openTD('${tk.id}')">
+          <div class="tck ${['closed','done'].includes(tk.status)?'done':''}">
+            ${['closed','done'].includes(tk.status)?'✓':''}
+          </div>
+          <div style="flex:1">
+            <div class="tt">${esc(tk.title)}</div>
+            <div class="tm2">${priBadge(tk.priority)} <span style="color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</span> ${stBadge(tk.status)}</div>
+          </div>
+        </div>`).join('')
+      :emptyEl(t2('لا مهام نشطة ✓','No Active Tasks ✓'));
+
+    document.getElementById('kpiPnl').innerHTML=kpis.data.length
+      ?kpis.data.map(k=>{
+          const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
+          const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
+          return`<div class="dr ptr" onclick="go('kpis')">
+            <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(k.name_ar)}</div></div>
+            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${clr}">${fmtN(k.actual)}${k.unit||'%'}</div>
+            <div style="min-width:65px">${progBar(pct)}</div>
+          </div>`;
+        }).join('')
+      :emptyEl(t2('لا مؤشرات','No KPIs'));
+  }catch(e){toast(e.message,'e');}
+});
+
+/* ═══ MY DAY ════════════════════════════════════════════════ */
+reg('daily',el=>{
+  const h=new Date().getHours();
+  el.innerHTML=`
+    <div class="hero mb2">
+      <canvas class="hcv" id="hcv2"></canvas>
+      <div class="hi">
+        <h1>${h<12?'🌅':'🌆'} ${h<12?'صباح الخير':'مساء الخير'} — التنبيهات الفنية</h1>
+        <div class="hs">${new Date().toLocaleDateString(App.lang==='ar'?'ar-SA':'en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+      </div>
+      <div class="hb"></div>
+    </div>
+    <div class="g3 mb2">
+      ${[
+        {n:'1',t:'مراجعة المهام المتأخرة',d:'تأكد من وجود خطط للمهام المتأخرة',k:'tasks',ic:'✓'},
+        {n:'2',t:'AFIs المفتوحة',d:'تابع خطط المعالجة والإغلاق',k:'afis',ic:'▲'},
+        {n:'3',t:'التنبيهات الفنية',d:'هل هناك تنبيهات تحتاج إجراء؟',k:'alerts',ic:'⚠️'},
+        {n:'4',t:t2('مؤشرات الأداء','KPIs'),d:'راجع مؤشرات الأداء الأسبوعية',k:'kpis',ic:'📈'},
+        {n:'5',t:'فريقي',d:'من يحتاج دعماً أو توجيهاً؟',k:'team',ic:'👥'},
+        {n:'6',t:'التحديث الأسبوعي',d:'ابعث تحديثك للحوكمة',k:'weekly',ic:'📊'},
+      ].map(s=>`<div class="card ptr" onclick="go('${s.k}')" style="border-color:rgba(${DR},.2)">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+          <div style="width:26px;height:26px;border-radius:50%;background:rgba(${DR},.18);border:1px solid rgba(${DR},.35);display:flex;align-items:center;justify-content:center;font-family:var(--hud);font-size:10.5px;font-weight:700;color:${DC}">${s.n}</div>
+          <span style="font-size:17px">${s.ic}</span>
+        </div>
+        <div style="font-weight:700;font-size:13.5px;margin-bottom:3px">${s.t}</div>
+        <div style="font-size:11.5px;color:var(--t2)">${s.d}</div>
+      </div>`).join('')}
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15)">
+      <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">📝 تحديث نهاية اليوم</h3></div>
+      <div class="pb">
+        <div class="fg">
+          <div class="field"><label>ماذا أنجزنا اليوم؟</label><textarea id="d_done" rows="3" placeholder="الإنجازات والنتائج..."></textarea></div>
+          <div class="field"><label>التحديات والعوائق</label><textarea id="d_blk" rows="3" placeholder="أي عقبات تحتاج متابعة..."></textarea></div>
+        </div>
+        <div class="field"><label>أولويات الغد</label><textarea id="d_nxt" rows="2" placeholder="أهم 3 أولويات لغداً..."></textarea></div>
+        <button class="btn p" onclick="saveDU()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 حفظ التحديث</button>
+      </div>
+    </div>`;
+  initCanvas('hcv2','radar','#EF4444');
+});
+window.saveDU=async()=>{await logAct('daily_update',null,null,{done:mv('d_done'),block:mv('d_blk'),next:mv('d_nxt')});toast('تم حفظ التحديث ✓','s');};
+
+/* ═══ TASKS — FULL CRUD + ASSIGN ══════════════════════════ */
+reg('tasks',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">✓ إدارة المهام</h1>
+      <div style="font-size:12.5px;color:var(--t2)">أنشئ المهام وتابعها وراجع تحديثات الفريق</div></div>
+      <button class="btn p" onclick="go('ntask')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ مهمة جديدة','+ New Task')}</button>
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15)">
+      <div class="filters">
+        <input class="fi" id="tq" placeholder="${t('search')}">
+        <select class="fi" id="tst">
+          <option value="">كل الحالات</option>
+          <option value="new">جديد</option><option value="open">مفتوح</option>
+          <option value="in_progress">قيد التنفيذ</option><option value="pending_review">بانتظار المراجعة</option>
+          <option value="returned">مُعاد</option><option value="overdue">متأخر</option><option value="closed">مغلق</option>
+        </select>
+        <select class="fi" id="tpr">
+          <option value="">كل الأولويات</option>
+          <option value="critical">حرجة</option><option value="high">عالية</option>
+          <option value="medium">متوسطة</option><option value="low">منخفضة</option>
+        </select>
+      </div>
+      <div id="taskList">${skR()}</div>
+    </div>`;
+
+  async function load(){
+    const el2=document.getElementById('taskList'),q=document.getElementById('tq')?.value||'',st=document.getElementById('tst')?.value||'',pr=document.getElementById('tpr')?.value||'';
+    el2.innerHTML=skR();
+    try{
+      const opts={eq:{division:BL}};
+      if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};if(pr)opts.eq={...opts.eq,priority:pr};
+      const{data}=await dbList('tasks',opts);
+      if(!data.length){el2.innerHTML=emptyEl(t2('لا مهام','لا توجد مهام'),`<button class="btn p sm" onclick="go('ntask')">${t2('+ مهمة جديدة','+ New Task')}</button>`);return;}
+      el2.innerHTML=`<div class="tw"><table>
+        <thead><tr><th>${t2('الرقم','#')}</th><th>${t2('المهمة','Task')}</th><th>المكلّف</th><th>${t2('الأولوية','Priority')}</th><th>${t2('الاستحقاق','Due Date')}</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
+        <tbody>${data.map(tk=>`<tr>
+          <td class="fmono" style="font-size:11px;color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</td>
+          <td><div style="font-weight:600">${esc(tk.title)}</div>${tk.description?`<div style="font-size:11px;color:var(--t2)">${esc(tk.description.slice(0,55))}...</div>`:''}</td>
+          <td style="font-size:12px;color:var(--t2)">${esc(tk.assignee_name||'—')}</td>
+          <td>${priBadge(tk.priority)}</td>
+          <td class="fmono" style="font-size:11px;color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</td>
+          <td>${stBadge(tk.status)}</td>
+          <td><div class="ta">
+            <button class="btn sm" onclick="openTD('${tk.id}')">تفاصيل</button>
+            <button class="btn sm" onclick="openTE('${tk.id}')">تعديل</button>
+            <button class="btn sm d" onclick="confirm2('حذف المهمة؟',async()=>{await dbDel('tasks','${tk.id}');load();toast(t2('تم الحذف','Deleted'),'s')})">حذف</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    }catch(e){el2.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+  }
+  ['tq','tst','tpr'].forEach(id=>{
+    document.getElementById(id)?.addEventListener('input',()=>setTimeout(load,300));
+    document.getElementById(id)?.addEventListener('change',load);
+  });
+  load(); window._rl=load;
+});
+
+/* Task Detail Modal */
+window.openTD=async id=>{
+  const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
+  const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
+  openModal(`
+    <div class="mh"><h3 style="color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div style="font-weight:700;font-size:15px;margin-bottom:8px">${esc(tk.title)}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${priBadge(tk.priority)} ${stBadge(tk.status)} ${isOD(tk.due_date,tk.status)?'<span class="badge br">متأخرة</span>':''}</div>
+      ${tk.description?`<div class="field"><label>الوصف</label><p style="font-size:13px;color:var(--t2)">${esc(tk.description)}</p></div>`:''}
+      <div style="display:flex;gap:14px;margin-bottom:12px">
+        <div><div style="font-size:10.5px;color:var(--t3)">${t2('الاستحقاق','Due Date')}</div><div style="font-family:var(--mono);font-size:12.5px">${fmtD(tk.due_date)}</div></div>
+        <div><div style="font-size:10.5px;color:var(--t3)">${t2('الحالة','Status')}</div><div>${stBadge(tk.status)}</div></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.08em;margin-bottom:7px">التعليقات والتحديثات (${cmts.length})</div>
+      <div id="cmtList" style="max-height:180px;overflow-y:auto;margin-bottom:10px">
+        ${cmts.length?cmts.map(c=>`<div style="padding:8px 10px;background:var(--bg1);border-radius:var(--rs);margin-bottom:5px">
+          <div style="font-size:10.5px;color:var(--t3);margin-bottom:2px">${fmtD(c.created_at)}</div>
+          <div style="font-size:13px">${esc(c.content)}</div>
+        </div>`).join(''):emptyEl('لا تعليقات')}
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:10px">
+        <input id="ncmt" placeholder="أضف تعليقاً أو تحديثاً..." style="flex:1;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 11px;font-size:13px;color:var(--t1);font-family:var(--fa)">
+        <button class="btn p sm" onclick="addCmt('${id}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">إرسال</button>
+      </div>
+      <div>
+        <div style="font-size:10.5px;color:var(--t3);letter-spacing:.06em;margin-bottom:6px">تحديث الحالة</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${['open','in_progress','pending_review','returned','closed'].map(s=>`<button class="btn sm ${tk.status===s?'p':''}" onclick="updTS('${id}','${s}')">${stBadge(s).replace(/<[^>]+>/g,'')}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="openTE('${id}')">تعديل</button><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+};
+window.addCmt=async tid=>{
+  const c=mv('ncmt');if(!c)return;
+  await dbIns('task_comments',{task_id:tid,content:c,type:'comment',author_id:App.profile?.id});
+  toast('تم الإضافة ✓','s');openTD(tid);
+};
+window.updTS=async(id,status)=>{
+  const u={status};
+  if(status==='in_progress')u.started_at=new Date().toISOString();
+  if(status==='closed')u.completed_at=new Date().toISOString();
+  await dbUpd('tasks',id,u);
+  toast(t2('تم التحديث ✓','Updated ✓'),'s');closeModal();window._rl?.();
+};
+
+/* Task Edit */
+window.openTE=async id=>{
+  const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
+  const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  openModal(`
+    <div class="mh"><h3>تعديل المهمة</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="fg">
+        <div class="field ff"><label>العنوان</label><input id="et_t" value="${esc(tk.title||'')}"></div>
+        <div class="field ff"><label>الوصف</label><textarea id="et_d">${esc(tk.description||'')}</textarea></div>
+        <div class="field"><label>مكلّف إلى</label>
+          <select id="et_a">
+            ${team.map(m=>`<option value="${m.id}" ${tk.assigned_to===m.id?'selected':''}>${esc(m.full_name||'')}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>${t2('الأولوية','Priority')}</label>
+          <select id="et_p">
+            ${['low','medium','high','critical'].map(p=>`<option value="${p}" ${tk.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>${t2('الاستحقاق','Due Date')}</label><input type="date" id="et_due" value="${tk.due_date||''}"></div>
+        <div class="field"><label>${t2('الحالة','Status')}</label>
+          <select id="et_s">
+            ${['new','open','in_progress','pending_review','returned','closed'].map(s=>`<option value="${s}" ${tk.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveTE('${id}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`,'w');
+};
+window.saveTE=async id=>{
+  const upd={title:mv('et_t'),description:mv('et_d')||null,assigned_to:mv('et_a')||null,priority:mv('et_p'),due_date:mv('et_due')||null,status:mv('et_s')};
+  if(!upd.title){toast('العنوان مطلوب','e');return;}
+  try{await dbUpd('tasks',id,upd);toast(t2('تم الحفظ ✓','Saved ✓'),'s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
+};
+
+/* ═══ NEW TASK ═════════════════════════════════════════════ */
+reg('ntask',async el=>{
+  const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  el.innerHTML=`
+    <div style="margin-bottom:14px">
+      <h1 style="font-family:var(--hud);font-size:19px;color:${DC}">➕ مهمة جديدة</h1>
+      <div style="font-size:12.5px;color:var(--t2)">أنشئ مهمة وكلّفها لأحد أعضاء الفريق</div>
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15);max-width:680px">
+      <div class="pb">
+        <div class="fg">
+          <div class="field ff"><label>عنوان المهمة *</label><input id="nt_t" placeholder="عنوان واضح ومحدد..."></div>
+          <div class="field ff"><label>الوصف التفصيلي</label><textarea id="nt_d" placeholder="تفاصيل المهمة والنتائج المتوقعة..." rows="3"></textarea></div>
+          <div class="field"><label>مكلّف إلى *</label>
+            <select id="nt_a">
+              <option value="">اختر العضو</option>
+              ${team.map(m=>`<option value="${m.id}">${esc(m.full_name||'')}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>${t2('الأولوية','Priority')}</label>
+            <select id="nt_p">
+              <option value="medium">متوسطة</option><option value="high">عالية</option>
+              <option value="critical">حرجة</option><option value="low">منخفضة</option>
+            </select>
+          </div>
+          <div class="field"><label>تاريخ الاستحقاق</label><input type="date" id="nt_due"></div>
+          <div class="field"><label>الموديول المرتبط</label>
+            <select id="nt_m">
+              <option value="">عام</option><option value="afi">AFI</option>
+              <option value="assessment">تقييم</option><option value="kpi">KPI</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn p" onclick="createTask()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">إنشاء المهمة</button>
+          <button class="btn" onclick="go('tasks')">إلغاء</button>
+        </div>
+      </div>
+    </div>`;
+});
+window.createTask=async()=>{
+  const title=mv('nt_t'),assignedTo=mv('nt_a');
+  if(!title){toast('العنوان مطلوب','e');return;}
+  if(!assignedTo){toast('يرجى اختيار العضو','e');return;}
+  try{
+    await dbIns('tasks',{title,description:mv('nt_d')||null,assigned_by:App.profile?.id,assigned_to:assignedTo,division:BL,priority:mv('nt_p')||'medium',due_date:mv('nt_due')||null,status:'new',related_module:mv('nt_m')||null});
+    toast('تم إنشاء المهمة ✓','s');go('tasks');
+  }catch(e){toast(e.message,'e');}
+};
+
+/* ═══ AFIs ═════════════════════════════════════════════════ */
+reg('afis',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▲ نقاط التحسين (AFIs)</h1></div>
+      <button class="btn p" onclick="openAA()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ AFI جديد','+ New AFI')}</button>
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15)">
+      <div class="filters">
+        <input class="fi" id="aq" placeholder="${t('search')}">
+        <select class="fi" id="ast">
+          <option value="">كل الحالات</option>
+          ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+        </select>
+      </div>
+      <div id="afiList">${skR()}</div>
+    </div>`;
+  async function loadA(){
+    const el2=document.getElementById('afiList'),q=document.getElementById('aq')?.value||'',st=document.getElementById('ast')?.value||'';
+    el2.innerHTML=skR();
+    try{
+      const opts={eq:{business_line:BL}};if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};
+      const{data}=await dbList('afis',opts);
+      if(!data.length){el2.innerHTML=emptyEl('لا AFIs',`<button class="btn p sm" onclick="openAA()">+ إضافة</button>`);return;}
+      el2.innerHTML=`<div class="tw"><table>
+        <thead><tr><th>${t2('الرقم','#')}</th><th>العنوان</th><th>المالك</th><th>${t2('الأولوية','Priority')}</th><th>${t2('الاستحقاق','Due Date')}</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
+        <tbody>${data.map(a=>`<tr>
+          <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.afi_number||a.id.slice(0,8))}</td>
+          <td style="font-weight:600">${esc(a.title)}</td>
+          <td style="font-size:12px;color:var(--t2)">${esc(a.owner_name||'—')}</td>
+          <td>${priBadge(a.priority)}</td>
+          <td class="fmono" style="font-size:11px;color:${isOD(a.due_date,a.status)?'var(--danger)':'var(--t2)'}">${fmtD(a.due_date)}</td>
+          <td>${stBadge(a.status)}</td>
+          <td><div class="ta">
+            <button class="btn sm" onclick="openEA('${a.id}')">تعديل</button>
+            <button class="btn sm d" onclick="confirm2('حذف AFI؟',async()=>{await dbDel('afis','${a.id}');loadA();toast('تم','s')})">حذف</button>
+          </div></td>
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+    }catch(e){el2.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+  }
+  ['aq','ast'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>setTimeout(loadA,300));document.getElementById(id)?.addEventListener('change',loadA);});
+  loadA(); window._rla=loadA;
+});
+function _afiFrm(r={}){return `
+  <div class="mh"><h3 style="color:${DC}">${r.id?'تعديل AFI':'AFI جديد'}</h3><button class="mx" onclick="closeModal()">×</button></div>
+  <div class="mbd"><div class="fg">
+    <div class="field ff"><label>العنوان *</label><input id="af_t" value="${esc(r.title||'')}"></div>
+    <div class="field ff"><label>الوصف</label><textarea id="af_d">${esc(r.description||'')}</textarea></div>
+    <div class="field"><label>المالك</label><input id="af_o" value="${esc(r.owner_name||'')}"></div>
+    <div class="field"><label>${t2('الأولوية','Priority')}</label>
+      <select id="af_p">${['low','medium','high','critical'].map(p=>`<option value="${p}" ${r.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>${t2('الاستحقاق','Due Date')}</label><input type="date" id="af_due" value="${r.due_date||''}"></div>
+    <div class="field"><label>${t2('الحالة','Status')}</label>
+      <select id="af_s">${['open','assigned','in_progress','pending_verification','returned','closed'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
+    </div>
+    <div class="field ff"><label>السبب الجذري</label><textarea id="af_rc">${esc(r.root_cause||'')}</textarea></div>
+    <div class="field ff"><label>الإجراء التصحيحي</label><textarea id="af_ca">${esc(r.corrective_action||'')}</textarea></div>
+  </div></div>
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveA('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+window.openAA=()=>openModal(_afiFrm(),'w');
+window.openEA=async id=>{const r=await dbGet('afis',id).catch(()=>null);if(r)openModal(_afiFrm(r),'w');};
+window.saveA=async id=>{
+  const title=mv('af_t');if(!title){toast('العنوان مطلوب','e');return;}
+  const row={title,description:mv('af_d')||null,business_line:BL,owner_name:mv('af_o')||null,priority:mv('af_p'),due_date:mv('af_due')||null,status:mv('af_s'),root_cause:mv('af_rc')||null,corrective_action:mv('af_ca')||null};
+  try{if(id)await dbUpd('afis',id,row);else await dbIns('afis',row);toast('تم ✓','s');closeModal();window._rla?.();}catch(e){toast(e.message,'e');}
+};
+
+/* ═══ KPIs ═════════════════════════════════════════════════ */
+reg('kpis',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📈 مؤشرات الأداء</h1></div>
+      <button class="btn p" onclick="openAK()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ KPI جديد','+ New KPI')}</button>
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="kpiList">${skR()}</div></div>`;
+  const{data}=await dbList('kpis',{eq:{business_line:BL}}).catch(()=>({data:[]}));
+  document.getElementById('kpiList').innerHTML=data.length?`<div class="tw"><table>
+    <thead><tr><th>المؤشر</th><th>الهدف</th><th>الفعلي</th><th>الإنجاز</th><th>الاتجاه</th><th>${t2('الحالة','Status')}</th><th></th></tr></thead>
+    <tbody>${data.map(k=>{
+      const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
+      const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
+      return`<tr>
+        <td style="font-weight:600">${esc(k.name_ar)}</td>
+        <td class="fmono">${fmtN(k.target)}${k.unit||'%'}</td>
+        <td class="fmono" style="font-weight:700;color:${clr}">${fmtN(k.actual)}${k.unit||'%'}</td>
+        <td style="min-width:100px"><div style="display:flex;align-items:center;gap:6px">${progBar(pct)}<span class="fmono" style="font-size:11px">${pct}%</span></div></td>
+        <td style="font-size:17px;color:${k.trend==='up'?'var(--success)':k.trend==='down'?'var(--danger)':'var(--t2)'}">${k.trend==='up'?'↑':k.trend==='down'?'↓':'→'}</td>
+        <td><span class="badge ${k.status==='green'?'bgn':k.status==='yellow'?'by':'br'}">${k.status==='green'?'ضمن الهدف':k.status==='yellow'?'تحذير':'دون الهدف'}</span></td>
+        <td><div class="ta"><button class="btn sm" onclick="openEK('${k.id}')">تعديل</button></div></td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`:emptyEl(t2('لا مؤشرات','No KPIs'),`<button class="btn p sm" onclick="openAK()">+ إضافة</button>`);
+  window._rlk=()=>go('kpis');
+});
+function _kpiFrm(r={}){return `
+  <div class="mh"><h3 style="color:${DC}">${r.id?'تعديل KPI':'KPI جديد'}</h3><button class="mx" onclick="closeModal()">×</button></div>
+  <div class="mbd"><div class="fg">
+    <div class="field"><label>الاسم (عربي) *</label><input id="kf_ar" value="${esc(r.name_ar||'')}"></div>
+    <div class="field"><label>الاسم (إنجليزي)</label><input id="kf_en" value="${esc(r.name_en||'')}"></div>
+    <div class="field"><label>الوحدة</label><input id="kf_u" value="${esc(r.unit||'%')}"></div>
+    <div class="field"><label>الهدف</label><input type="number" id="kf_tg" value="${r.target||''}"></div>
+    <div class="field"><label>القيمة الفعلية</label><input type="number" id="kf_ac" value="${r.actual||''}"></div>
+    <div class="field"><label>الاتجاه</label>
+      <select id="kf_tr"><option value="up" ${r.trend==='up'?'selected':''}>↑ صاعد</option><option value="down" ${r.trend==='down'?'selected':''}>↓ هابط</option><option value="stable" ${r.trend==='stable'?'selected':''}>→ مستقر</option></select>
+    </div>
+    <div class="field"><label>${t2('الحالة','Status')}</label>
+      <select id="kf_st"><option value="green" ${r.status==='green'?'selected':''}>🟢 ضمن الهدف</option><option value="yellow" ${r.status==='yellow'?'selected':''}>🟡 تحذير</option><option value="red" ${r.status==='red'?'selected':''}>🔴 دون الهدف</option></select>
+    </div>
+    <div class="field"><label>المالك</label><input id="kf_own" value="${esc(r.owner_name||'')}"></div>
+  </div></div>
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveK('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+window.openAK=()=>openModal(_kpiFrm(),'w');
+window.openEK=async id=>{const r=await dbGet('kpis',id).catch(()=>null);if(r)openModal(_kpiFrm(r),'w');};
+window.saveK=async id=>{
+  const name=mv('kf_ar');if(!name){toast('الاسم مطلوب','e');return;}
+  const row={name_ar:name,name_en:mv('kf_en')||null,unit:mv('kf_u')||'%',target:parseFloat(mv('kf_tg'))||null,actual:parseFloat(mv('kf_ac'))||null,trend:mv('kf_tr'),status:mv('kf_st'),business_line:BL,owner_name:mv('kf_own')||null,last_updated:new Date().toISOString()};
+  try{if(id)await dbUpd('kpis',id,row);else await dbIns('kpis',row);toast('تم ✓','s');closeModal();go('kpis');}catch(e){toast(e.message,'e');}
+};
+
+/* ═══ TEAM ═════════════════════════════════════════════════ */
+reg('team',async el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 فريق التنبيهات الفنية</h1></div><div class="g3" id="tGrid">${skR(3)}</div>`;
+  const{data}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  document.getElementById('tGrid').innerHTML=data.length?data.map(m=>{
+    const init=(m.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    return`<div class="card" style="border-color:rgba(${DR},.2);text-align:center;padding:18px">
+      <div style="width:48px;height:48px;border-radius:12px;background:rgba(${DR},.18);border:1px solid rgba(${DR},.35);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;margin:0 auto 10px;color:${DC}">${init}</div>
+      <div style="font-weight:700;font-size:13.5px">${esc(m.full_name||'')}</div>
+      <div style="font-size:11px;color:var(--t2);font-family:var(--mono);margin-top:3px">${esc(m.job_title||ROLE_AR[m.role]||'')}</div>
+      <button class="btn sm p" style="width:100%;margin-top:10px;background:linear-gradient(135deg,${DC}44,${DC}22);border:1px solid ${DC}44;color:${DC}" onclick="go('ntask')">+ مهمة</button>
+    </div>`;
+  }).join(''):emptyEl(t2('لا أعضاء','No team members'));
+});
+
+/* ═══ ASSESSMENTS ══════════════════════════════════════════ */
+reg('assess',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▤ التقييمات</h1></div>
+      <button class="btn p" onclick="openASM()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">${t2('+ تقييم جديد','+ New Assessment')}</button>
+    </div>
+    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="asmList">${skR()}</div></div>`;
+  const{data}=await dbList('assessments',{eq:{business_line:BL}}).catch(()=>({data:[]}));
+  document.getElementById('asmList').innerHTML=data.length?`<div class="tw"><table>
+    <thead><tr><th>${t2('الرقم','#')}</th><th>عنوان التقييم</th><th>المقيّم</th><th>المرحلة</th><th>الإنجاز</th><th>${t2('الاستحقاق','Due Date')}</th><th></th></tr></thead>
+    <tbody>${data.map(a=>`<tr>
+      <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.assessment_number||a.id.slice(0,8))}</td>
+      <td style="font-weight:600">${esc(a.title)}</td>
+      <td style="font-size:12px;color:var(--t2)">${esc(a.assessor_name||'—')}</td>
+      <td>${stBadge(a.stage)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">${progBar(a.progress||0)}<span class="fmono" style="font-size:11px">${a.progress||0}%</span></div></td>
+      <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(a.due_date)}</td>
+      <td><button class="btn sm" onclick="openEASM('${a.id}')">تعديل</button></td>
+    </tr>`).join('')}</tbody></table></div>`:emptyEl(t2('لا تقييمات','No assessments'),`<button class="btn p sm" onclick="openASM()">+ إضافة</button>`);
+  window._rlass=()=>go('assess');
+});
+function _asmFrm(r={}){return `
+  <div class="mh"><h3 style="color:${DC}">${r.id?'تعديل تقييم':'تقييم جديد'}</h3><button class="mx" onclick="closeModal()">×</button></div>
+  <div class="mbd"><div class="fg">
+    <div class="field ff"><label>عنوان التقييم *</label><input id="as_t" value="${esc(r.title||'')}"></div>
+    <div class="field"><label>اسم المقيّم</label><input id="as_ass" value="${esc(r.assessor_name||'')}"></div>
+    <div class="field"><label>نوع التقييم</label>
+      <select id="as_typ"><option value="internal" ${r.assessment_type==='internal'?'selected':''}>داخلي</option><option value="external" ${r.assessment_type==='external'?'selected':''}>خارجي</option><option value="self" ${r.assessment_type==='self'?'selected':''}>ذاتي</option></select>
+    </div>
+    <div class="field"><label>تاريخ البداية</label><input type="date" id="as_sd" value="${r.start_date||''}"></div>
+    <div class="field"><label>تاريخ النهاية</label><input type="date" id="as_ed" value="${r.due_date||''}"></div>
+    <div class="field"><label>المرحلة</label>
+      <select id="as_stg">${['planning','evidence_collection','assessment','review','approval','closed'].map(s=>`<option value="${s}" ${r.stage===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>نسبة الإنجاز (%)</label><input type="number" id="as_prg" min="0" max="100" value="${r.progress||0}"></div>
+    <div class="field ff"><label>ملاحظات</label><textarea id="as_n">${esc(r.notes||'')}</textarea></div>
+  </div></div>
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveASM('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+window.openASM=()=>openModal(_asmFrm(),'w');
+window.openEASM=async id=>{const r=await dbGet('assessments',id).catch(()=>null);if(r)openModal(_asmFrm(r),'w');};
+window.saveASM=async id=>{
+  const title=mv('as_t');if(!title){toast('العنوان مطلوب','e');return;}
+  const row={title,assessor_name:mv('as_ass')||null,assessment_type:mv('as_typ'),start_date:mv('as_sd')||null,due_date:mv('as_ed')||null,stage:mv('as_stg'),progress:parseInt(mv('as_prg'))||0,notes:mv('as_n')||null,business_line:BL};
+  try{if(id)await dbUpd('assessments',id,row);else await dbIns('assessments',row);toast('تم ✓','s');closeModal();window._rlass?.();}catch(e){toast(e.message,'e');}
+};
+
+/* ═══ STUBS ═════════════════════════════════════════════════ */
+reg('tickets',el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">🎫 التذاكر</h1></div><p style="color:var(--t2);padding:18px">يعمل بعد توصيل Supabase.</p>`;});
+reg('alerts', el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">⚠️ التنبيهات</h1></div><p style="color:var(--t2);padding:18px">يتصل بدائرة التنبيهات الفنية.</p>`;});
+reg('weekly', el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
+  <div class="panel" style="border-color:rgba(${DR},.15);max-width:600px"><div class="pb">
+    <div class="fg">
+      <div class="field"><label>إنجازات الأسبوع</label><textarea id="wu_d" rows="3" placeholder="الإنجازات..."></textarea></div>
+      <div class="field"><label>التحديات</label><textarea id="wu_c" rows="3" placeholder="العقبات..."></textarea></div>
+    </div>
+    <div class="field"><label>أولويات الأسبوع القادم</label><textarea id="wu_n" rows="2" placeholder="ما سنركز عليه..."></textarea></div>
+    <button class="btn p" onclick="saveW()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 إرسال للحوكمة</button>
+  </div></div>`;
+});
+window.saveW=async()=>{await logAct('weekly_update',null,null,{done:mv('wu_d'),ch:mv('wu_c'),next:mv('wu_n')});toast(t2('تم الإرسال ✓','Sent ✓'),'s');};
+
+/* ═══ CHANGE PASSWORD (all portals) ══════════════════════════ */
+window.openChangePass = () => {
+  openModal(`<div class="mh"><h3>🔐 تغيير كلمة المرور</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field"><label>كلمة المرور الجديدة</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="cp_new" placeholder="كلمة مرور جديدة..." style="flex:1">
+          <button class="btn sm" onclick="genCPW()">🔀</button>
+        </div>
+      </div>
+      <div id="cp_show" style="background:#070F1D;border:1px solid rgba(37,99,235,.2);border-radius:8px;padding:10px;font-family:var(--mono);font-size:15px;font-weight:700;color:#60A5FA;margin-bottom:10px;display:none"></div>
+      <p style="font-size:11.5px;color:var(--t2)">ستُسجَّل خارجاً بعد التغيير لتسجيل الدخول بالجديدة</p>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn p" onclick="doChangePass()">حفظ</button>
+    </div>`);
+};
+window.genCPW = () => {
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('cp_new');if(el)el.value=p;
+  const sh=document.getElementById('cp_show');if(sh){sh.textContent=p;sh.style.display='block';}
+  navigator.clipboard?.writeText(p).catch(()=>{});
+};
+window.doChangePass = async () => {
+  const np = mv('cp_new');
+  if(!np||np.length<6){toast('6 أحرف على الأقل','e');return;}
+  const sess = getStoredSession();
+  try{
+    const res = await fetch(SB_URL+'/auth/v1/user',{method:'PUT',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json'},
+      body:JSON.stringify({password:np})});
+    const d = await res.json();
+    if(d.error)throw new Error(d.error_description||d.error);
+    toast('تم التغيير ✓ — جارٍ تسجيل الخروج...','s');
+    setTimeout(doLogout,2000);
+  }catch(e){toast('خطأ: '+e.message,'e');}
+};
+
+/* ═══ CREATE EMPLOYEE (manager creates for their division) ═══ */
+window.openCreateEmp = () => {
+  openModal(`<div class="mh"><h3 style="color:#EF4444">👤 إنشاء موظف جديد</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field ff"><label>الاسم الكامل *</label><input id="ce_name" placeholder="اسم الموظف"></div>
+      <div class="field">
+        <label>الرقم الوظيفي *</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="ce_empid" placeholder="مثال: 12345" style="direction:ltr;text-align:right;flex:1">
+          <button class="btn sm" onclick="genEmpId()">🔀 توليد</button>
+        </div>
+        <div style="font-size:11px;color:var(--t2);margin-top:3px">رقم الدخول للموظف</div>
+      </div>
+      <div class="field">
+        <label>كلمة المرور المؤقتة *</label>
+        <div style="display:flex;gap:7px">
+          <input type="text" id="ce_pw" placeholder="كلمة مرور...">
+          <button class="btn sm" onclick="genEmpPW()">🔀 توليد</button>
+        </div>
+      </div>
+      <div class="field"><label>المسمى الوظيفي</label><input id="ce_title" placeholder="مهندس تشغيل..."></div>
+      <div id="ce_preview" style="display:none">
+        <div style="color:var(--t3);margin-bottom:3px">الإيميل التلقائي:</div>
+        <div style="color:#EF4444" id="ce_em_show">—</div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn p" id="ceBtn" onclick="doCreateEmp()" style="background:linear-gradient(135deg,#EF4444,#EF444499);border:none">إنشاء الحساب</button>
+    </div>`);
+  genEmpPW();
+};
+
+window.genEmpId = () => {
+  const id = Math.floor(10000 + Math.random()*90000).toString();
+  const el = document.getElementById('ce_empid');
+  if(el) { el.value = id; updateEmpEmailPreview(); }
+};
+window.genEmpPW = () => {
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('ce_pw');if(el)el.value=p;
+};
+window.updateEmpEmailPreview = () => {
+  const id = document.getElementById('ce_empid')?.value?.trim();
+  const show = document.getElementById('ce_em_show');
+  const prev = document.getElementById('ce_preview');
+  if(id && show && prev) {
+    show.textContent = 'emp.' + id + '@se.com.sa';
+    prev.style.display = 'block';
+  }
+};
+
+window.doCreateEmp = async () => {
+  const name = mv('ce_name');
+  const empId = mv('ce_empid');
+  const pass = mv('ce_pw');
+  if(!name||!empId||!pass){toast('يرجى تعبئة الحقول المطلوبة','e');return;}
+  
+  const email = 'emp.' + empId + '@se.com.sa';
+  const btn = document.getElementById('ceBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  
+  const sess = getStoredSession();
+  try{
+    // Check employee ID not taken
+    const chk = await fetch(SB_URL+'/rest/v1/profiles?employee_id=eq.'+encodeURIComponent(empId)+'&select=id&limit=1',
+      {headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||'')}});
+    const existing = await chk.json();
+    if(Array.isArray(existing)&&existing.length>0){toast('هذا الرقم الوظيفي مستخدم مسبقاً','e');if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}return;}
+    
+    // Create auth user
+    const authRes = await fetch(SB_URL+'/auth/v1/signup',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:empId+'@se.local', password:pass, data:{full_name:name,role:'employee',division:'technical_alerts'}})
+    });
+    const authData = await authRes.json();
+    if(!authRes.ok||authData.error||authData.msg){
+      toast('فشل الإنشاء: '+(authData.error_description||authData.msg||authData.error||'خطأ'),'e');
+      if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}return;
+    }
+    
+    const uid = authData.id||authData.user?.id;
+    if(uid){
+      await fetch(SB_URL+'/rest/v1/profiles?on_conflict=id',{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+        body:JSON.stringify({
+          id:uid, full_name:name, role:'employee',
+          username:empId,
+          email_internal:empId+'@se.local',
+          division:'technical_alerts', employee_id:empId,
+          job_title:mv('ce_title')||null,
+          is_active:true
+        })
+      });
+    }
+    
+    closeModal();
+    // Show credentials
+    openModal(`<div class="mh"><h3 style="color:var(--success)">✓ تم إنشاء الحساب!</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd">
+        <p style="font-size:13px;color:var(--t2);margin-bottom:12px">أعطِ هذه البيانات للموظف</p>
+        <div style="background:#070F1D;border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:14px;font-family:var(--mono)">
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">${t2('الاسم','Name')}</div>
+          <div style="font-size:13px;font-weight:700;color:#EF4444;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px">${esc(name)}</div>
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">${t2('الدائرة','Division')}</div>
+          <div style="font-size:13px;font-weight:700;color:#EF4444;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px">التنبيهات الفنية</div>
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">الرقم الوظيفي (للدخول)</div>
+          <div style="font-size:14px;font-weight:700;color:#EF4444;background:#0A1828;padding:6px 10px;border-radius:6px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+            <span>${esc(empId)}</span>
+            <button onclick="navigator.clipboard?.writeText('${empId}').then(()=>toast('تم النسخ ✓','s'))" style="padding:2px 8px;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);border-radius:5px;color:#EF4444;cursor:pointer;font-family:var(--mono);font-size:10px">نسخ</button>
+          </div>
+          <div style="font-size:9.5px;color:var(--t3);margin-bottom:3px">كلمة المرور المؤقتة</div>
+          <div style="font-size:14px;font-weight:700;color:#EF4444;background:#0A1828;padding:6px 10px;border-radius:6px;display:flex;align-items:center;justify-content:space-between">
+            <span>${esc(pass)}</span>
+            <button onclick="navigator.clipboard?.writeText('${pass}').then(()=>toast('تم النسخ ✓','s'))" style="padding:2px 8px;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.3);border-radius:5px;color:#EF4444;cursor:pointer;font-family:var(--mono);font-size:10px">نسخ</button>
+          </div>
+        </div>
+        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:9px;font-size:12px;color:#FCD34D;margin-top:10px">
+          ⚠️ يجب على الموظف تغيير كلمة المرور عند أول دخول
+        </div>
+      </div>
+      <div class="mf"><button class="btn p" onclick="closeModal();go('team')" style="background:linear-gradient(135deg,#EF4444,#EF444499);border:none">تم</button></div>`,'w');
+    
+  }catch(e){
+    toast('خطأ: '+e.message,'e');
+    if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}
+  }
+};
+
+window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
+
+/* ═══ INIT ══════════════════════════════════════════════════ */
+
+/* ═══ TASK REVIEWS — manager approves/returns closed tasks ══ */
+reg('reviews',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <h1 style="font-family:var(--hud);font-size:19px;color:#EF4444">✅ مراجعة الإنجازات</h1>
+        <div style="font-size:12.5px;color:var(--t2)">مهام أغلقها الموظفون — اعتمد أو أعِد للمراجعة</div>
+      </div>
+    </div>
+    <div class="g4 mb2" id="rvStats">${skR()}</div>
+    <div class="panel" style="border-color:rgba(239,68,68,.15)">
+      <div style="padding:8px 12px;border-bottom:1px solid rgba(239,68,68,.1);display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn sm" id="rv_all" onclick="filterRV('')" style="color:#EF4444;border-color:rgba(239,68,68,.3)">الكل</button>
+        <button class="btn sm" id="rv_pend" onclick="filterRV('closed')">بانتظار الاعتماد</button>
+        <button class="btn sm" id="rv_app" onclick="filterRV('verified')">مُعتمدة</button>
+        <button class="btn sm" id="rv_ret" onclick="filterRV('returned')">مُعادة</button>
+      </div>
+      <div id="rvList">${skR()}</div>
+    </div>`;
+
+  let _rvFilter='closed';
+  const[pend,appr,ret]=await Promise.all([
+    dbCnt('tasks',{eq:{division:BL,status:'closed'}}),
+    dbCnt('tasks',{eq:{division:BL,status:'verified_closed'}}),
+    dbCnt('tasks',{eq:{division:BL,status:'returned'}}),
+  ]).catch(()=>[0,0,0]);
+
+  document.getElementById('rvStats').innerHTML=[
+    {sl:'بانتظار الاعتماد',sv:pend,cl:pend?'ylw':'',onClick:"filterRV('closed')"},
+    {sl:'مُعتمدة',sv:appr,cl:'grn',onClick:"filterRV('verified_closed')"},
+    {sl:'مُعادة',sv:ret,cl:ret?'red':'',onClick:"filterRV('returned')"},
+    {sl:'جميع المهام',sv:0,cl:'',onClick:"go('tasks')"},
+  ].map(s=>`<div class="sc ptr" onclick="${s.onClick}"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
+
+  window.filterRV=async st=>{
+    _rvFilter=st;
+    document.querySelectorAll('[id^="rv_"]').forEach(b=>b.style.background='');
+    const btnId=st==='closed'?'rv_pend':st==='verified_closed'?'rv_app':st==='returned'?'rv_ret':'rv_all';
+    const btn=document.getElementById(btnId);
+    if(btn)btn.style.background='rgba(239,68,68,.15)';
+    const rvList=document.getElementById('rvList');
+    if(!rvList)return;
+    rvList.innerHTML=skR();
+    const opts=st?{eq:{division:BL,status:st}}:{eq:{division:BL},neq:{status:'open'}};
+    const{data}=await dbList('tasks',opts).catch(()=>({data:[]}));
+    if(!data.length){rvList.innerHTML=emptyEl(t2('لا مهام','لا توجد مهام'));return;}
+    rvList.innerHTML=await Promise.all(data.map(async tk=>{
+      const{data:cmts}=await dbList('task_comments',{eq:{task_id:tk.id},lim:5}).catch(()=>({data:[]}));
+      const lastCmt=cmts.find(c=>c.type==='closure'||c.type==='stage_update');
+      const eviRef=tk.evidence_url;
+      const emailSent=tk.quality_score===80;
+      return`<div style="padding:12px 14px;border-bottom:1px solid rgba(239,68,68,.07)">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px">${esc(tk.title)}</div>
+            <div style="font-size:11.5px;color:var(--t2);margin-top:3px">
+              ${priBadge(tk.priority)}
+              ${stBadge(tk.status)}
+              ${fmtD(tk.completed_at||tk.updated_at)}
+              ${tk.task_number?`<span style="font-family:var(--mono);font-size:10px;color:var(--t3)">${tk.task_number}</span>`:''}
+            </div>
+            ${eviRef?`<div style="margin-top:6px;padding:6px 9px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:6px;font-size:12px;color:#34D399">📎 المرجع: ${esc(eviRef)}</div>`:''}
+            ${emailSent?`<div style="margin-top:4px;font-size:11.5px;color:#34D399">📧 أرسل الموظف الإنجاز بالإيميل</div>`:`<div style="margin-top:4px;font-size:11.5px;color:#9CA3AF">📧 لم يرسل بالإيميل بعد</div>`}
+            ${lastCmt?`<div style="margin-top:7px;padding:8px 10px;background:var(--bg1);border-radius:6px;font-size:12.5px;color:var(--t2);white-space:pre-wrap">${esc(lastCmt.content)}</div>`:''}
+          </div>
+        </div>
+        ${tk.status==='closed'?`
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn sm" onclick="approveTask('${tk.id}')" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#34D399">✓ اعتماد الإنجاز</button>
+          <button class="btn sm" onclick="returnTask('${tk.id}')" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#F87171">↩ إعادة للموظف</button>
+          <button class="btn sm" onclick="viewTaskHistory('${tk.id}')" style="color:#EF4444;border-color:rgba(239,68,68,.3)">📋 كل التحديثات</button>
+        </div>`:tk.status==='returned'?`<div style="margin-top:6px;font-size:12px;color:#9CA3AF">↩ أُعيدت للموظف</div>`:
+        `<div style="margin-top:6px;font-size:12px;color:#34D399">✓ مُعتمدة</div>`}
+      </div>`;
+    })).then(items=>items.join(''));
+  };
+  filterRV('closed');
+});
+
+window.approveTask=async id=>{
+  await dbUpd('tasks',id,{status:'closed',quality_score:100});
+  await dbIns('task_comments',{task_id:id,author_id:App.profile?.id,content:'✅ اعتمد المدير الإنجاز',type:'manager_review'}).catch(()=>{});
+  toast('تم اعتماد الإنجاز ✓','s');
+  if(window.filterRV) filterRV('closed');
+};
+
+window.returnTask=id=>{
+  openModal(`<div class="mh"><h3 style="color:#F87171">↩ إعادة المهمة للموظف</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field"><label>سبب الإعادة *</label>
+        <textarea id="ret_reason" rows="4" placeholder="وضّح للموظف ما يجب تعديله أو إكماله..."></textarea>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn d" onclick="doReturnTask('${id}')">إعادة</button></div>`);
+};
+window.doReturnTask=async id=>{
+  const reason=mv('ret_reason');if(!reason){toast('يرجى كتابة سبب الإعادة','e');return;}
+  await dbUpd('tasks',id,{status:'returned',returned_count:(await dbGet('tasks',id).then(t=>t.returned_count||0).catch(()=>0))+1});
+  await dbIns('task_comments',{task_id:id,author_id:App.profile?.id,content:'↩ أُعيدت المهمة: '+reason,type:'manager_return'}).catch(()=>{});
+  toast('أُعيدت المهمة للموظف','s');closeModal();
+  if(window.filterRV) filterRV('closed');
+};
+
+window.viewTaskHistory=async id=>{
+  const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
+  const tk=await dbGet('tasks',id).catch(()=>({title:'—'}));
+  openModal(`<div class="mh"><h3>${esc(tk.title)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      ${cmts.length?cmts.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--bd)">
+        <div style="font-size:13px;white-space:pre-wrap">${esc(c.content)}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:3px">${fmtD(c.created_at)}</div>
+      </div>`).join(''):'<p style="padding:14px;color:var(--t2)">لا تحديثات</p>'}
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+};
+
+(async()=>{
+  const p=await initPage({roles:['technical_alerts_manager','admin','director','governance_manager']});
+  if(!p)return;
+  document.getElementById('lgEl').innerHTML=LOGO;
+  buildNav(NAV,'dash');go('dash');
+})();
+</script>
+</body>
+</html>

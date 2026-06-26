@@ -1,4 +1,3 @@
-'use strict';
 /* ═══════════════════════════════════════════════════════════════
    Saudi Energy · OE Command Center · app.js v6
    Pure Fetch — Fully Restored 12-Language Support & Safe Storage

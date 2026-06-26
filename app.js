@@ -1,7 +1,8 @@
+```javascript
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
-   Saudi Energy · OE Command Center · app.js v4.1
-   Pure Fetch — With enhanced i18n & Mobile UI fixes
+   Saudi Energy · OE Command Center · app.js v5
+   Pure Fetch — Fully Restored 12-Language Support & Mobile Fixes
 ═══════════════════════════════════════════════════════════════ */
 
 const SB_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
@@ -66,12 +67,74 @@ class QB {
   catch(fn)     { return this._run().catch(fn); }
 }
 
-const sb = { from: (t) => new QB(t) };
+const sb = { 
+  from: (t) => new QB(t),
+  auth: {
+    getSession: async () => { const s = getStoredSession(); return { data: { session: isSessionValid(s)?s:null }, error: null }; },
+    signInWithPassword: async ({ email, password }) => {
+      try {
+        const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, { method: 'POST', headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+        const d = await res.json();
+        if (d.error || d.error_description || d.msg) return { data: null, error: { message: d.error_description || d.msg || d.error || 'Invalid credentials' } };
+        storeSession(d); return { data: { user: d.user, session: d }, error: null };
+      } catch (e) { return { data: null, error: { message: e.message } }; }
+    },
+    signOut: async () => {
+      try { const s = getStoredSession(); if (s?.access_token) await fetch(`${SB_URL}/auth/v1/logout`, { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${s.access_token}` } }); } catch (e) {}
+      clearSession(); return { error: null };
+    }
+  }
+};
 
-/* ── App State ────────────────────────────────────────────────── */
+/* ── App State & i18n ─────────────────────────────────────────── */
 const LANG_VER = '3';
 if(localStorage.getItem('se_lang_ver') !== LANG_VER) { localStorage.removeItem('se_lang_v2'); localStorage.setItem('se_lang_ver', LANG_VER); }
-const App = { user: null, profile: null, lang: localStorage.getItem('se_lang_v2') || 'ar' };
+
+// DEFAULT to 'en' as requested
+const App = { user: null, profile: null, lang: localStorage.getItem('se_lang_v2') || 'en' };
+
+const LOCALE_MAP = { ar:'ar-SA', en:'en-GB', fr:'fr-FR', es:'es-ES', it:'it-IT', pt:'pt-BR', de:'de-DE', ru:'ru-RU', ko:'ko-KR', zh:'zh-CN', ja:'ja-JP', ur:'ur-PK' };
+
+// Universal dynamic translation mapping 12 languages via DOM_MAP and TR
+const t2 = (ar, en) => {
+  if (App.lang === 'ar') return ar;
+  if (App.lang === 'en') return en;
+  if (typeof DOM_MAP !== 'undefined' && DOM_MAP[ar] && DOM_MAP[ar][App.lang]) return DOM_MAP[ar][App.lang];
+  if (typeof TR !== 'undefined') {
+    for (const key of Object.keys(TR)) {
+      if (TR[key] && TR[key].ar === ar && TR[key][App.lang]) return TR[key][App.lang];
+    }
+  }
+  return en; // Fallback
+};
+
+function setLang(l) {
+  App.lang = l; localStorage.setItem('se_lang_v2', l);
+  document.documentElement.lang = l;
+  document.documentElement.dir = (typeof LANGS !== 'undefined' && LANGS[l]) ? LANGS[l].dir : (l==='ar'||l==='ur'?'rtl':'ltr');
+}
+
+function toggleLang() {
+  const newLang = App.lang === 'ar' ? 'en' : 'ar';
+  setLang(newLang);
+  if(typeof window.buildNav === 'function' && window._currentNav && window._currentPage) {
+    buildNav(window._currentNav, window._currentPage);
+  }
+  const ptEl = document.getElementById('pgtitle') || document.getElementById('pgTitle');
+  if(ptEl && window._currentNav && window._currentPage) {
+    const item = window._currentNav.find(n=>n.k===window._currentPage);
+    if(item) ptEl.textContent = newLang==='ar' ? item.ar : item.en;
+  }
+  if(window._currentPage && window.PAGES && window.PAGES[window._currentPage]) {
+    const ct = document.getElementById('pgContent');
+    if(ct) { ct.innerHTML = '<div class="fade" id="pg"></div>'; window.PAGES[window._currentPage](document.getElementById('pg')); }
+  }
+  if(window.renderUsers && window._currentPage === 'users') renderUsers();
+  if(window.renderDivs && window._currentPage === 'divs') renderDivs();
+  if(window.renderSettings && window._currentPage === 'settings') renderSettings();
+  if(window.renderHealth && window._currentPage === 'health') renderHealth();
+  if(window.translateAdminNav) translateAdminNav();
+}
 
 /* ── Config ───────────────────────────────────────────────────── */
 const DIVS = {
@@ -84,38 +147,13 @@ const DIVS = {
 const PORTALS = { admin:'admin.html', director:'department.html', governance_manager:'governance.html', generation_manager:'generation.html', national_grid_manager:'national-grid.html', distribution_manager:'distribution.html', technical_alerts_manager:'technical-alerts.html', employee:'employee.html' };
 const ROLE_AR = { admin:'مشرف النظام', director:'مدير الإدارة', governance_manager:'مدير الحوكمة', generation_manager:'مدير التوليد', national_grid_manager:'مدير النقل', distribution_manager:'مدير التوزيع', technical_alerts_manager:'مدير التنبيهات', employee:'موظف' };
 
-/* ── Safe i18n ────────────────────────────────────────────────── */
-const t2 = (ar, en) => App.lang === 'ar' ? ar : en;
-
-function setLang(l) {
-  App.lang = l; localStorage.setItem('se_lang_v2', l);
-  document.documentElement.lang = l;
-  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+/* ── PreRender & UI Builders ──────────────────────────────────── */
+function preRender() {
+  document.documentElement.lang = App.lang;
+  document.documentElement.dir = (App.lang === 'ar' || App.lang === 'ur') ? 'rtl' : 'ltr';
 }
-function toggleLang() {
-  const newLang = App.lang === 'ar' ? 'en' : 'ar';
-  setLang(newLang);
-  if(typeof window.buildNav === 'function' && window._currentNav && window._currentPage) {
-    buildNav(window._currentNav, window._currentPage);
-  }
-  const ptEl = document.getElementById('pgtitle') || document.getElementById('pgTitle');
-  if(ptEl && window._currentNav && window._currentPage) {
-    const item = window._currentNav.find(n=>n.k===window._currentPage);
-    if(item) ptEl.textContent = newLang==='ar' ? item.ar : item.en;
-  }
-  // Re-render pages
-  if(window._currentPage && window.PAGES && window.PAGES[window._currentPage]) {
-    const ct = document.getElementById('pgContent');
-    if(ct) { ct.innerHTML = '<div class="fade" id="pg"></div>'; window.PAGES[window._currentPage](document.getElementById('pg')); }
-  }
-  // For Admin
-  if(window.renderUsers && window._currentPage === 'users') renderUsers();
-  if(window.renderDivs && window._currentPage === 'divs') renderDivs();
-  if(window.renderSettings && window._currentPage === 'settings') renderSettings();
-  if(window.renderHealth && window._currentPage === 'health') renderHealth();
-}
+preRender();
 
-/* ── Auth & Init ──────────────────────────────────────────────── */
 async function initAuth(roles) {
   const sess = getStoredSession();
   if (!sess || !isSessionValid(sess)) { location.href = 'index.html'; return null; }
@@ -145,7 +183,7 @@ function _renderBadge() {
   const dc = DIVS[p.division]?.color || '#2563EB';
   el.innerHTML = `<div class="ub-av" style="background:${dc}22;color:${dc}">${init}</div>
     <div style="flex:1;min-width:0"><div class="ub-nm">${esc(App.lang==='ar'?p.full_name||'':p.full_name_en||p.full_name||'')}</div>
-    <div class="ub-rl">${ROLE_AR[p.role]||p.role}</div></div>`;
+    <div class="ub-rl">${t2(ROLE_AR[p.role]||p.role, p.role)}</div></div>`;
 }
 
 function startClock() {
@@ -153,17 +191,21 @@ function startClock() {
   if (!ct && !cd) return;
   setInterval(() => {
     const n = new Date(), h = n.getHours(), l = App.lang;
-    if (ct) ct.textContent = `${String(h%12||12).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} ${h<12?(l==='ar'?'ص':'AM'):(l==='ar'?'م':'PM')}`;
-    if (cd) cd.textContent = n.toLocaleDateString(l==='ar'?'ar-SA':'en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const ampm = h < 12 ? (l==='ar'||l==='ur'?'ص':'AM') : (l==='ar'||l==='ur'?'م':'PM');
+    if (ct) ct.textContent = `${String(h%12||12).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')} ${ampm}`;
+    if (cd) {
+      try { cd.textContent = n.toLocaleDateString(LOCALE_MAP[l] || 'en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+      catch(e) { cd.textContent = n.toDateString(); }
+    }
   }, 1000);
 }
 
-/* ── UI Helpers ───────────────────────────────────────────────── */
 function toast(msg, type = 'i') {
   let c = document.getElementById('tc'); if (!c) { c = document.createElement('div'); c.id = 'tc'; document.body.appendChild(c); }
   const el = document.createElement('div'); el.className = `toast ${type}`;
-  el.innerHTML = `<span>${{s:'✓',e:'✕',i:'ℹ',w:'⚠'}[type]||'•'}</span><span style="flex:1">${msg}</span><button style="opacity:.5;cursor:pointer" onclick="this.parentElement.remove()">×</button>`;
-  c.appendChild(el); setTimeout(() => el.remove(), 3500);
+  el.innerHTML = `<span>${{s:'✓',e:'✕',i:'ℹ',w:'⚠'}[type]||'•'}</span><span style="flex:1">${msg}</span><button style="opacity:.5;cursor:pointer;border:none;background:none;color:inherit;font-size:16px;" onclick="this.parentElement.remove()">×</button>`;
+  c.appendChild(el); setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .35s'; }, 3150);
+  setTimeout(() => el.remove(), 3500);
 }
 
 function openModal(html, cls = '') {
@@ -198,18 +240,20 @@ async function dbCnt(tbl, opts = {}) {
   const { count } = await q; return count || 0;
 }
 
-const fmtD = d => d ? new Date(d).toLocaleDateString(App.lang==='ar'?'ar-SA':'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
-const fmtN = n => n != null ? Number(n).toLocaleString(App.lang==='ar'?'ar-SA':'en') : '—';
+const fmtD = d => d ? new Date(d).toLocaleDateString(LOCALE_MAP[App.lang]||'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const fmtN = n => n != null ? Number(n).toLocaleString(LOCALE_MAP[App.lang]||'en') : '—';
 const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const isOD = (d, s) => d && !['closed', 'done', 'resolved'].includes(s) && new Date(d) < new Date();
 
 function priBadge(p) {
-  const lbl = { low: t2('منخفضة','Low'), medium: t2('متوسطة','Medium'), high: t2('عالية','High'), critical: t2('حرج','Critical') }[p] || p;
+  const keyMap = { low:'pri_low', medium:'pri_medium', high:'pri_high', critical:'pri_critical' };
+  const lbl = (typeof tl==='function' && keyMap[p]) ? tl(keyMap[p]) : (t2(p, p));
   return `<span class="badge ${{low:'bg',medium:'bb',high:'by',critical:'br'}[p]||'bg'}">${lbl}</span>`;
 }
 function stBadge(s) {
-  const lbl = { open:t2('مفتوح','Open'), new:t2('جديد','New'), in_progress:t2('قيد التنفيذ','In Progress'), closed:t2('مغلق','Closed'), resolved:t2('محلول','Resolved'), done:t2('منجز','Done'), overdue:t2('متأخر','Overdue'), returned:t2('معاد','Returned'), escalated:t2('مصعد','Escalated'), pending_review:t2('بانتظار المراجعة','Pending Review') }[s] || s;
-  return `<span class="badge ${{open:'bg',new:'bg',in_progress:'bb',closed:'bgn',resolved:'bgn',done:'bgn',overdue:'br',returned:'br',escalated:'br',pending_review:'by'}[s]||'bg'}">${lbl}</span>`;
+  const keyMap = { open:'st_open', new:'st_new', in_progress:'st_in_progress', closed:'st_closed', resolved:'st_resolved', done:'st_closed', overdue:'st_overdue', returned:'st_returned', escalated:'st_escalated', pending_review:'st_pending', pending_verification:'st_pending', assigned:'st_pending' };
+  const lbl = (typeof tl==='function' && keyMap[s]) ? tl(keyMap[s]) : (t2(s, s));
+  return `<span class="badge ${{open:'bg',new:'bg',in_progress:'bb',closed:'bgn',resolved:'bgn',done:'bgn',overdue:'br',returned:'br',escalated:'br',pending_review:'by',pending_verification:'by'}[s]||'bg'}">${lbl}</span>`;
 }
 function progBar(pct, cl = '') { return `<div class="prog"><div class="pf ${cl || (pct >= 80 ? 'grn' : pct >= 50 ? '' : 'red')}" style="width:${pct}%"></div></div>`; }
 const skR = (n = 4) => Array.from({ length: n }, () => '<div class="sk skr"></div>').join('');
@@ -249,6 +293,9 @@ function initCanvas(id, type, color) {
     nodes = []; pts = [];
     if (type === 'net') { const n = Math.floor(W*H/4500); for (let i=0;i<n;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*2.5+1,p:Math.random()*6.28,hub:Math.random()>.8}); }
     if (type === 'grid') { const cols=Math.floor(W/88)+1,rows=Math.floor(H/58)+1; for(let c=0;c<cols;c++) for(let r=0;r<rows;r++) nodes.push({x:c*88+44,y:r*58+29,hub:Math.random()>.72}); }
+    if (type === 'energy') { for (let i=0;i<46;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()>.5?1:-1)*(Math.random()*1.5+.5),vy:(Math.random()-.5)*.3,r:Math.random()*2+1,trail:[],mt:14}); }
+    if (type === 'city') { const n=Math.floor(W*H/6500); for(let i=0;i<n;i++) nodes.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.9+.5,p:Math.random()*6.28,hub:Math.random()>.82}); }
+    if (type === 'radar') { nodes = [{cx:W/2,cy:H/2,R:Math.min(W,H)*.42,angle:0}]; }
   }
   const h2 = v => Math.floor(v*255).toString(16).padStart(2,'0');
   function draw() {
@@ -264,6 +311,24 @@ function initCanvas(id, type, color) {
       for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j];if(Math.abs(a.x-b.x)>90||Math.abs(a.y-b.y)>60)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2(.18);cx.lineWidth=.6;cx.stroke();}
       nodes.forEach(n=>{const g=Math.sin(t+n.x*.02)*.5+.5;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,7,0,6.28);cx.fillStyle=color+h2(.1*g);cx.fill();}cx.beginPath();cx.arc(n.x,n.y,n.hub?3:1.5,0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();});
     }
+    if (type==='energy') {
+      cx.fillStyle='rgba(0,0,0,.07)';cx.fillRect(0,0,W,H);
+      pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy+Math.sin(t+p.x*.01)*.45;if(p.x<-10)p.x=W+10;if(p.x>W+10)p.x=-10;if(p.y<0||p.y>H)p.vy*=-1;p.trail.unshift({x:p.x,y:p.y});if(p.trail.length>p.mt)p.trail.pop();p.trail.forEach((pt,i)=>{const al=(1-i/p.mt)*.5;cx.beginPath();cx.arc(pt.x,pt.y,p.r*(1-i/p.mt*.65),0,6.28);cx.fillStyle=color+h2(al);cx.fill();});cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle=color+'bb';cx.fill();});
+    }
+    if (type==='city') {
+      cx.fillStyle='rgba(0,0,0,.06)';cx.fillRect(0,0,W,H);
+      nodes.forEach(n=>{n.p+=.014;});
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d>105)continue;cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color+h2((1-d/105)*.11);cx.lineWidth=.5;cx.stroke();}
+      nodes.forEach(n=>{const g=Math.sin(n.p)*.4+.6;if(n.hub){cx.beginPath();cx.arc(n.x,n.y,8,0,6.28);cx.strokeStyle=color+h2(.1*g);cx.lineWidth=1;cx.stroke();}cx.beginPath();cx.arc(n.x,n.y,n.r*(n.hub?2.5:1),0,6.28);cx.fillStyle=color+(n.hub?'cc':'66');cx.fill();});
+    }
+    if (type==='radar') {
+      const nd=nodes[0];nd.angle+=.024;
+      for(let r=.33;r<=1;r+=.33){cx.beginPath();cx.arc(nd.cx,nd.cy,nd.R*r,0,6.28);cx.strokeStyle=color+h2(.18);cx.lineWidth=.7;cx.stroke();}
+      cx.strokeStyle=color+h2(.12);cx.lineWidth=.5;cx.beginPath();cx.moveTo(nd.cx-nd.R,nd.cy);cx.lineTo(nd.cx+nd.R,nd.cy);cx.stroke();cx.beginPath();cx.moveTo(nd.cx,nd.cy-nd.R);cx.lineTo(nd.cx,nd.cy+nd.R);cx.stroke();
+      for(let i=0;i<60;i++){const a=nd.angle-i*.05,al=Math.max(0,(60-i)/60)*.42;cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.arc(nd.cx,nd.cy,nd.R,a,a+.06);cx.closePath();cx.fillStyle=color+h2(al);cx.fill();}
+      cx.beginPath();cx.moveTo(nd.cx,nd.cy);cx.lineTo(nd.cx+Math.cos(nd.angle)*nd.R,nd.cy+Math.sin(nd.angle)*nd.R);cx.strokeStyle=color+'dd';cx.lineWidth=1.5;cx.stroke();
+      cx.beginPath();cx.arc(nd.cx,nd.cy,4,0,6.28);cx.fillStyle=color;cx.fill();
+    }
     requestAnimationFrame(draw);
   }
   resize(); window.addEventListener('resize', resize); draw();
@@ -276,6 +341,7 @@ async function initPage(opts = {}) {
 
 const LOGO = '<img src="se-logo.png.PNG" alt="Saudi Energy" style="height:32px;width:auto;object-fit:contain;display:block" onerror="this.style.display=\'none\'">';
 
-Object.assign(window, { t2, App, sb, DIVS, PORTALS, setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock, toast, openModal, closeModal, mv, ms, dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt, fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl, initCanvas, loadHealth, buildNav, confirm2, logAct, LOGO, getStoredSession, storeSession, clearSession });
+Object.assign(window, { t2, App, sb, DIVS, PORTALS, setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock, toast, openModal, closeModal, mv, ms, dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt, fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl, initCanvas, loadHealth, buildNav, confirm2, logAct, LOGO, getStoredSession, storeSession, clearSession, LOCALE_MAP });
+
 
 ```

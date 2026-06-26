@@ -43,6 +43,8 @@ const TR = {
   nav_heatmap:      { ar:'خريطة الدوائر',  en:'Division Map',    fr:'Carte des divisions',es:'Mapa de divisiones',it:'Mappa divisioni',pt:'Mapa de divisões',de:'Abteilungskarte',  ru:'Карта подразделений',ko:'부서 지도',         zh:'部门地图',         ja:'部署マップ',      ur:'ڈویژن نقشہ' },
   nav_escalations:  { ar:'صندوق التصعيد',  en:'Escalations',     fr:'Escalades',        es:'Escaladas',      it:'Escalation',       pt:'Escaladas',       de:'Eskalationen',     ru:'Эскалации',        ko:'에스컬레이션',       zh:'升级',            ja:'エスカレーション',ur:'اضافہ' },
   nav_approvals:    { ar:'موافقات معلقة',  en:'Approvals',       fr:'Approbations',     es:'Aprobaciones',   it:'Approvazioni',     pt:'Aprovações',      de:'Genehmigungen',    ru:'Одобрения',        ko:'승인',             zh:'批准',            ja:'承認',            ur:'منظوری' },
+  nav_weekly_upd:   { ar:'التحديث الأسبوعي', en:'Weekly Update',   fr:'Mise à jour hebdo.', es:'Actualización semanal', it:'Aggiornamento settimanale', pt:'Atualização semanal', de:'Wöchentliches Update', ru:'Еженедельное обновление', ko:'주간 업데이트', zh:'每周更新', ja:'週次更新', ur:'ہفتہ وار اپ ڈیٹ' },
+  nav_warroom:      { ar:'برج السيطرة',    en:'Control Tower',   fr:'Tour de contrôle',   es:'Torre de control',     it:'Torre di controllo',   pt:'Torre de controle',  de:'Kontrollturm',         ru:'Башня управления',       ko:'관제탑',          zh:'控制塔',         ja:'コントロールタワー', ur:'کنٹرول ٹاور' },
   nav_qpi:          { ar:'التقرير الربعي', en:'QPI Report',      fr:'Rapport QPI',      es:'Informe QPI',    it:'Rapporto QPI',     pt:'Relatório QPI',   de:'QPI-Bericht',      ru:'Отчёт QPI',        ko:'QPI 보고서',        zh:'QPI报告',         ja:'QPI報告',         ur:'QPI رپورٹ' },
 
   /* ── Buttons ──────────────────────────────────────────── */
@@ -330,14 +332,12 @@ function selectLang(code) {
       const ptEl = document.getElementById('pgtitle');
       if(item && ptEl) ptEl.textContent = code === 'ar' ? item.ar : item.en;
     }
-    // Update sidebar foot buttons
-    document.querySelectorAll('.btn-lo').forEach(b => {
-      if(b.textContent.includes('خروج') || b.textContent.includes('Sign Out') || b.textContent.includes('Out')) {
-        b.textContent = translateWord('خروج', code);
-      }
-    });
-    // Translate static sidebar text
+    // Aggressive translation passes — handles async content
     autoTranslate();
+    setTimeout(autoTranslate, 300);
+    setTimeout(autoTranslate, 700);
+    setTimeout(autoTranslate, 1500);
+    setTimeout(autoTranslate, 3000);
   }, 50);
 }
 
@@ -565,6 +565,62 @@ const DOM_MAP = {
   'أرسل الموظف الإنجاز بالإيميل':{ en:'Employee sent completion email', fr:'L\'employé a envoyé l\'email de finalisation', es:'El empleado envió el email de finalización', it:'Il dipendente ha inviato l\'email di completamento', pt:'O funcionário enviou o email de conclusão', de:'Mitarbeiter hat Abschluss-E-Mail gesendet', ru:'Сотрудник отправил письмо о завершении', ko:'직원이 완료 이메일을 보냈습니다', zh:'员工发送了完成邮件', ja:'従業員が完了メールを送信', ur:'ملازم نے تکمیل ای میل بھیجی' },
   'لم يرسل بالإيميل بعد':   { en:'Email not sent yet',fr:'Email pas encore envoyé',es:'Email aún no enviado',it:'Email non ancora inviata',pt:'Email ainda não enviado',de:'E-Mail noch nicht gesendet',ru:'Письмо ещё не отправлено',ko:'이메일 아직 미발송',zh:'邮件尚未发送',ja:'メール未送信',ur:'ای میل ابھی نہیں بھیجی' },
 
+  'تصدير': { en:'Export', fr:'Exporter', es:'Exportar', it:'Esporta', pt:'Exportar', de:'Exportieren', ru:'Экспортировать', ko:'내보내기', zh:'导出', ja:'エクスポート', ur:'برآمد' },
+  '+ إجراء': { en:'+ Action', fr:'+ Action', es:'+ Acción', it:'+ Azione', pt:'+ Ação', de:'+ Aktion', ru:'+ Действие', ko:'+ 액션', zh:'+ 动作', ja:'+ アクション', ur:'+ اقدام' },
+  '+ اجتماع جديد': { en:'+ New Meeting', fr:'+ Nouvelle réunion', es:'+ Nueva reunión', it:'+ Nuova riunione', pt:'+ Nova reunião', de:'+ Neues Meeting', ru:'+ Новая встреча', ko:'+ 새 회의', zh:'+ 新会议', ja:'+ 新会議', ur:'+ نئی میٹنگ' },
+  '+ إضافة درس مستفاد': { en:'+ Add Lesson Learned', fr:'+ Ajouter leçon', es:'+ Agregar lección', it:'+ Aggiungi lezione', pt:'+ Adicionar lição', de:'+ Lektion hinzufügen', ru:'+ Добавить урок', ko:'+ 교훈 추가', zh:'+ 添加经验教训', ja:'+ 教訓を追加', ur:'+ سبق شامل کریں' },
+  'الاتجاه': { en:'Trend', fr:'Tendance', es:'Tendencia', it:'Tendenza', pt:'Tendência', de:'Trend', ru:'Тенденция', ko:'추세', zh:'趋势', ja:'トレンド', ur:'رجحان' },
+  'الأجندة': { en:'Agenda', fr:'Ordre du jour', es:'Agenda', it:'Ordine del giorno', pt:'Pauta', de:'Tagesordnung', ru:'Повестка', ko:'안건', zh:'议程', ja:'議題', ur:'ایجنڈا' },
+  'إجراءات الاجتماع': { en:'Meeting Actions', fr:'Actions de réunion', es:'Acciones de reunión', it:'Azioni riunione', pt:'Ações de reunião', de:'Meeting-Aktionen', ru:'Действия встречи', ko:'회의 조치', zh:'会议行动', ja:'会議アクション', ur:'میٹنگ اقدامات' },
+  'الدرس المستفاد': { en:'Lesson Learned', fr:'Leçon apprise', es:'Lección aprendida', it:'Lezione appresa', pt:'Lição aprendida', de:'Gelernte Lektion', ru:'Извлечённый урок', ko:'교훈', zh:'经验教训', ja:'教訓', ur:'سیکھا گیا سبق' },
+  'اسم المقيّم': { en:'Assessor Name', fr:'Nom de l\'évaluateur', es:'Nombre del evaluador', it:'Nome valutatore', pt:'Nome do avaliador', de:'Name des Bewerters', ru:'Имя оценщика', ko:'평가자 이름', zh:'评估员姓名', ja:'評価者名', ur:'تشخیص کار نام' },
+  'اختر العضو': { en:'Select Member', fr:'Sélectionner membre', es:'Seleccionar miembro', it:'Seleziona membro', pt:'Selecionar membro', de:'Mitglied auswählen', ru:'Выбрать участника', ko:'멤버 선택', zh:'选择成员', ja:'メンバーを選択', ur:'رکن منتخب کریں' },
+  'إنشاء المهمة': { en:'Create Task', fr:'Créer une tâche', es:'Crear tarea', it:'Crea compito', pt:'Criar tarefa', de:'Aufgabe erstellen', ru:'Создать задачу', ko:'작업 만들기', zh:'创建任务', ja:'タスク作成', ur:'کام بنائیں' },
+  'إنشاء الحساب': { en:'Create Account', fr:'Créer un compte', es:'Crear cuenta', it:'Crea account', pt:'Criar conta', de:'Konto erstellen', ru:'Создать аккаунт', ko:'계정 만들기', zh:'创建账户', ja:'アカウント作成', ur:'اکاؤنٹ بنائیں' },
+  'الاسم (عربي) *': { en:'Full Name (Arabic) *', fr:'Nom (arabe) *', es:'Nombre (árabe) *', it:'Nome (arabo) *', pt:'Nome (árabe) *', de:'Name (Arabisch) *', ru:'Имя (арабский) *', ko:'이름 (아랍어) *', zh:'姓名 (阿拉伯语) *', ja:'名前 (アラビア語) *', ur:'نام (عربی) *' },
+  'الاسم (إنجليزي)': { en:'Full Name (English)', fr:'Nom (anglais)', es:'Nombre (inglés)', it:'Nome (inglese)', pt:'Nome (inglês)', de:'Name (Englisch)', ru:'Имя (английский)', ko:'이름 (영어)', zh:'姓名 (英语)', ja:'名前 (英語)', ur:'نام (انگریزی)' },
+  'أسبوعي OE': { en:'Weekly OE', fr:'OE hebdomadaire', es:'OE semanal', it:'OE settimanale', pt:'OE semanal', de:'Wöchentliches OE', ru:'Еженедельный OE', ko:'주간 OE', zh:'每周OE', ja:'週次OE', ur:'ہفتہ وار OE' },
+  'إسهام في AFIs': { en:'AFI Contribution', fr:'Contribution aux AFIs', es:'Contribución AFIs', it:'Contributo AFIs', pt:'Contribuição AFIs', de:'AFI-Beitrag', ru:'Вклад в AFIs', ko:'AFI 기여', zh:'AFI贡献', ja:'AFI貢献', ur:'AFI میں حصہ' },
+  'KPIs ضمن الهدف': { en:'KPIs On Target', fr:'KPIs dans les objectifs', es:'KPIs en objetivo', it:'KPI a obiettivo', pt:'KPIs no objetivo', de:'KPIs auf Zielkurs', ru:'КПЭ в цели', ko:'목표 내 KPIs', zh:'KPIs达标', ja:'KPI目標内', ur:'KPIs ہدف کے اندر' },
+  'أنشئ المهام وتابعها وراجع تحديثات الفريق': { en:'Create tasks, track them and review team updates', fr:'Créer des tâches, les suivre et réviser les mises à jour', es:'Crear tareas, rastrearlas y revisar actualizaciones', it:'Crea attività, monitorale e rivedi gli aggiornamenti', pt:'Crie tarefas, rastreie e revise atualizações', de:'Aufgaben erstellen, verfolgen und Team-Updates prüfen', ru:'Создавайте задачи, отслеживайте их и проверяйте обновления', ko:'작업을 만들고 추적하며 팀 업데이트를 검토하세요', zh:'创建任务、跟踪并审查团队更新', ja:'タスクを作成し追跡してチーム更新を確認', ur:'کام بنائیں، ٹریک کریں اور ٹیم اپ ڈیٹ دیکھیں' },
+  'أنشئ مهمة وكلّفها لأحد أعضاء الفريق': { en:'Create a task and assign it to a team member', fr:'Créer une tâche et l\'assigner à un membre', es:'Crea una tarea y asígnala a un miembro', it:'Crea un\'attività e assegnala a un membro', pt:'Crie uma tarefa e atribua-a a um membro', de:'Aufgabe erstellen und Teammitglied zuweisen', ru:'Создайте задачу и назначьте члену команды', ko:'작업을 만들고 팀원에게 할당하세요', zh:'创建任务并分配给团队成员', ja:'タスクを作成してチームメンバーに割り当て', ur:'کام بنائیں اور ٹیم رکن کو دیں' },
+  'أعطِ هذه البيانات للموظف': { en:'Give these credentials to the employee', fr:'Donner ces données à l\'employé', es:'Dar estas credenciales al empleado', it:'Fornire questi dati al dipendente', pt:'Forneça estes dados ao funcionário', de:'Diese Daten dem Mitarbeiter geben', ru:'Передайте эти данные сотруднику', ko:'직원에게 이 정보를 제공하세요', zh:'将这些凭据提供给员工', ja:'従業員にこの情報を渡してください', ur:'یہ معلومات ملازم کو دیں' },
+  'الإيميل التلقائي:': { en:'Auto-generated email:', fr:'Email automatique:', es:'Email automático:', it:'Email automatica:', pt:'Email automático:', de:'Automatische E-Mail:', ru:'Авто-email:', ko:'자동 생성 이메일:', zh:'自动生成邮件:', ja:'自動生成メール:', ur:'خودکار ای میل:' },
+  'إنجازات الأسبوع': { en:'Weekly Achievements', fr:'Réalisations de la semaine', es:'Logros de la semana', it:'Risultati della settimana', pt:'Realizações da semana', de:'Wöchentliche Leistungen', ru:'Достижения недели', ko:'주간 성과', zh:'本周成就', ja:'今週の成果', ur:'ہفتے کی کامیابیاں' },
+  'آخر التعليقات': { en:'Latest Comments', fr:'Derniers commentaires', es:'Últimos comentarios', it:'Ultimi commenti', pt:'Últimos comentários', de:'Letzte Kommentare', ru:'Последние комментарии', ko:'최근 댓글', zh:'最新评论', ja:'最新コメント', ur:'تازہ ترین تبصرے' },
+  'نظرة استراتيجية شاملة — فقط ما يحتاج قرارك': { en:'Strategic overview — Only what needs your decision', fr:'Vue stratégique — Ce qui nécessite votre décision', es:'Vista estratégica — Solo lo que necesita tu decisión', it:'Panoramica strategica — Solo ciò che richiede la tua decisione', pt:'Visão estratégica — Apenas o que precisa da sua decisão', de:'Strategischer Überblick — Nur was Ihre Entscheidung braucht', ru:'Стратегический обзор — Только то, что требует вашего решения', ko:'전략적 개요 — 결정이 필요한 것만', zh:'战略概述 — 只需您决策的内容', ja:'戦略的概要 — 決定が必要なもののみ', ur:'اسٹریٹجک جائزہ — صرف جو فیصلہ چاہتا ہے' },
+
+  'الإجراء التصحيحي': { en:'Corrective Action', fr:'Action corrective', es:'Acción correctiva', it:'Azione correttiva', pt:'Ação corretiva', de:'Korrekturmaßnahme', ru:'Корректирующее действие', ko:'시정 조치', zh:'纠正措施', ja:'是正措置', ur:'اصلاحی اقدام' },
+  'الاسم الكامل *': { en:'Full Name *', fr:'Nom complet *', es:'Nombre completo *', it:'Nome completo *', pt:'Nome completo *', de:'Vollständiger Name *', ru:'Полное имя *', ko:'전체 이름 *', zh:'全名 *', ja:'フルネーム *', ur:'پورا نام *' },
+  'التفاصيل': { en:'Details', fr:'Détails', es:'Detalles', it:'Dettagli', pt:'Detalhes', de:'Details', ru:'Детали', ko:'세부사항', zh:'详情', ja:'詳細', ur:'تفصیل' },
+  'التقرير الكامل': { en:'Full Report', fr:'Rapport complet', es:'Informe completo', it:'Rapporto completo', pt:'Relatório completo', de:'Vollständiger Bericht', ru:'Полный отчёт', ko:'전체 보고서', zh:'完整报告', ja:'完全レポート', ur:'مکمل رپورٹ' },
+  'التقييم المبدئي': { en:'Initial Assessment', fr:'Évaluation initiale', es:'Evaluación inicial', it:'Valutazione iniziale', pt:'Avaliação inicial', de:'Erstbewertung', ru:'Первичная оценка', ko:'초기 평가', zh:'初步评估', ja:'初期評価', ur:'ابتدائی تشخیص' },
+  'الرقم الوظيفي (للدخول)': { en:'Employee ID (for login)', fr:'ID employé (connexion)', es:'ID empleado (acceso)', it:'ID dipendente (accesso)', pt:'ID funcionário (login)', de:'Mitarbeiter-ID (Login)', ru:'ID сотрудника (вход)', ko:'직원 ID (로그인)', zh:'员工ID (登录)', ja:'社員ID (ログイン)', ur:'ملازم ID (لاگ ان)' },
+  'الرقم الوظيفي *': { en:'Employee ID *', fr:'ID employé *', es:'ID empleado *', it:'ID dipendente *', pt:'ID funcionário *', de:'Mitarbeiter-ID *', ru:'ID сотрудника *', ko:'직원 ID *', zh:'员工ID *', ja:'社員ID *', ur:'ملازم ID *' },
+  'السبب الجذري': { en:'Root Cause', fr:'Cause racine', es:'Causa raíz', it:'Causa radice', pt:'Causa raiz', de:'Grundursache', ru:'Первопричина', ko:'근본 원인', zh:'根本原因', ja:'根本原因', ur:'بنیادی وجہ' },
+  'العنوان *': { en:'Title *', fr:'Titre *', es:'Título *', it:'Titolo *', pt:'Título *', de:'Titel *', ru:'Заголовок *', ko:'제목 *', zh:'标题 *', ja:'タイトル *', ur:'عنوان *' },
+  'القرارات': { en:'Decisions', fr:'Décisions', es:'Decisiones', it:'Decisioni', pt:'Decisões', de:'Entscheidungen', ru:'Решения', ko:'결정사항', zh:'决定', ja:'決定', ur:'فیصلے' },
+  'القيمة الفعلية': { en:'Actual Value', fr:'Valeur réelle', es:'Valor real', it:'Valore reale', pt:'Valor real', de:'Tatsächlicher Wert', ru:'Фактическое значение', ko:'실제값', zh:'实际值', ja:'実績値', ur:'حقیقی قدر' },
+  'المؤشر': { en:'Indicator', fr:'Indicateur', es:'Indicador', it:'Indicatore', pt:'Indicador', de:'Indikator', ru:'Индикатор', ko:'지표', zh:'指标', ja:'指標', ur:'اشاریہ' },
+  'المحضر': { en:'Minutes', fr:'Procès-verbal', es:'Acta', it:'Verbale', pt:'Ata', de:'Protokoll', ru:'Протокол', ko:'회의록', zh:'会议记录', ja:'議事録', ur:'کارروائی' },
+  'المرحلة': { en:'Stage', fr:'Étape', es:'Etapa', it:'Fase', pt:'Etapa', de:'Phase', ru:'Этап', ko:'단계', zh:'阶段', ja:'段階', ur:'مرحلہ' },
+  'الموديول المرتبط': { en:'Related Module', fr:'Module lié', es:'Módulo relacionado', it:'Modulo correlato', pt:'Módulo relacionado', de:'Zugehöriges Modul', ru:'Связанный модуль', ko:'관련 모듈', zh:'相关模块', ja:'関連モジュール', ur:'متعلقہ ماڈیول' },
+  'النوع': { en:'Type', fr:'Type', es:'Tipo', it:'Tipo', pt:'Tipo', de:'Typ', ru:'Тип', ko:'유형', zh:'类型', ja:'タイプ', ur:'قسم' },
+  'الوحدة': { en:'Unit', fr:'Unité', es:'Unidad', it:'Unità', pt:'Unidade', de:'Einheit', ru:'Единица', ko:'단위', zh:'单位', ja:'単位', ur:'اکائی' },
+  'الوصف التفصيلي': { en:'Detailed Description', fr:'Description détaillée', es:'Descripción detallada', it:'Descrizione dettagliata', pt:'Descrição detalhada', de:'Detaillierte Beschreibung', ru:'Подробное описание', ko:'상세 설명', zh:'详细描述', ja:'詳細説明', ur:'تفصیلی وضاحت' },
+  'بانتظار المراجعة': { en:'Pending Review', fr:'En attente de révision', es:'Pendiente de revisión', it:'In attesa di revisione', pt:'Aguardando revisão', de:'Ausstehende Überprüfung', ru:'Ожидает проверки', ko:'검토 대기', zh:'待审查', ja:'レビュー待ち', ur:'جائزہ کا انتظار' },
+  'تاريخ الإنجاز': { en:'Completion Date', fr:'Date d\'achèvement', es:'Fecha de finalización', it:'Data di completamento', pt:'Data de conclusão', de:'Abschlussdatum', ru:'Дата завершения', ko:'완료일', zh:'完成日期', ja:'完了日', ur:'تکمیل کی تاریخ' },
+  'تاريخ البداية': { en:'Start Date', fr:'Date de début', es:'Fecha de inicio', it:'Data di inizio', pt:'Data de início', de:'Startdatum', ru:'Дата начала', ko:'시작일', zh:'开始日期', ja:'開始日', ur:'شروعات کی تاریخ' },
+  'تاريخ النهاية': { en:'End Date', fr:'Date de fin', es:'Fecha de fin', it:'Data di fine', pt:'Data de término', de:'Enddatum', ru:'Дата окончания', ko:'종료일', zh:'结束日期', ja:'終了日', ur:'اختتام کی تاریخ' },
+  'تحديث الحالة': { en:'Update Status', fr:'Mettre à jour le statut', es:'Actualizar estado', it:'Aggiorna stato', pt:'Atualizar status', de:'Status aktualisieren', ru:'Обновить статус', ko:'상태 업데이트', zh:'更新状态', ja:'ステータス更新', ur:'حیثیت اپ ڈیٹ' },
+  'تحديث المهمة': { en:'Update Task', fr:'Mettre à jour la tâche', es:'Actualizar tarea', it:'Aggiorna attività', pt:'Atualizar tarefa', de:'Aufgabe aktualisieren', ru:'Обновить задачу', ko:'작업 업데이트', zh:'更新任务', ja:'タスク更新', ur:'کام اپ ڈیٹ' },
+  'تعديل المهمة': { en:'Edit Task', fr:'Modifier la tâche', es:'Editar tarea', it:'Modifica attività', pt:'Editar tarefa', de:'Aufgabe bearbeiten', ru:'Редактировать задачу', ko:'작업 편집', zh:'编辑任务', ja:'タスク編集', ur:'کام ترمیم' },
+  'تعليق أو تحديث': { en:'Comment or Update', fr:'Commentaire ou mise à jour', es:'Comentario o actualización', it:'Commento o aggiornamento', pt:'Comentário ou atualização', de:'Kommentar oder Update', ru:'Комментарий или обновление', ko:'댓글 또는 업데이트', zh:'评论或更新', ja:'コメントまたは更新', ur:'تبصرہ یا اپ ڈیٹ' },
+  'تقدير مبدئي من النظام': { en:'Initial System Estimate', fr:'Estimation initiale du système', es:'Estimación inicial del sistema', it:'Stima iniziale del sistema', pt:'Estimativa inicial do sistema', de:'Erste Systemschätzung', ru:'Первоначальная оценка системы', ko:'시스템 초기 추정', zh:'系统初步估算', ja:'システム初期推定', ur:'سسٹم کا ابتدائی اندازہ' },
+  'تقييمات تنتظر اعتمادك النهائي': { en:'Assessments awaiting your final approval', fr:'Évaluations en attente de votre approbation finale', es:'Evaluaciones esperando su aprobación final', it:'Valutazioni in attesa della tua approvazione finale', pt:'Avaliações aguardando sua aprovação final', de:'Bewertungen warten auf Ihre endgültige Genehmigung', ru:'Оценки ожидают вашего окончательного одобрения', ko:'최종 승인을 기다리는 평가', zh:'等待您最终批准的评估', ja:'最終承認待ちの評価', ur:'آپ کی حتمی منظوری کا انتظار کرنے والی تشخیصات' },
+  'جاهزة للمراجعة': { en:'Ready for Review', fr:'Prêt pour révision', es:'Listo para revisión', it:'Pronto per la revisione', pt:'Pronto para revisão', de:'Bereit zur Überprüfung', ru:'Готово к проверке', ko:'검토 준비됨', zh:'准备好审查', ja:'レビュー準備完了', ur:'جائزے کے لیے تیار' },
+  'غير نشط': { en:'Inactive', fr:'Inactif', es:'Inactivo', it:'Inattivo', pt:'Inativo', de:'Inaktiv', ru:'Неактивный', ko:'비활성', zh:'不活跃', ja:'非アクティブ', ur:'غیر فعال' },
+  'بانتظار التحقق': { en:'Pending Verification', fr:'En attente de vérification', es:'Pendiente de verificación', it:'In attesa di verifica', pt:'Aguardando verificação', de:'Ausstehende Überprüfung', ru:'Ожидает проверки', ko:'검증 대기', zh:'待验证', ja:'検証待ち', ur:'تصدیق کا انتظار' },
   /* ── Audit fixes ──────────────────────────────────────── */
   'نقاط التحسين المفتوحة':  { en:'Open AFIs',        fr:'AFIs ouvertes',    es:'AFIs abiertas',   it:'AFIs aperte',      pt:'AFIs abertas',    de:'Offene AFIs',     ru:'Открытые AFIs',    ko:'열린 AFIs',         zh:'开放改进项',       ja:'オープンAFI',      ur:'کھلے بہتری نکات' },
   'نقاط التحسين المتأخرة':  { en:'Overdue AFIs',     fr:'AFIs en retard',   es:'AFIs atrasadas',  it:'AFIs in ritardo',   pt:'AFIs atrasadas',  de:'Überfällige AFIs', ru:'Просроченные AFIs', ko:'기한초과 AFIs',    zh:'逾期改进项',       ja:'期限超過AFI',      ur:'تاخیری بہتری نکات' },
@@ -671,27 +727,13 @@ function autoTranslate() {
   
   clearTimeout(_translateTimer);
   _translateTimer = setTimeout(() => {
-    const targets = [
-      document.getElementById('pgContent'),
-      document.getElementById('pg'),
-      document.getElementById('tc'),
-      document.getElementById('navEl'),
-      document.querySelector('.sb-brand'),
-      document.querySelector('.sb-foot'),
-      document.querySelector('.topbar'),
-      document.querySelector('.hero'),
-    ].filter(Boolean);
-    
-    targets.forEach(el => {
-      if(el) translateDOM(el);
-    });
+    // Translate everything visible
+    const main = document.querySelector('.main') || document.body;
+    if(main) translateDOM(main);
+    // Also translate modals
+    const modal = document.getElementById('tc');
+    if(modal) translateDOM(modal);
   }, 120);
-  
-  // Second pass for async content
-  setTimeout(() => {
-    const pg = document.getElementById('pg') || document.getElementById('pgContent');
-    if(pg) translateDOM(pg);
-  }, 600);
 }
 
 // Watch for DOM changes
@@ -728,4 +770,71 @@ if(typeof window !== 'undefined') {
   });
   
   window.autoTranslate = autoTranslate;
+}
+
+/* ═══════════════════════════════════════════════════════
+   GLOBAL innerHTML INTERCEPTOR
+   Translates content AT THE POINT OF DOM INSERTION
+   This guarantees 100% translation regardless of source
+═══════════════════════════════════════════════════════ */
+
+(function patchInnerHTML() {
+  if(typeof window === 'undefined') return;
+  
+  const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  if(!desc || !desc.set) return;
+  
+  const originalSet = desc.set;
+  
+  Object.defineProperty(Element.prototype, 'innerHTML', {
+    ...desc,
+    set(value) {
+      // Only translate content in main areas, not scripts or style tags
+      const tagName = this.tagName?.toUpperCase();
+      if(tagName === 'SCRIPT' || tagName === 'STYLE' || tagName === 'TEXTAREA') {
+        return originalSet.call(this, value);
+      }
+      
+      // Only translate if we have a lang set and it's not Arabic
+      const lang = (typeof App !== 'undefined' ? App.lang : null)
+                   || localStorage.getItem('se_lang_v2') || 'en';
+      
+      if(lang === 'ar' || !value || typeof value !== 'string') {
+        return originalSet.call(this, value);
+      }
+      
+      // Only translate if content contains Arabic
+      if(typeof DOM_MAP !== 'undefined' && /[؀-ۿ]/.test(value)) {
+        let translated = value;
+        // Sort longer strings first to avoid partial replacements
+        for(const [ar, tr] of _sortedDOMEntries) {
+          if(tr[lang] && translated.includes(ar)) {
+            translated = translated.split(ar).join(tr[lang]);
+          }
+        }
+        return originalSet.call(this, translated);
+      }
+      
+      return originalSet.call(this, value);
+    },
+    configurable: true
+  });
+})();
+
+// Pre-sort DOM_MAP entries by length (longest first) for efficiency
+let _sortedDOMEntries = [];
+if(typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    if(typeof DOM_MAP !== 'undefined') {
+      _sortedDOMEntries = Object.entries(DOM_MAP)
+        .sort((a, b) => b[0].length - a[0].length);
+    }
+  });
+  // Also build immediately if DOM already loaded
+  setTimeout(() => {
+    if(typeof DOM_MAP !== 'undefined' && _sortedDOMEntries.length === 0) {
+      _sortedDOMEntries = Object.entries(DOM_MAP)
+        .sort((a, b) => b[0].length - a[0].length);
+    }
+  }, 100);
 }

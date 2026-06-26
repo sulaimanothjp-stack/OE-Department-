@@ -65,22 +65,22 @@ const BL = 'technical_alerts';
 const DC = '#EF4444';
 const DR = '239,68,68';
 const NAV = [
-  {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚠️', fn:"go('dash')"},
-  {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
+  {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚠️', fn:"go('dash')", tlKey:'nav_dashboard'},
+  {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')", tlKey:'page_my_day'},
   {g:'المهام',ge:'TASKS'},
-  {k:'tasks',  ar:'المهام',               en:'المهام',         ic:'✓',  fn:"go('tasks')"},
-  {k:'ntask',  ar:'مهمة جديدة',           en:'مهمة جديدة',      ic:'➕', fn:"go('ntask')"},
+  {k:'tasks',  ar:'المهام',               en:'المهام',         ic:'✓',  fn:"go('tasks')", tlKey:'nav_tasks'},
+  {k:'ntask',  ar:'مهمة جديدة',           en:'مهمة جديدة',      ic:'➕', fn:"go('ntask')", tlKey:'page_new_task'},
   {g:'التحسين',ge:'IMPROVEMENT'},
-  {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
+  {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')", tlKey:'nav_afis'},
   {k:'kpis',   ar:t2('مؤشرات الأداء','KPIs'),        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
-  {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
+  {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')", tlKey:'nav_assessments'},
   {g:'الفريق',ge:'TEAM'},
-  {k:'team',   ar:'الفريق',               en:'الفريق',          ic:'👥', fn:"go('team')"},
-  {k:'reviews', ar:'مراجعة الإنجازات',    en:'Review Completions', ic:'✅', fn:"go('reviews')"},
-  {k:'tickets',ar:'التذاكر',              en:'التذاكر',       ic:'🎫', fn:"go('tickets')"},
+  {k:'team',   ar:'الفريق',               en:'الفريق',          ic:'👥', fn:"go('team')", tlKey:'nav_team'},
+  {k:'reviews', ar:'مراجعة الإنجازات',    en:'Review Completions', ic:'✅', fn:"go('reviews')", tlKey:'nav_reviews'},
+  {k:'tickets',ar:'التذاكر',              en:'التذاكر',       ic:'🎫', fn:"go('tickets')", tlKey:'nav_tickets'},
   {g:'متابعة',ge:'TRACKING'},
-  {k:'alerts', ar:'التنبيهات',            en:'التنبيهات',        ic:'⚠️', fn:"go('alerts')"},
-  {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
+  {k:'alerts', ar:'التنبيهات',            en:'التنبيهات',        ic:'⚠️', fn:"go('alerts')", tlKey:'nav_alerts'},
+  {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')", tlKey:'nav_daily_update'},
 ];
 const PAGES = {};
 function reg(k,fn){PAGES[k]=fn;}

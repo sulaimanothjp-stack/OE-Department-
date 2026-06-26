@@ -65,23 +65,23 @@ const BL = 'governance';
 const DC = '#7C3AED';
 const DR = '124,58,237';
 const NAV = [
-  {k:'tower',  ar:'برج السيطرة',          en:'Control Tower', ic:'🏛️', fn:"go('tower')"},
-  {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚖️', fn:"go('dash')"},
-  {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
+  {k:'tower',  ar:'برج السيطرة',       en:'Control Tower',      ic:'🏛️', tlKey:'nav_warroom',      fn:"go('tower')"},
+  {k:'dash',   ar:'لوحة المتابعة',    en:'Dashboard',           ic:'⚖️', tlKey:'nav_dashboard',    fn:"go('dash')"},
+  {k:'daily',  ar:'يوم العمل',         en:'My Day',              ic:'☀️', tlKey:'page_my_day',      fn:"go('daily')"},
   {g:'المهام',ge:'TASKS'},
-  {k:'tasks',  ar:'المهام',               en:'المهام',         ic:'✓',  fn:"go('tasks')"},
-  {k:'ntask',  ar:'مهمة جديدة',           en:'مهمة جديدة',      ic:'➕', fn:"go('ntask')"},
+  {k:'tasks',  ar:'المهام',            en:'Tasks',               ic:'✓',  tlKey:'nav_tasks',        fn:"go('tasks')"},
+  {k:'ntask',  ar:'مهمة جديدة',        en:'New Task',            ic:'➕', tlKey:'page_new_task',    fn:"go('ntask')"},
   {g:'التحسين',ge:'IMPROVEMENT'},
-  {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
-  {k:'kpis',   ar:t2('مؤشرات الأداء','KPIs'),        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
-  {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
+  {k:'afis',   ar:'نقاط التحسين',      en:'AFIs',                ic:'▲',  tlKey:'nav_afis',         fn:"go('afis')"},
+  {k:'kpis',   ar:'مؤشرات الأداء',     en:'KPIs',                ic:'📈', tlKey:'nav_kpis',         fn:"go('kpis')"},
+  {k:'assess', ar:'التقييمات',         en:'Assessments',         ic:'▤',  tlKey:'nav_assessments',  fn:"go('assess')"},
   {g:'الفريق',ge:'TEAM'},
-  {k:'team',   ar:'الفريق',               en:'الفريق',          ic:'👥', fn:"go('team')"},
-  {k:'reviews', ar:'مراجعة الإنجازات',    en:'Review Completions', ic:'✅', fn:"go('reviews')"},
-  {k:'tickets',ar:'التذاكر',              en:'التذاكر',       ic:'🎫', fn:"go('tickets')"},
+  {k:'team',   ar:'الفريق',            en:'Team',                ic:'👥', tlKey:'nav_team',         fn:"go('team')"},
+  {k:'reviews',ar:'مراجعة الإنجازات', en:'Review Completions',  ic:'✅', tlKey:'nav_reviews',      fn:"go('reviews')"},
+  {k:'tickets',ar:'التذاكر',           en:'Tickets',             ic:'🎫', tlKey:'nav_tickets',      fn:"go('tickets')"},
   {g:'متابعة',ge:'TRACKING'},
-  {k:'alerts', ar:'التنبيهات',            en:'التنبيهات',        ic:'⚠️', fn:"go('alerts')"},
-  {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
+  {k:'alerts', ar:'التنبيهات',         en:'Alerts',              ic:'⚠️', tlKey:'nav_alerts',       fn:"go('alerts')"},
+  {k:'weekly', ar:'التحديث الأسبوعي', en:'Weekly Update',       ic:'📊', tlKey:'nav_weekly_upd',   fn:"go('weekly')"},
 ];
 const PAGES = {};
 function reg(k,fn){PAGES[k]=fn;}
@@ -162,20 +162,20 @@ reg('dash',async el=>{
       dbList('kpis',{eq:{business_line:BL},lim:4}),
     ]);
 
-    document.getElementById('hks').innerHTML=[
+    const _hks=document.getElementById('hks');if(_hks)_hks.innerHTML=[
       {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
       {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
       {v:asmO,l:'ASSESS',cl:''},
     ].map(k=>`<div class="hk ${k.cl}"><div class="hv">${k.v}</div><div class="hl">${k.l}</div></div>`).join('');
 
-    document.getElementById('s4').innerHTML=[
+    const _s4=document.getElementById('s4');if(_s4)_s4.innerHTML=[
       {sl:t2('AFIs مفتوحة','Open AFIs'),sv:afiO,cl:afiO>5?'red':''},
       {sl:t2('AFIs متأخرة','Overdue AFIs'),sv:afiL,cl:afiL?'red':'grn'},
       {sl:'تنبيهات فنية',sv:alrO,cl:alrO?'ylw':'grn'},
       {sl:t2('مهام نشطة','Active Tasks'),sv:tskO,cl:''},
     ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
 
-    document.getElementById('afiPnl').innerHTML=afis.data.length
+    const _ap=document.getElementById('afiPnl');if(_ap)_ap.innerHTML=afis.data.length
       ?afis.data.map(a=>`<div class="dr ptr" onclick="go('afis')">
           <div class="dd" style="background:${a.status==='overdue'?'var(--danger)':a.priority==='critical'?'var(--warning)':DC}"></div>
           <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
@@ -184,7 +184,7 @@ reg('dash',async el=>{
         </div>`).join('')
       :emptyEl(t2('لا AFIs مفتوحة','No Open AFIs'));
 
-    document.getElementById('alrPnl').innerHTML=alrs.data.length
+    const _alp=document.getElementById('alrPnl');if(_alp)_alp.innerHTML=alrs.data.length
       ?alrs.data.map(a=>`<div class="dr">
           <div class="dd" style="background:${a.severity==='critical'?'var(--danger)':'var(--warning)'}"></div>
           <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>
@@ -192,7 +192,7 @@ reg('dash',async el=>{
         </div>`).join('')
       :`<div style="padding:12px;text-align:center;color:var(--success);font-size:13px">✓ لا تنبيهات</div>`;
 
-    document.getElementById('asmPnl').innerHTML=asms.data.length
+    const _asp=document.getElementById('asmPnl');if(_asp)_asp.innerHTML=asms.data.length
       ?asms.data.map(a=>`<div class="dr"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>${stBadge(a.stage)}<div style="min-width:60px">${progBar(a.progress||0)}</div></div>`).join('')
       :emptyEl(t2('لا تقييمات','No assessments'));
 
@@ -208,7 +208,7 @@ reg('dash',async el=>{
         </div>`).join('')
       :emptyEl(t2('لا مهام نشطة ✓','No Active Tasks ✓'));
 
-    document.getElementById('kpiPnl').innerHTML=kpis.data.length
+    const _kp=document.getElementById('kpiPnl');if(_kp)_kp.innerHTML=kpis.data.length
       ?kpis.data.map(k=>{
           const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
           const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';

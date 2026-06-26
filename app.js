@@ -1,3 +1,4 @@
+```javascript
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
    Saudi Energy · OE Command Center · app.js v4.1

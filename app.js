@@ -1,17 +1,21 @@
 'use strict';
 /* ═══════════════════════════════════════════════════════════════
-   Saudi Energy · OE Command Center · app.js v5
-   Pure Fetch — Fully Restored 12-Language Support & Mobile Fixes
+   Saudi Energy · OE Command Center · app.js v6
+   Pure Fetch — Fully Restored 12-Language Support & Safe Storage
 ═══════════════════════════════════════════════════════════════ */
 
 const SB_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
 const SB_SESS_KEY = 'sb-ekywcrlcjgbjtwnjozov-auth-token';
 
-/* ── Session helpers ──────────────────────────────────────────── */
+/* ── Safe Storage helpers ─────────────────────────────────────── */
+function lsGet(k, def) { try { return localStorage.getItem(k) || def; } catch (e) { return def; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function lsRem(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
 function getStoredSession() {
   try {
-    const direct = localStorage.getItem(SB_SESS_KEY);
+    const direct = lsGet(SB_SESS_KEY);
     if (direct) { const v = JSON.parse(direct); if (v?.access_token) return v; }
     for (const k of Object.keys(localStorage)) {
       if (!k.includes('auth-token') && !k.includes('supabase')) continue;
@@ -24,8 +28,12 @@ function getStoredSession() {
   } catch (e) {}
   return null;
 }
-function storeSession(s) { try { localStorage.setItem(SB_SESS_KEY, JSON.stringify(s)); } catch (e) {} }
-function clearSession() { Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-')).forEach(k => localStorage.removeItem(k)); }
+function storeSession(s) { lsSet(SB_SESS_KEY, JSON.stringify(s)); }
+function clearSession() {
+  try {
+    Object.keys(localStorage).filter(k => k.includes('supabase') || k.includes('sb-')).forEach(k => localStorage.removeItem(k));
+  } catch(e) {}
+}
 function isSessionValid(sess) {
   if (!sess?.access_token) return false;
   try { const p = JSON.parse(atob(sess.access_token.split('.')[1])); return !p.exp || p.exp * 1000 > Date.now(); } catch (e) { return true; }
@@ -84,13 +92,14 @@ const sb = {
     }
   }
 };
+if(typeof window !== 'undefined') window.sb = sb; // Expose instantly for index.html
 
 /* ── App State & i18n ─────────────────────────────────────────── */
 const LANG_VER = '3';
-if(localStorage.getItem('se_lang_ver') !== LANG_VER) { localStorage.removeItem('se_lang_v2'); localStorage.setItem('se_lang_ver', LANG_VER); }
+if(lsGet('se_lang_ver') !== LANG_VER) { lsRem('se_lang_v2'); lsSet('se_lang_ver', LANG_VER); }
 
-// DEFAULT to 'en' as requested
-const App = { user: null, profile: null, lang: localStorage.getItem('se_lang_v2') || 'en' };
+// DEFAULT to 'en'
+const App = { user: null, profile: null, lang: lsGet('se_lang_v2', 'en') };
 
 const LOCALE_MAP = { ar:'ar-SA', en:'en-GB', fr:'fr-FR', es:'es-ES', it:'it-IT', pt:'pt-BR', de:'de-DE', ru:'ru-RU', ko:'ko-KR', zh:'zh-CN', ja:'ja-JP', ur:'ur-PK' };
 
@@ -107,8 +116,10 @@ const t2 = (ar, en) => {
   return en; // Fallback
 };
 
+const tl = k => (typeof TR !== 'undefined' && TR[k]) ? (TR[k][App.lang] || TR[k]['en'] || k) : k;
+
 function setLang(l) {
-  App.lang = l; localStorage.setItem('se_lang_v2', l);
+  App.lang = l; lsSet('se_lang_v2', l);
   document.documentElement.lang = l;
   document.documentElement.dir = (typeof LANGS !== 'undefined' && LANGS[l]) ? LANGS[l].dir : (l==='ar'||l==='ur'?'rtl':'ltr');
 }
@@ -217,28 +228,6 @@ function closeModal() { document.getElementById('M')?.remove(); }
 const mv = id => document.getElementById(id)?.value?.trim() || '';
 const ms = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
 
-async function dbList(tbl, opts = {}) {
-  let q = sb.from(tbl).select(opts.sel || '*');
-  if (opts.eq) Object.entries(opts.eq).forEach(([k, v]) => q = q.eq(k, v));
-  if (opts.neq) Object.entries(opts.neq).forEach(([k, v]) => q = q.neq(k, v));
-  if (opts.in) Object.entries(opts.in).forEach(([k, v]) => q = q.in(k, v));
-  if (opts.ilike) q = q.ilike(opts.ilike[0], `%${opts.ilike[1]}%`);
-  q = q.order(opts.ord || 'created_at', { ascending: opts.asc ?? false });
-  if (opts.lim) q = q.limit(opts.lim);
-  const { data, error } = await q; if (error) throw error; return { data: data || [] };
-}
-async function dbGet(tbl, id) { const { data, error } = await sb.from(tbl).select('*').eq('id', id).single(); if (error) throw error; return data; }
-async function dbIns(tbl, row) { const { data, error } = await sb.from(tbl).insert(row).select('*'); if (error) throw error; return Array.isArray(data) ? data[0] : data; }
-async function dbUpd(tbl, id, p) { const { data, error } = await sb.from(tbl).update(p).eq('id', id); if (error) throw error; return Array.isArray(data) ? data[0] : data; }
-async function dbDel(tbl, id) { const { error } = await sb.from(tbl).delete().eq('id', id); if (error) throw error; }
-async function dbCnt(tbl, opts = {}) {
-  let q = sb.from(tbl).select('id', { count: 'exact', head: true });
-  if (opts.eq) Object.entries(opts.eq).forEach(([k, v]) => q = q.eq(k, v));
-  if (opts.neq) Object.entries(opts.neq).forEach(([k, v]) => q = q.neq(k, v));
-  if (opts.lim) q = q.limit(1);
-  const { count } = await q; return count || 0;
-}
-
 const fmtD = d => d ? new Date(d).toLocaleDateString(LOCALE_MAP[App.lang]||'en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const fmtN = n => n != null ? Number(n).toLocaleString(LOCALE_MAP[App.lang]||'en') : '—';
 const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -277,7 +266,7 @@ function confirm2(msg, fn) {
 }
 
 async function logAct(action, etype, eid, details = {}) {
-  try { if (App.profile) await dbIns('activity_log', { user_id: App.profile.id, action, entity_type: etype, entity_id: eid, details }); } catch (e) {}
+  try { if (App.profile) await sb.from('activity_log').insert({ user_id: App.profile.id, action, entity_type: etype, entity_id: eid, details }); } catch (e) {}
 }
 
 async function loadHealth() {
@@ -340,7 +329,15 @@ async function initPage(opts = {}) {
 
 const LOGO = '<img src="se-logo.png.PNG" alt="Saudi Energy" style="height:32px;width:auto;object-fit:contain;display:block" onerror="this.style.display=\'none\'">';
 
-Object.assign(window, { t2, App, sb, DIVS, PORTALS, setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock, toast, openModal, closeModal, mv, ms, dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt, fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl, initCanvas, loadHealth, buildNav, confirm2, logAct, LOGO, getStoredSession, storeSession, clearSession, LOCALE_MAP });
+// Expose QB helpers too
+const dbList = async (t, o) => await sb.from(t).select(o.sel||'*', o.cnt?{count:true}:{}).then(r=>r);
+const dbGet = async (t, id) => { const r=await sb.from(t).select('*').eq('id',id).single(); return r.data; };
+const dbIns = async (t, row) => { const r=await sb.from(t).insert(row); return Array.isArray(r.data)?r.data[0]:r.data; };
+const dbUpd = async (t, id, p) => { const r=await sb.from(t).update(p).eq('id',id); return Array.isArray(r.data)?r.data[0]:r.data; };
+const dbDel = async (t, id) => { await sb.from(t).delete().eq('id',id); };
+const dbCnt = async (t, o) => { let q=sb.from(t).select('id',{count:true,head:true}); if(o.eq)Object.entries(o.eq).forEach(([k,v])=>q=q.eq(k,v)); if(o.neq)Object.entries(o.neq).forEach(([k,v])=>q=q.neq(k,v)); const r=await q; return r.count||0; };
+
+Object.assign(window, { t2, App, sb, DIVS, PORTALS, setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock, toast, openModal, closeModal, mv, ms, dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt, fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl, initCanvas, loadHealth, buildNav, confirm2, logAct, LOGO, getStoredSession, storeSession, clearSession, LOCALE_MAP, tl });
 
 
 ```

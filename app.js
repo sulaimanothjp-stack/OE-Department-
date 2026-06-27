@@ -160,7 +160,46 @@ class QB {
   then(ok,err){ return this._run().then(ok,err); }
   catch(fn)   { return this._run().catch(fn); }
 }
-const sb = { from: t => new QB(t) };
+const sb = {
+  from: t => new QB(t),
+  auth: {
+    signInWithPassword: async ({ email, password }) => {
+      try {
+        const res = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+          method: 'POST', headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) return { data: null, error: { message: data.error_description || data.error || 'Login failed' } };
+        storeSession(data);
+        return { data: { session: data, user: data.user }, error: null };
+      } catch(e) { return { data: null, error: { message: e.message } }; }
+    },
+    signOut: async () => {
+      const sess = getStoredSession();
+      try { await fetch(`${SB_URL}/auth/v1/logout`, { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${sess?.access_token||''}` } }); } catch(e) {}
+      clearSession();
+      return { error: null };
+    },
+    getSession: async () => {
+      const sess = getStoredSession();
+      if (!sess || !isSessionValid(sess)) return { data: { session: null }, error: null };
+      return { data: { session: sess }, error: null };
+    },
+    updateUser: async (updates) => {
+      const sess = getStoredSession();
+      try {
+        const res = await fetch(`${SB_URL}/auth/v1/user`, {
+          method: 'PUT', headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${sess?.access_token||''}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+        const data = await res.json();
+        if (!res.ok) return { data: null, error: data };
+        return { data: { user: data }, error: null };
+      } catch(e) { return { data: null, error: { message: e.message } }; }
+    }
+  }
+};
 
 /* ── Auth & Init ──────────────────────────────────────────────── */
 async function initAuth(roles) {
@@ -402,6 +441,10 @@ const T = {
 };
 
 /* ── Export ───────────────────────────────────────────────────── */
+// Export SB constants so portal inline scripts can access them
+window.SB_URL = SB_URL;
+window.SB_KEY = SB_KEY;
+
 Object.assign(window, {
   t2, tl, App, sb, DIVS, PORTALS, ROLE_AR, ROLE_EN, LOCALE_MAP, T,
   setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock,

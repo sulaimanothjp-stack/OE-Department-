@@ -35,7 +35,46 @@ body{margin:0;overflow:hidden;display:flex;align-items:center;justify-content:ce
 <script src="app.js"></script>
 <script>
 'use strict';
-const _SB = window.sb;
+// Self-contained auth — no dependency on window.sb
+const SB_URL_L = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
+const SB_KEY_L = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+const _SB = {
+  auth: {
+    signInWithPassword: async ({email, password}) => {
+      const res = await fetch(SB_URL_L+'/auth/v1/token?grant_type=password', {
+        method:'POST',
+        headers:{'apikey':SB_KEY_L,'Content-Type':'application/json'},
+        body:JSON.stringify({email, password})
+      });
+      const d = await res.json();
+      if(!res.ok || d.error) return {data:null, error:{message:d.error_description||d.error||'Login failed'}};
+      try { localStorage.setItem('sb-ekywcrlcjgbjtwnjozov-auth-token', JSON.stringify(d)); } catch(e){}
+      return {data:{session:d, user:d.user}, error:null};
+    },
+    getSession: async () => {
+      try {
+        const raw = localStorage.getItem('sb-ekywcrlcjgbjtwnjozov-auth-token');
+        if(!raw) return {data:{session:null}, error:null};
+        const sess = JSON.parse(raw);
+        if(!sess?.access_token) return {data:{session:null}, error:null};
+        const p = JSON.parse(atob(sess.access_token.split('.')[1]));
+        if(p.exp && p.exp*1000 < Date.now()) return {data:{session:null}, error:null};
+        return {data:{session:sess}, error:null};
+      } catch(e) { return {data:{session:null}, error:null}; }
+    },
+    signOut: async () => {
+      try {
+        const raw = localStorage.getItem('sb-ekywcrlcjgbjtwnjozov-auth-token');
+        if(raw) {
+          const sess = JSON.parse(raw);
+          await fetch(SB_URL_L+'/auth/v1/logout', {method:'POST', headers:{'apikey':SB_KEY_L,'Authorization':'Bearer '+(sess?.access_token||'')}});
+        }
+      } catch(e){}
+      Object.keys(localStorage).filter(k=>k.includes('supabase')||k.includes('sb-')).forEach(k=>localStorage.removeItem(k));
+      return {error:null};
+    }
+  }
+};
 const PORTALS_MAP = window.PORTALS || {admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
 const TABS = {
   adm: {ic:'⚙️',ar:'مشرف النظام',en:'System Admin',nAr:'لوحة إدارة النظام',nEn:'System Administration',dAr:'إدارة المستخدمين · الصلاحيات · صحة النظام',dEn:'Users · Roles · System Health · Settings',color:'#4F46E5',cv:'net',isEmp:true,roles:['admin']},
@@ -144,8 +183,8 @@ async function doLogin() {
     if(error) throw error;
     // Get profile
     const sess = data.session;
-    const res = await fetch(`${window.SB_URL||'https://ekywcrlcjgbjtwnjozov.supabase.co'}/rest/v1/profiles?id=eq.${data.user.id}&select=role,full_name&limit=1`, {
-      headers: { 'apikey': window.SB_KEY || SB_KEY || '', 'Authorization': `Bearer ${sess.access_token}` }
+    const res = await fetch(`${SB_URL_L}/rest/v1/profiles?id=eq.${data.user.id}&select=role,full_name&limit=1`, {
+      headers: { 'apikey': SB_KEY_L, 'Authorization': `Bearer ${sess.access_token}` }
     });
     const profiles = await res.json();
     const profile = Array.isArray(profiles) ? profiles[0] : null;
@@ -173,8 +212,8 @@ async function checkExistingSession() {
   try {
     const { data: { session } } = await _SB.auth.getSession();
     if(!session) return;
-    const res = await fetch(`${window.SB_URL}/rest/v1/profiles?id=eq.${session.user.id}&select=role,full_name&limit=1`, {
-      headers: { 'apikey': window.SB_KEY, 'Authorization': `Bearer ${session.access_token}` }
+    const res = await fetch(`${SB_URL_L}/rest/v1/profiles?id=eq.${session.user.id}&select=role,full_name&limit=1`, {
+      headers: { 'apikey': SB_KEY_L, 'Authorization': `Bearer ${session.access_token}` }
     });
     const profiles = await res.json();
     const profile = Array.isArray(profiles) ? profiles[0] : null;

@@ -395,9 +395,9 @@ function initCanvas(id, type, color) {
 
 /* ── Mobile Hamburger Sidebar ─────────────────────────── */
 function initMobileSidebar() {
-  const sb = document.querySelector('.sb');
+  const _sbEl = document.querySelector('.sb');
   const topbar = document.querySelector('.topbar');
-  if(!sb || !topbar) return;
+  if(!_sbEl || !topbar) return;
   
   // Create overlay
   let overlay = document.getElementById('sbOverlay');
@@ -433,18 +433,18 @@ function initMobileSidebar() {
 }
 
 function openSidebar() {
-  document.querySelector('.sb')?.classList.add('show');
+  const _s=document.querySelector('.sb');if(_s)_s.classList.add('show');
   document.getElementById('sbOverlay')?.classList.add('show');
   document.body.style.overflow = 'hidden';
 }
 function closeSidebar() {
-  document.querySelector('.sb')?.classList.remove('show');
+  const _s=document.querySelector('.sb');if(_s)_s.classList.remove('show');
   document.getElementById('sbOverlay')?.classList.remove('show');
   document.body.style.overflow = '';
 }
 function toggleSidebar() {
-  const sb = document.querySelector('.sb');
-  if(sb?.classList.contains('show')) closeSidebar(); else openSidebar();
+  const _s = document.querySelector('.sb');
+  if(_s?.classList.contains('show')) closeSidebar(); else openSidebar();
 }
 
 /* ── Pages ────────────────────────────────────────────────────── */

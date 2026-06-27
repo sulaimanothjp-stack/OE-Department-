@@ -145,7 +145,7 @@ async function doLogin() {
     // Get profile
     const sess = data.session;
     const res = await fetch(`${window.SB_URL||'https://ekywcrlcjgbjtwnjozov.supabase.co'}/rest/v1/profiles?id=eq.${data.user.id}&select=role,full_name&limit=1`, {
-      headers: { 'apikey': window.SB_KEY||'', 'Authorization': `Bearer ${sess.access_token}` }
+      headers: { 'apikey': window.SB_KEY || SB_KEY || '', 'Authorization': `Bearer ${sess.access_token}` }
     });
     const profiles = await res.json();
     const profile = Array.isArray(profiles) ? profiles[0] : null;
@@ -159,7 +159,12 @@ async function doLogin() {
     showOk(LNG==='ar'?'تم تسجيل الدخول بنجاح ✓':'Signed in successfully ✓');
     setTimeout(() => { location.href = routeForRole(profile.role); }, 350);
   } catch(e) {
-    showErr(LNG==='ar'?'اسم المستخدم أو كلمة المرور غير صحيحة':'Invalid username or password');
+    // Show actual error for debugging
+    const isCredErr = e.message && (e.message.toLowerCase().includes('invalid') || e.message.toLowerCase().includes('credentials') || e.message.toLowerCase().includes('password'));
+    const msg = LNG==='ar'
+      ? (isCredErr ? 'اسم المستخدم أو كلمة المرور غير صحيحة' : 'خطأ: ' + e.message)
+      : (isCredErr ? 'Invalid username or password' : 'Error: ' + e.message);
+    showErr(msg);
     resetBtn();
   }
 }

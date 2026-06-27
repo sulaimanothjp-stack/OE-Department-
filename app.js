@@ -392,7 +392,68 @@ function initCanvas(id, type, color) {
   resize(); window.addEventListener('resize',resize); draw();
 }
 
+
+/* ── Mobile Hamburger Sidebar ─────────────────────────── */
+function initMobileSidebar() {
+  const sb = document.querySelector('.sb');
+  const topbar = document.querySelector('.topbar');
+  if(!sb || !topbar) return;
+  
+  // Create overlay
+  let overlay = document.getElementById('sbOverlay');
+  if(!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'sbOverlay';
+    overlay.className = 'sb-overlay';
+    overlay.onclick = closeSidebar;
+    document.body.appendChild(overlay);
+  }
+  
+  // Add close (×) button inside sidebar
+  if(!sb.querySelector('.sb-close-btn')) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'sb-close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = 'position:absolute;top:12px;left:12px;width:28px;height:28px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--t2);font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:1';
+    closeBtn.onclick = closeSidebar;
+    sb.style.position = 'relative';
+    sb.appendChild(closeBtn);
+    // Show close btn only on mobile
+    const mq = window.matchMedia('(max-width:768px)');
+    const toggleClose = () => closeBtn.style.display = mq.matches ? 'flex' : 'none';
+    toggleClose(); mq.addEventListener('change', toggleClose);
+  }
+  
+  // Close sidebar on nav item click (mobile)
+  sb.querySelectorAll('.ni').forEach(ni => {
+    ni.addEventListener('click', () => {
+      if(window.matchMedia('(max-width:768px)').matches) closeSidebar();
+    });
+  });
+}
+
+function openSidebar() {
+  document.querySelector('.sb')?.classList.add('show');
+  document.getElementById('sbOverlay')?.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+  document.querySelector('.sb')?.classList.remove('show');
+  document.getElementById('sbOverlay')?.classList.remove('show');
+  document.body.style.overflow = '';
+}
+function toggleSidebar() {
+  const sb = document.querySelector('.sb');
+  if(sb?.classList.contains('show')) closeSidebar(); else openSidebar();
+}
+
 /* ── Pages ────────────────────────────────────────────────────── */
+
+/* ── Null-safe DOM helpers ────────────────────────────── */
+const setHTML = (id, html) => { const el = document.getElementById(id); if(el) el.innerHTML = html; return !!el; };
+const setText = (id, txt)  => { const el = document.getElementById(id); if(el) el.textContent = txt; return !!el; };
+const showEl  = (id, show=true) => { const el = document.getElementById(id); if(el) el.style.display = show ? '' : 'none'; };
+
 const PAGES = {};
 function reg(k, fn) { PAGES[k] = fn; }
 function go(k) {
@@ -421,12 +482,111 @@ function go(k) {
   window.scrollTo(0,0);
 }
 
+
+/* ── Attendance Tracking ──────────────────────────────── */
+async function trackAttendance() {
+  try {
+    if(!App.profile) return;
+    const today = new Date().toISOString().split('T')[0];
+    const now = new Date().toISOString();
+    // Upsert: if record exists update last_seen, else create with first_seen
+    const sess = getStoredSession();
+    const res = await fetch(`${SB_URL}/rest/v1/attendance_log`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${sess?.access_token || ''}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates,return=minimal'
+      },
+      body: JSON.stringify({
+        user_id: App.profile.id,
+        date: today,
+        first_seen: now,
+        last_seen: now,
+        login_count: 1
+      })
+    });
+    // Update last_seen every 5 minutes
+    setInterval(async () => {
+      const s = getStoredSession();
+      if(!s) return;
+      await fetch(`${SB_URL}/rest/v1/attendance_log?user_id=eq.${App.profile.id}&date=eq.${today}`, {
+        method: 'PATCH',
+        headers: {'apikey':SB_KEY,'Authorization':`Bearer ${s.access_token}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify({ last_seen: new Date().toISOString() })
+      });
+    }, 5 * 60 * 1000);
+  } catch(e) { /* silent */ }
+}
+
+async function getTeamAttendance(division, date) {
+  try {
+    const sess = getStoredSession();
+    const d = date || new Date().toISOString().split('T')[0];
+    const res = await fetch(
+      `${SB_URL}/rest/v1/attendance_log?date=eq.${d}&select=*,profiles!attendance_log_user_id_fkey(full_name,full_name_en,role,division)&profiles.division=eq.${division}`,
+      { headers: {'apikey':SB_KEY,'Authorization':`Bearer ${sess?.access_token||''}`} }
+    );
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch(e) { return []; }
+}
+
+async function getAllAttendanceToday() {
+  try {
+    const sess = getStoredSession();
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(
+      `${SB_URL}/rest/v1/attendance_log?date=eq.${today}&select=*,profiles!inner(full_name,full_name_en,role,division,is_active)&order=last_seen.desc`,
+      { headers: {'apikey':SB_KEY,'Authorization':`Bearer ${sess?.access_token||''}`} }
+    );
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch(e) { return []; }
+}
+
+function fmtTime(ts) {
+  if(!ts) return '—';
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return `${h}:${m}`;
+}
+
+function attendanceWidget(records, title) {
+  if(!records.length) return `<div class="empty"><div class="ei">📅</div><p>${t2('لم يسجّل أحد دخوله بعد','No check-ins yet')}</p></div>`;
+  const now = Date.now();
+  return records.map(r => {
+    const p = r.profiles || {};
+    const name = App.lang === 'ar' ? p.full_name : (p.full_name_en || p.full_name || '—');
+    const init = (p.full_name || 'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const lastMs = new Date(r.last_seen).getTime();
+    const minsAgo = Math.floor((now - lastMs) / 60000);
+    const isOnline = minsAgo < 10;
+    const isToday = minsAgo < 480;
+    const dc = DIVS[p.division]?.color || '#2563EB';
+    return `<div class="att-row">
+      <div class="att-av" style="background:${dc}20;color:${dc}">${init}</div>
+      <div class="att-info">
+        <div class="att-name">${esc(name)}</div>
+        <div class="att-time">⏎ ${fmtTime(r.first_seen)} &nbsp;|&nbsp; ⏏ ${fmtTime(r.last_seen)}</div>
+      </div>
+      <div class="att-dot ${isOnline?'online':isToday?'today':'offline'}" title="${isOnline?t2('متصل','Online'):t2('آخر ظهور','Last seen')+' '+fmtTime(r.last_seen)}"></div>
+    </div>`;
+  }).join('');
+}
+
 /* ── initPage ─────────────────────────────────────────────────── */
 async function initPage(opts={}) {
   const p = await initAuth(opts.roles); if(!p) return null;
   setLang(App.lang);
   startClock();
-  // Translate sidebar after a short delay
+  // Init hamburger sidebar
+  setTimeout(initMobileSidebar, 100);
+  // Track attendance
+  setTimeout(trackAttendance, 500);
+  // Translate sidebar
   setTimeout(()=>{
     if(typeof translateDOM==='function'&&App.lang!=='ar') translateDOM(document.querySelector('.sb'));
   },200);
@@ -446,6 +606,10 @@ window.SB_URL = SB_URL;
 window.SB_KEY = SB_KEY;
 
 Object.assign(window, {
+  setHTML, setText, showEl,
+  initMobileSidebar, openSidebar, closeSidebar, toggleSidebar,
+  trackAttendance, getTeamAttendance, getAllAttendanceToday, attendanceWidget, fmtTime,
+
   t2, tl, App, sb, DIVS, PORTALS, ROLE_AR, ROLE_EN, LOCALE_MAP, T,
   setLang, toggleLang, doLogout, initAuth, initPage, _renderBadge, startClock,
   toast, openModal, closeModal, mv, ms,

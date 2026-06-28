@@ -113,6 +113,7 @@ button,input,select{font-family:inherit}
   .page{padding:10px}
   .g4{grid-template-columns:repeat(2,1fr)}
 }
+.menu-btn{display:none}
 </style>
 </head>
 <body>
@@ -145,7 +146,8 @@ button,input,select{font-family:inherit}
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <div class="tb-ttl" id="pgTitle">إدارة المستخدمين</div>
+      <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="tb-ttl" id="pgTitle">إدارة المستخدمين</div>
       <div class="tb-r">
         <div><div class="clk-t" id="ct">—</div><div class="clk-d" id="cd"></div></div>
         <div class="adot"><div class="d"></div><span style="color:#3E5878;font-family:'IBM Plex Mono',monospace;font-size:11px">ADMIN</span></div>
@@ -716,6 +718,16 @@ function printCreds(name,email,pass,role){
 }
 
 /* ═══ INIT ═══════════════════════════════════════════════════ */
+
+function openCUEmployee(){openCU();setTimeout(()=>{const s=document.getElementById('nu_rl');if(s){s.value='employee';handleRC();}},100);}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');if(!sb)return;
+  const show=sb.classList.toggle('show');
+  let ov=document.getElementById('sbOv');
+  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,9,18,.75);z-index:9998';ov.onclick=toggleSidebar;document.body.appendChild(ov);}
+  ov.style.display=show?'block':'none';
+}
+
 (async function init(){
   startClock();
   
@@ -741,10 +753,7 @@ function printCreds(name,email,pass,role){
   // Get profile
   document.getElementById('loadTxt').textContent='② جلب الملف الشخصي...';
   try{
-    let _uid = sess.user?.id;
-    if(!_uid) { try { _uid = JSON.parse(atob(sess.access_token.split('.')[1])).sub; } catch(e) {} }
-    if(!_uid) { location.href='index.html'; return; }
-    const data = await api('GET', '/rest/v1/profiles?id=eq.'+_uid+'&select=*');
+    const data = await api('GET', '/rest/v1/profiles?id=eq.'+sess.user.id+'&select=*');
     const profile = Array.isArray(data) ? data[0] : null;
     
     if(!profile){

@@ -17,6 +17,7 @@ body{background:#020912}
 .ld .d{color:#10B981;background:#10B981}
 /* Task accent */
 .tr2:hover{background:rgba(16,185,129,.05)}
+.menu-btn{display:none}
 </style>
 </head>
 <body>
@@ -149,7 +150,7 @@ reg('dash',async el=>{
       dbList('kpis',{eq:{business_line:BL},lim:4}),
     ]);
 
-    document.getElementById('hks').innerHTML=[
+    const _hk=document.getElementById('hks');if(!_hk)return;_hk.innerHTML=[
       {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
       {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
       {v:asmO,l:'ASSESS',cl:''},
@@ -759,6 +760,64 @@ async function updateMeetingStatus(id,status){
     toast(status==='completed'?t2('تم إنهاء الاجتماع ✓','Meeting completed ✓'):t2('تم الإلغاء','Cancelled'),'s');
     closeModal();go('meetings');
   }catch(e){toast(e.message,'e');}
+}
+
+
+function openCreateEmployee(){
+  openModal(`<div class="mh"><h3 style="color:${DC}">👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">ℹ️ ${t2('أعطِ هذه البيانات للموظف وطلب منه تغيير كلمة المرور','Give credentials to employee and ask them to change password')}</div>
+      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
+    <button class="btn p" id="ceBtn" onclick="createEmployee()" style="background:${DC};border-color:${DC}">${t2('إنشاء الحساب','Create Account')}</button></div>`);
+  genEmpPW();
+}
+function genEmpPW(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+}
+async function createEmployee(){
+  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw');
+  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Please fill all fields'),'e');return;}
+  const username=empId.toLowerCase().replace(/\s+/g,'');
+  const email=username+'@se.local';
+  const btn=document.getElementById('ceBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  try{
+    const sess=getStoredSession();
+    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass,data:{full_name:name,role:'employee'}})});
+    const ad=await ar.json();
+    if(ad.error)throw new Error(ad.error_description||ad.error);
+    const uid=ad.id||ad.user?.id;
+    if(uid){
+      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({full_name:name,role:'employee',division:BL,employee_id:empId,username,is_active:true})});
+    }
+    closeModal();
+    openModal(`<div class="mh"><h3 style="color:var(--success)">✓ ${t2('تم إنشاء الحساب','Account Created')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd">
+        <div style="background:#060F1E;border:1px solid ${DC}33;border-radius:8px;padding:14px;font-family:var(--mono)">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:3px">${t2('اسم المستخدم','Username')}</div>
+          <div style="font-size:15px;font-weight:700;color:${DC};margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+            ${esc(username)}<button class="btn sm" onclick="navigator.clipboard?.writeText('${esc(username)}')">${t2('نسخ','Copy')}</button></div>
+          <div style="font-size:10px;color:var(--t3);margin-bottom:3px">${t2('كلمة المرور المؤقتة','Temp Password')}</div>
+          <div style="font-size:15px;font-weight:700;color:#FCD34D;display:flex;align-items:center;justify-content:space-between">
+            ${esc(pass)}<button class="btn sm" onclick="navigator.clipboard?.writeText('${esc(pass)}')">${t2('نسخ','Copy')}</button></div>
+        </div>
+        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:8px;font-size:12px;color:#FCD34D;margin-top:10px">
+          ⚠️ ${t2('يجب تغيير كلمة المرور عند أول دخول','Must change password on first login')}</div>
+      </div>
+      <div class="mf"><button class="btn p" onclick="closeModal();go('team')" style="background:${DC};border-color:${DC}">${t2('تم','Done')}</button></div>`);
+  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
 }
 
 (async()=>{

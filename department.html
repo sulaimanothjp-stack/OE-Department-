@@ -74,6 +74,7 @@ body{background:#020912}
 
 /* ACTION BADGE */
 .act-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;border:1px solid}
+.menu-btn{display:none}
 </style>
 </head>
 <body>
@@ -735,6 +736,62 @@ window.saveLesson=async()=>{
 /* ════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════ */
+
+function openCreateEmployee(){
+  openModal(`<div class="mh"><h3>👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">ℹ️ ${t2('المدير يُنشئ حساب موظف جديد في دائرته','Manager creates new employee account in their division')}</div>
+      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>${t2('الدائرة','Division')}</label><select id="ce_div">
+        ${Object.entries(DIVS).map(([k,v])=>'<option value="'+k+'">'+v.icon+' '+t2(v.ar,v.en)+'</option>').join('')}
+      </select></div>
+      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genDEmpPW()">🔀</button></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
+    <button class="btn p" id="ceBtn" onclick="createDeptEmployee()">${t2('إنشاء','Create')}</button></div>`);
+  genDEmpPW();
+}
+function genDEmpPW(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+}
+async function createDeptEmployee(){
+  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw'),div=mv('ce_div');
+  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Fill all fields'),'e');return;}
+  const username=empId.toLowerCase().replace(/\s+/g,'');
+  const email=username+'@se.local';
+  const btn=document.getElementById('ceBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  try{
+    const sess=getStoredSession();
+    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass,data:{full_name:name,role:'employee'}})});
+    const ad=await ar.json();
+    if(ad.error)throw new Error(ad.error_description||ad.error);
+    const uid=ad.id||ad.user?.id;
+    if(uid){
+      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({full_name:name,role:'employee',division:div,employee_id:empId,username,is_active:true})});
+    }
+    closeModal();
+    toast(t2('تم إنشاء الحساب ✓','Account created ✓'),'s');
+    setTimeout(()=>openModal(`<div class="mh"><h3 style="color:var(--success)">✓</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd"><div style="background:#060F1E;border-radius:8px;padding:14px;font-family:var(--mono)">
+        <div style="font-size:10px;color:var(--t3)">${t2('اسم المستخدم','Username')}</div>
+        <div style="font-size:15px;color:#60A5FA;margin-bottom:8px">${esc(username)}</div>
+        <div style="font-size:10px;color:var(--t3)">${t2('كلمة المرور','Password')}</div>
+        <div style="font-size:15px;color:#FCD34D">${esc(pass)}</div>
+      </div></div>
+      <div class="mf"><button class="btn p" onclick="closeModal()">${t2('تم','Done')}</button></div>`),100);
+  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء','Create');}}
+}
+
 (async()=>{
   const p=await initPage({roles:['director','admin']});
   if(!p)return;
@@ -749,6 +806,22 @@ window.saveLesson=async()=>{
     }
   }catch{}
 })();
+</script>
+
+<script>
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
+  if(sb) sb.classList.toggle('show');
+  const ov=document.getElementById('sbOverlay');
+  if(ov) ov.classList.toggle('show');
+}
+// Overlay for closing sidebar
+document.addEventListener('DOMContentLoaded',function(){
+  const ov=document.createElement('div');
+  ov.id='sbOverlay';ov.className='sb-overlay';
+  ov.onclick=function(){toggleSidebar()};
+  document.body.appendChild(ov);
+});
 </script>
 </body>
 </html>

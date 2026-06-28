@@ -17,6 +17,7 @@ body{background:#020912}
 .ld .d{color:#0EA5E9;background:#0EA5E9}
 /* Task accent */
 .tr2:hover{background:rgba(14,165,233,.05)}
+.menu-btn{display:none}
 </style>
 </head>
 <body>
@@ -149,7 +150,7 @@ reg('dash',async el=>{
       dbList('kpis',{eq:{business_line:BL},lim:4}),
     ]);
 
-    document.getElementById('hks').innerHTML=[
+    const _hk=document.getElementById('hks');if(!_hk)return;_hk.innerHTML=[
       {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
       {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
       {v:asmO,l:'ASSESS',cl:''},
@@ -567,7 +568,7 @@ window.saveK=async id=>{
 
 /* ═══ TEAM ═════════════════════════════════════════════════ */
 reg('team',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 فريق الشبكة الوطنية</h1></div><div class="g3" id="tGrid">${skR(3)}</div>`;
+  el.innerHTML=`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 ${t2('فريق','Team')} - الشبكة الوطنية</h1><button class="btn p" onclick="openCreateEmployee()" style="background:${DC};border-color:${DC}">+ ${t2('إضافة موظف','Add Employee')}</button></div><div class="g3" id="tGrid">${skR(3)}</div>`;
   const{data}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
   document.getElementById('tGrid').innerHTML=data.length?data.map(m=>{
     const init=(m.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();

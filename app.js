@@ -282,17 +282,23 @@ function logout() { doLogout(); }
 function buildNav(items, active) {
   const el = document.getElementById('navEl');
   if (!el) return;
-  el.innerHTML = items.map(item => {
+  // Build nav HTML: icon uses .ic class (visible at all breakpoints per styles.css)
+  // Text is a direct text node NOT inside span, so .ni span:not(.ic){display:none} does not affect it
+  const parts = [];
+  for (const item of items) {
     if (item.g) {
-      return `<div class="nav-group"><span class="ng-ar">${item.g}</span><span class="ng-en">${item.ge || ''}</span></div>`;
+      // Group label
+      parts.push(`<div style="padding:12px 14px 3px;font-size:9.5px;letter-spacing:.1em;color:#3d4f63;display:flex;justify-content:space-between"><span>${item.g}</span><span style="opacity:.35;font-size:8.5px">${item.ge||''}</span></div>`);
+      continue;
     }
     const label = App.lang === 'en' ? (item.en || item.ar || '') : (item.ar || item.en || '');
     const isActive = item.k === active;
-    return `<a class="ni${isActive ? ' on' : ''}" onclick="${item.fn || `go('${item.k}')`}" href="#">
-      <span class="ni-ic">${item.ic || ''}</span>
-      <span class="ni-lb">${label}</span>
-    </a>`;
-  }).join('');
+    const fn = item.fn || `go('${item.k}')`;
+    // .ic class → visible even when styles.css hides other spans
+    // label as direct text node after the span
+    parts.push(`<button class="ni${isActive?' on':''} cursor" onclick="${fn}" style="cursor:pointer;border:none;width:100%;background:none">${item.ic?`<span class="ic">${item.ic}</span>`:''}${label}</button>`);
+  }
+  el.innerHTML = parts.join('');
 }
 
 // ── GLOBAL PAGE ROUTER (fallback) ────────────────────────────
@@ -648,29 +654,58 @@ Object.assign(window, {
       .sb { transform: none !important; }
       .menu-btn { display: none !important; }
     }
-    .nav-group {
-      padding: 14px 16px 4px;
-      font-size: 9.5px; letter-spacing: .1em;
-      color: #4a5568;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .nav-group .ng-en { opacity: .45; font-size: 8.5px; }
-    .ni {
-      display: flex; align-items: center; gap: 9px;
-      padding: 9px 14px; cursor: pointer;
-      text-decoration: none; color: var(--t2,#8b949e);
-      border-radius: 7px; margin: 1px 6px;
-      transition: background .15s, color .15s;
-      font-size: 13px; position: relative;
-    }
-    .ni:hover { background: rgba(255,255,255,.05); color: var(--t1,#e6edf3); }
-    .ni.on { color: var(--DC,#0EA5E9); background: rgba(14,165,233,.1); }
-    .ni.on::after {
-      content:''; position:absolute; left:0; top:20%; bottom:20%;
-      width:3px; border-radius:0 3px 3px 0;
-      background: var(--DC,#0EA5E9);
-    }
-    .ni-ic { font-size: 14px; flex-shrink: 0; }
+    /* nav styles handled by styles.css */
   `;
   document.head.appendChild(s);
+})();
+
+// ── MOBILE SIDEBAR: force-hide on load, show on toggle ───────
+(function initMobileSB() {
+  function apply() {
+    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
+    if (!sb) return;
+    if (window.innerWidth <= 768) {
+      // Force hide unless already shown by user
+      if (!sb.classList.contains('show')) {
+        sb.style.cssText = [
+          'position:fixed', 'top:0', 'right:0', 'height:100vh',
+          'width:240px', 'z-index:1000',
+          'transform:translateX(110%)', 'transition:transform .25s ease',
+          'overflow-y:auto'
+        ].join('!important;') + '!important';
+      }
+    } else {
+      // Desktop: reset inline styles
+      sb.style.cssText = '';
+    }
+  }
+
+  // Override toggleSidebar to also apply inline style
+  const _orig = window.toggleSidebar;
+  window.toggleSidebar = function() {
+    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
+    if (!sb) return;
+    const isOpen = sb.classList.toggle('show');
+    if (window.innerWidth <= 768) {
+      sb.style.transform = isOpen ? 'translateX(0)' : 'translateX(110%)';
+      // overlay
+      let ov = document.getElementById('sbOv');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'sbOv';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:none';
+        ov.onclick = window.toggleSidebar;
+        document.body.appendChild(ov);
+      }
+      ov.style.display = isOpen ? 'block' : 'none';
+    }
+  };
+
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  window.addEventListener('resize', apply);
 })();

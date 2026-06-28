@@ -109,7 +109,16 @@ button,input,select{font-family:inherit}
 .skr{height:42px;border-radius:8px;background:linear-gradient(90deg,#0C1E38 25%,#091628 50%,#0C1E38 75%);background-size:400% 100%;animation:sh 1.4s ease infinite;margin-bottom:7px}
 @keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
 @media(max-width:768px){
-  .sb{display:none}
+  .sb{
+    display:none;
+    position:fixed;top:0;right:0;width:260px;height:100vh;
+    z-index:9999;box-shadow:-8px 0 40px rgba(0,0,0,.8);
+    flex-direction:column;
+  }
+  .sb.show{display:flex!important}
+  .menu-btn{display:flex!important;align-items:center;justify-content:center;
+    width:36px;height:36px;background:#0C1E38;border:1px solid #152840;
+    border-radius:8px;color:#818CF8;font-size:18px;cursor:pointer;flex-shrink:0}
   .page{padding:10px}
   .g4{grid-template-columns:repeat(2,1fr)}
 }
@@ -119,7 +128,7 @@ button,input,select{font-family:inherit}
 <body>
 <div class="shell">
   <!-- SIDEBAR -->
-  <aside class="sb">
+  <aside class="sb" id="sidebar">
     <div class="sb-brand">
       <img src="se-logo.png.PNG" alt="SE" style="height:28px;width:auto;object-fit:contain">
       <div><div class="sb-t1">se</div><div class="sb-t2">System Admin</div></div>
@@ -721,10 +730,16 @@ function printCreds(name,email,pass,role){
 
 function openCUEmployee(){openCU();setTimeout(()=>{const s=document.getElementById('nu_rl');if(s){s.value='employee';handleRC();}},100);}
 function toggleSidebar(){
-  const sb=document.getElementById('sidebar');if(!sb)return;
+  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
+  if(!sb)return;
   const show=sb.classList.toggle('show');
   let ov=document.getElementById('sbOv');
-  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,9,18,.75);z-index:9998';ov.onclick=toggleSidebar;document.body.appendChild(ov);}
+  if(!ov){
+    ov=document.createElement('div');ov.id='sbOv';
+    ov.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,9,18,.75);z-index:9998;backdrop-filter:blur(2px)';
+    ov.onclick=toggleSidebar;
+    document.body.appendChild(ov);
+  }
   ov.style.display=show?'block':'none';
 }
 
@@ -753,7 +768,10 @@ function toggleSidebar(){
   // Get profile
   document.getElementById('loadTxt').textContent='② جلب الملف الشخصي...';
   try{
-    const data = await api('GET', '/rest/v1/profiles?id=eq.'+sess.user.id+'&select=*');
+    let _uid = sess.user?.id;
+    if(!_uid){ try{ _uid=JSON.parse(atob(sess.access_token.split('.')[1])).sub; }catch(e){} }
+    if(!_uid){ location.href='index.html'; return; }
+    const data = await api('GET', '/rest/v1/profiles?id=eq.'+_uid+'&select=*');
     const profile = Array.isArray(data) ? data[0] : null;
     
     if(!profile){

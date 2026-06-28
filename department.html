@@ -805,6 +805,15 @@ async function createDeptEmployee(){
   }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء','Create');}}
 }
 
+
+/* ════ STUBS ════════════════════════════════════════════════ */
+['kpis','afis','brief'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">${NAV.find(n=>n.k===k)?.ar||k}</h1></div>
+    <p style="color:var(--t2);padding:18px">يتصل بالبيانات الكاملة عند توصيل Supabase.</p>`;
+}));
+
+reg('alerts', el => { renderAlerts(el, null, '#D4AF37', '212,175,55'); });
+
 (async()=>{
   const p=await initPage({roles:['director','admin']});
   if(!p)return;

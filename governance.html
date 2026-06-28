@@ -18,11 +18,23 @@ body{background:#020912}
 /* Task accent */
 .tr2:hover{background:rgba(124,58,237,.05)}
 .menu-btn{display:none}
+@media(max-width:768px){
+  .menu-btn{display:flex!important;align-items:center;justify-content:center;
+    width:36px;height:36px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);
+    border-radius:8px;color:#7C3AED;font-size:18px;cursor:pointer;flex-shrink:0}
+  .sb{position:fixed!important;top:0!important;right:0!important;
+    width:260px!important;height:100vh!important;
+    transform:translateX(100%)!important;
+    transition:transform .28s ease!important;z-index:9999!important;overflow-y:auto!important}
+  .sb.show{transform:translateX(0)!important}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
+  .sb-overlay.show{display:block}
+}
 </style>
 </head>
 <body>
 <div class="shell">
-<aside class="sb">
+<aside class="sb" id="sidebar">
   <div class="sb-brand">
     <div id="lgEl"></div>
     <div><div class="sb-t1" style="color:#7C3AED">se</div><div class="sb-t2">الحوكمة والتقييم</div></div>
@@ -35,8 +47,9 @@ body{background:#020912}
   </div>
 </aside>
 <div class="main">
-  <div class="topbar">
-    <div class="tb-ttl fhud" id="pgtitle">الحوكمة والتقييم</div>
+  <div class="topbar" style="display:flex;align-items:center;gap:10px">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">الحوكمة والتقييم</div>
     <div class="tb-r">
       <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
       <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
@@ -264,7 +277,7 @@ reg('tasks',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="tq" placeholder="${t('search')}">
+        <input class="fi" id="tq" placeholder="بحث...">
         <select class="fi" id="tst">
           <option value="">كل الحالات</option>
           <option value="new">جديد</option><option value="open">مفتوح</option>
@@ -455,7 +468,7 @@ reg('afis',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="aq" placeholder="${t('search')}">
+        <input class="fi" id="aq" placeholder="بحث...">
         <select class="fi" id="ast">
           <option value="">كل الحالات</option>
           ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
@@ -629,8 +642,8 @@ window.saveASM=async id=>{
 };
 
 /* ═══ STUBS ═════════════════════════════════════════════════ */
-reg('tickets',el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">🎫 التذاكر</h1></div><p style="color:var(--t2);padding:18px">يعمل بعد توصيل Supabase.</p>`;});
-reg('alerts', el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">⚠️ التنبيهات</h1></div><p style="color:var(--t2);padding:18px">يتصل بدائرة التنبيهات الفنية.</p>`;});
+reg('tickets',el=>{renderTickets(el,BL,DC,DR);});;
+reg('alerts', el=>{renderAlerts(el,BL,DC,DR);});;
 reg('weekly', el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
   <div class="panel" style="border-color:rgba(${DR},.15);max-width:600px"><div class="pb">
@@ -760,6 +773,60 @@ async function updateMeetingStatus(id,status){
     toast(status==='completed'?t2('تم إنهاء الاجتماع ✓','Meeting completed ✓'):t2('تم الإلغاء','Cancelled'),'s');
     closeModal();go('meetings');
   }catch(e){toast(e.message,'e');}
+}
+
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
+  if(!sb)return;
+  const show=sb.classList.toggle('show');
+  let ov=document.getElementById('sbOv');
+  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.className='sb-overlay';
+    ov.onclick=toggleSidebar;document.body.appendChild(ov);}
+  ov.classList.toggle('show',show);
+}
+function openCreateEmployee(){
+  openModal(`<div class="mh"><h3 style="color:${DC}">👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">ℹ️ ${t2('أعطِ هذه البيانات للموظف','Give credentials to employee')}</div>
+      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
+    <button class="btn p" id="ceBtn" onclick="createEmployee()" style="background:${DC};border-color:${DC}">${t2('إنشاء الحساب','Create Account')}</button></div>`);
+  genEmpPW();
+}
+function genEmpPW(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+}
+async function createEmployee(){
+  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw');
+  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Fill all fields'),'e');return;}
+  const username=empId.toLowerCase().replace(/\s+/g,'');
+  const btn=document.getElementById('ceBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  try{
+    const sess=getStoredSession();
+    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:username+'@se.local',password:pass,data:{full_name:name,role:'employee'}})});
+    const ad=await ar.json();
+    if(ad.error)throw new Error(ad.error_description||ad.error);
+    const uid=ad.id||ad.user?.id;
+    if(uid){
+      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({full_name:name,role:'employee',division:BL,employee_id:empId,username,is_active:true})});
+    }
+    closeModal();
+    toast(t2('تم إنشاء الحساب ✓','Account created ✓'),'s');
+    go('team');
+  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
 }
 
 (async()=>{

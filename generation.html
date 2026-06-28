@@ -634,7 +634,7 @@ reg('dash', async el => {
       dbList('assessments',{eq:{business_line:BL},neq:{stage:'closed'},lim:3}),
       dbList('tasks',{eq:{division:BL},neq:{status:'closed'},lim:5}),
       dbList('kpis',{eq:{business_line:BL},lim:4}),
-      dbList('tasks',{eq:{division:BL,source:'director'},neq:{status:'closed'},lim:4}),
+      dbList('tasks',{eq:{division:BL},neq:{status:'closed'},lim:4}),
     ]);
 
     if(_cur!=='dash') return;
@@ -873,7 +873,7 @@ reg('tasks', async el => {
 window.openTD=async id=>{
   const tk=await dbGet('tasks',id).catch(()=>null); if(!tk)return;
   const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
-  const isDirectorTask = tk.source==='director';
+  const isDirectorTask = false; // source column not in schema
   openModal(`
     <div class="mh">
       <h3 style="color:${isDirectorTask?'#D4AF37':DC}">${isDirectorTask?'📩 مهمة من الإدارة — ':''} ${esc(tk.task_number||tk.id.slice(0,8))}</h3>

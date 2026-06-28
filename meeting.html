@@ -642,9 +642,7 @@ async function sendOne(i) {
       priority: a.priority,
       due_date: a.due_date || null,
       status: 'new',
-      source: 'director',
-      meeting_id: MOM.id || null,
-      related_module: 'meeting'
+      meeting_id: MOM.id || null
     });
     MOM.actions[i].sent = true;
     toast(`✓ تم إرسال المهمة لـ ${DIV_LIST.find(d=>d.code===a.division)?.name||a.division}`,'s');

@@ -18,23 +18,11 @@ body{background:#020912}
 /* Task accent */
 .tr2:hover{background:rgba(124,58,237,.05)}
 .menu-btn{display:none}
-@media(max-width:768px){
-  .menu-btn{display:flex!important;align-items:center;justify-content:center;
-    width:36px;height:36px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);
-    border-radius:8px;color:#7C3AED;font-size:18px;cursor:pointer;flex-shrink:0}
-  .sb{position:fixed!important;top:0!important;right:0!important;
-    width:260px!important;height:100vh!important;
-    transform:translateX(100%)!important;
-    transition:transform .28s ease!important;z-index:9999!important;overflow-y:auto!important}
-  .sb.show{transform:translateX(0)!important}
-  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
-  .sb-overlay.show{display:block}
-}
 </style>
 </head>
 <body>
 <div class="shell">
-<aside class="sb" id="sidebar">
+<aside class="sb">
   <div class="sb-brand">
     <div id="lgEl"></div>
     <div><div class="sb-t1" style="color:#7C3AED">se</div><div class="sb-t2">الحوكمة والتقييم</div></div>
@@ -47,9 +35,8 @@ body{background:#020912}
   </div>
 </aside>
 <div class="main">
-  <div class="topbar" style="display:flex;align-items:center;gap:10px">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">الحوكمة والتقييم</div>
+  <div class="topbar">
+    <div class="tb-ttl fhud" id="pgtitle">الحوكمة والتقييم</div>
     <div class="tb-r">
       <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
       <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
@@ -277,7 +264,7 @@ reg('tasks',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="tq" placeholder="بحث...">
+        <input class="fi" id="tq" placeholder="${t('search')}">
         <select class="fi" id="tst">
           <option value="">كل الحالات</option>
           <option value="new">جديد</option><option value="open">مفتوح</option>
@@ -468,7 +455,7 @@ reg('afis',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="aq" placeholder="بحث...">
+        <input class="fi" id="aq" placeholder="${t('search')}">
         <select class="fi" id="ast">
           <option value="">كل الحالات</option>
           ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
@@ -642,8 +629,8 @@ window.saveASM=async id=>{
 };
 
 /* ═══ STUBS ═════════════════════════════════════════════════ */
-reg('tickets',el=>{renderTickets(el,BL,DC,DR);});;
-reg('alerts', el=>{renderAlerts(el,BL,DC,DR);});;
+reg('tickets',el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">🎫 التذاكر</h1></div><p style="color:var(--t2);padding:18px">يعمل بعد توصيل Supabase.</p>`;});
+reg('alerts', el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">⚠️ التنبيهات</h1></div><p style="color:var(--t2);padding:18px">يتصل بدائرة التنبيهات الفنية.</p>`;});
 reg('weekly', el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
   <div class="panel" style="border-color:rgba(${DR},.15);max-width:600px"><div class="pb">
@@ -775,99 +762,62 @@ async function updateMeetingStatus(id,status){
   }catch(e){toast(e.message,'e');}
 }
 
-
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
-  if(!sb)return;
-  const show=sb.classList.toggle('show');
-  let ov=document.getElementById('sbOv');
-  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.className='sb-overlay';
-    ov.onclick=toggleSidebar;document.body.appendChild(ov);}
-  ov.classList.toggle('show',show);
-}
-function openCreateEmployee(){
-  openModal(`<div class="mh"><h3 style="color:${DC}">👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd">
-      <div class="note">ℹ️ ${t2('أعطِ هذه البيانات للموظف','Give credentials to employee')}</div>
-      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
-      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
-      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
-        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
-      </div>
-    </div>
-    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
-    <button class="btn p" id="ceBtn" onclick="createEmployee()" style="background:${DC};border-color:${DC}">${t2('إنشاء الحساب','Create Account')}</button></div>`);
-  genEmpPW();
-}
-function genEmpPW(){
-  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
-  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
-  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
-}
-async function createEmployee(){
-  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw');
-  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Fill all fields'),'e');return;}
-  const username=empId.toLowerCase().replace(/\s+/g,'');
-  const btn=document.getElementById('ceBtn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
-  try{
-    const sess=getStoredSession();
-    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
-      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({email:username+'@se.local',password:pass,data:{full_name:name,role:'employee'}})});
-    const ad=await ar.json();
-    if(ad.error)throw new Error(ad.error_description||ad.error);
-    const uid=ad.id||ad.user?.id;
-    if(uid){
-      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({full_name:name,role:'employee',division:BL,employee_id:empId,username,is_active:true})});
-    }
-    closeModal();
-    toast(t2('تم إنشاء الحساب ✓','Account created ✓'),'s');
-    go('team');
-  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
-}
-
 (async()=>{
-  const _pg = document.getElementById('pgContent');
-  const _dbg = (msg, color='#FCD34D') => {
-    if(_pg) _pg.innerHTML = `<div style="padding:24px;font-family:monospace;font-size:13px;color:${color};background:#060F1E;border:1px solid ${color}33;border-radius:8px;margin:16px">
-      <div style="font-size:11px;color:#3E5878;margin-bottom:6px">DEBUG</div>
-      ${msg}
-    </div>`;
-  };
+  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
+  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+  const _allowed=['governance_manager','admin','director'];
+  const _portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
 
-  _dbg('① app.js loaded: ' + (typeof initPage) + ' | lang.js: ' + (typeof t2));
-
-  // Test session
-  let sess;
-  try { sess = getStoredSession(); } catch(e) { _dbg('② getStoredSession error: ' + e.message, '#EF4444'); return; }
-  _dbg('② session: ' + (sess ? 'FOUND ✓ | uid=' + (sess.user?.id||'no user.id') : 'NULL — not logged in'), sess?'#10B981':'#EF4444');
-  if(!sess) return;
-
-  // Test profile fetch
-  let uid = sess.user?.id;
-  if(!uid) { try { uid=JSON.parse(atob(sess.access_token.split('.')[1])).sub; } catch(e){} }
-  _dbg('③ uid: ' + (uid||'NULL'), uid?'#FCD34D':'#EF4444');
-  if(!uid) return;
-
-  try {
-    const res = await fetch('https://ekywcrlcjgbjtwnjozov.supabase.co/rest/v1/profiles?id=eq.'+uid+'&select=role,full_name&limit=1', {
-      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI','Authorization':'Bearer '+sess.access_token}
-    });
-    const data = await res.json();
-    _dbg('④ profile fetch: HTTP ' + res.status + ' | data: ' + JSON.stringify(data), res.ok?'#10B981':'#EF4444');
-    if(!Array.isArray(data)||!data[0]) return;
-  } catch(e) {
-    _dbg('④ fetch error: ' + e.message, '#EF4444');
-    return;
+  function _showErr(msg){
+    const pg=document.getElementById('pgContent');
+    if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#7C3AED;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';
   }
 
-  _dbg('⑤ calling initPage...', '#60A5FA');
-  const p=await initPage({roles:['governance_manager','admin','director','governance_manager']});
-  _dbg('⑥ initPage returned: ' + (p?'profile ✅ role='+p.role:'null ❌'), p?'#10B981':'#EF4444');
-  if(!p)return;
+  // 1. Read session
+  let _sess=null;
+  try{
+    const _keys=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});
+    for(var _i=0;_i<_keys.length;_i++){
+      var _v=JSON.parse(localStorage.getItem(_keys[_i])||'null');
+      if(_v&&_v.access_token){_sess=_v;break;}
+      if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}
+    }
+  }catch(_e){}
+
+  if(!_sess||!_sess.access_token){location.href='index.html';return;}
+
+  // 2. Get uid
+  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
+  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
+  if(!_uid){location.href='index.html';return;}
+
+  // 3. Fetch profile
+  var _profile=null;
+  try{
+    var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{
+      headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}
+    });
+    var _data=await _res.json();
+    _profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;
+  }catch(_e){_showErr('خطأ في الاتصال: '+(_e.message||''));return;}
+
+  if(!_profile){_showErr('الملف الشخصي غير موجود — uid: '+_uid);return;}
+
+  // 4. Role check
+  if(_allowed.indexOf(_profile.role)===-1){
+    location.href=_portals[_profile.role]||'index.html';return;
+  }
+
+  // 5. Set App state
+  App.user={id:_uid};App.profile=_profile;
+
+  // 6. Render UI
+  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var _ubEl=document.getElementById('ubEl');
+  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#7C3AED22;color:#7C3AED">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
+
+  startClock();
+  setTimeout(function(){trackAttendance();},500);
   document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'dash');go('dash');
 })();

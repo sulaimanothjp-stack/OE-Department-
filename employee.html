@@ -19,19 +19,6 @@ body{background:#020912}
 .gc-inner .gs{font-size:12.5px;color:rgba(99,102,241,.6)}
 .greet-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#6366F1,#818CF8,#6366F1,transparent);animation:sba 4s linear infinite;background-size:200%}
 @keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
-.menu-btn{display:none}
-@media(max-width:768px){
-  .menu-btn{display:flex!important;align-items:center;justify-content:center;
-    width:36px;height:36px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);
-    border-radius:8px;color:#818CF8;font-size:18px;cursor:pointer;flex-shrink:0}
-  .sb{position:fixed!important;top:0!important;right:0!important;
-    width:260px!important;height:100vh!important;
-    transform:translateX(100%)!important;
-    transition:transform .28s ease!important;z-index:9999!important;overflow-y:auto!important}
-  .sb.show{transform:translateX(0)!important}
-  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
-  .sb-overlay.show{display:block}
-}
 /* priority blocks */
 .pb{border-radius:var(--r);padding:14px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
 .pb:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -42,7 +29,7 @@ body{background:#020912}
 </head>
 <body>
 <div class="shell">
-<aside class="sb" id="sidebar">
+<aside class="sb">
   <div class="sb-brand">
     <div id="lgEl"></div>
     <div><div class="sb-t1" style="color:#6366F1">se</div><div class="sb-t2">بوابة الموظف</div></div>
@@ -55,9 +42,8 @@ body{background:#020912}
   </div>
 </aside>
 <div class="main">
-  <div class="topbar" style="display:flex;align-items:center;gap:10px">
-    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">يومي</div>
+  <div class="topbar">
+    <div class="tb-ttl fhud" id="pgtitle">يومي</div>
     <div class="tb-r">
       <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
       <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
@@ -315,42 +301,39 @@ reg('signals',el=>{
 ['tickets'].forEach(k=>reg(k,el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">${NAV.find(n=>n.k===k)?.ar||k}</h1></div><p style="color:var(--t2);padding:18px">يعمل بالكامل عند توصيل Supabase.</p>`;}));
 window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
 
-
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
-  if(!sb)return;
-  const show=sb.classList.toggle('show');
-  let ov=document.getElementById('sbOv');
-  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.className='sb-overlay';
-    ov.onclick=toggleSidebar;document.body.appendChild(ov);}
-  ov.classList.toggle('show',show);
-}
-
 (async()=>{
-  const p=await initPage({});
-  if(!p)return;
-  document.getElementById('lgEl').innerHTML=LOGO;
-  
-  // Apply division color dynamically
-  if(p.division && DIVS[p.division]) {
-    const div = DIVS[p.division];
-    const dc = div.color;
-    const dr = dc.replace('#','').match(/.{2}/g).map(h=>parseInt(h,16)).join(',');
-    // Apply to CSS variables
-    document.documentElement.style.setProperty('--DC', dc);
-    document.documentElement.style.setProperty('--DR', dr);
-    // Apply to nav active state
-    const style = document.createElement('style');
-    style.textContent = `.ni.on{color:${dc}!important;background:rgba(${dr},.13)!important}.ni.on::after{background:${dc}!important}.btn-lo{border-color:${dc}33!important}.on-dot{background:${dc}!important;box-shadow:0 0 6px ${dc}!important}`;
-    document.head.appendChild(style);
-    // Update sidebar brand color
-    const t1 = document.querySelector('.sb-t1');
-    if(t1) t1.style.color = dc;
-    // Update topbar title
-    const ttl = document.getElementById('pgtitle');
-    if(ttl) ttl.style.color = dc;
+  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
+  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+  const _allowed=['employee','governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager','director','admin'];
+  const _portals={'admin':'admin.html','director':'department.html','governance_manager':'governance.html','generation_manager':'generation.html','national_grid_manager':'national-grid.html','distribution_manager':'distribution.html','technical_alerts_manager':'technical-alerts.html','employee':'employee.html'};
+  function _showErr(msg){const pg=document.getElementById('pgContent')||document.getElementById('pageArea');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#6366F1;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
+  var _sess=null;
+  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
+  if(!_sess||!_sess.access_token){location.href='index.html';return;}
+  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
+  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
+  if(!_uid){location.href='index.html';return;}
+  var _profile=null;
+  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
+  if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
+  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
+  App.user={id:_uid};App.profile=_profile;
+  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var _ubEl=document.getElementById('ubEl');
+  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#6366F122;color:#6366F1">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
+  if(_profile.division&&DIVS[_profile.division]){
+    var _dv=DIVS[_profile.division];var _dc=_dv.color;
+    var _dr=_dc.replace('#','').match(/.{2}/g).map(function(h){return parseInt(h,16);}).join(',');
+    document.documentElement.style.setProperty('--DC',_dc);
+    document.documentElement.style.setProperty('--DR',_dr);
+    var _st=document.createElement('style');
+    _st.textContent='.ni.on{color:'+_dc+'!important;background:rgba('+_dr+',.13)!important}.ni.on::after{background:'+_dc+'!important}';
+    document.head.appendChild(_st);
+    var _t1=document.querySelector('.sb-t1');if(_t1)_t1.style.color=_dc;
   }
-  
+  startClock();
+  setTimeout(function(){trackAttendance();},500);
+  document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'myday');go('myday');
 })();
 </script>

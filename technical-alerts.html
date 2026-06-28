@@ -18,18 +18,6 @@ body{background:#020912}
 /* Task accent */
 .tr2:hover{background:rgba(16,185,129,.05)}
 .menu-btn{display:none}
-@media(max-width:768px){
-  .menu-btn{display:flex!important;align-items:center;justify-content:center;
-    width:36px;height:36px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
-    border-radius:8px;color:#EF4444;font-size:18px;cursor:pointer;flex-shrink:0}
-  .sb{position:fixed!important;top:0!important;right:0!important;
-    width:260px!important;height:100vh!important;
-    transform:translateX(100%)!important;
-    transition:transform .28s ease!important;z-index:9999!important;overflow-y:auto!important}
-  .sb.show{transform:translateX(0)!important}
-  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
-  .sb-overlay.show{display:block}
-}
 </style>
 </head>
 <body>
@@ -833,20 +821,29 @@ async function createEmployee(){
   }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
 }
 
-
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
-  if(!sb)return;
-  const show=sb.classList.toggle('show');
-  let ov=document.getElementById('sbOv');
-  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.className='sb-overlay';
-    ov.onclick=toggleSidebar;document.body.appendChild(ov);}
-  ov.classList.toggle('show',show);
-}
-
+function toggleSidebar(){const sb=document.getElementById("sidebar")||document.querySelector(".sb");if(!sb)return;const show=sb.classList.toggle("show");let ov=document.getElementById("sbOv");if(!ov){ov=document.createElement("div");ov.id="sbOv";ov.className="sb-overlay";ov.onclick=toggleSidebar;document.body.appendChild(ov);}ov.classList.toggle("show",show);}
 (async()=>{
-  const p=await initPage({roles:['technical_alerts_manager','admin','director','governance_manager']});
-  if(!p)return;
+  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
+  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+  const _allowed=['technical_alerts_manager','admin','director'];
+  const _portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
+  function _showErr(msg){const pg=document.getElementById('pgContent');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#EF4444;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
+  var _sess=null;
+  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
+  if(!_sess||!_sess.access_token){location.href='index.html';return;}
+  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
+  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
+  if(!_uid){location.href='index.html';return;}
+  var _profile=null;
+  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
+  if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
+  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
+  App.user={id:_uid};App.profile=_profile;
+  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var _ubEl=document.getElementById('ubEl');
+  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#EF444422;color:#EF4444">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
+  startClock();
+  setTimeout(function(){trackAttendance();},500);
   document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'dash');go('dash');
 })();

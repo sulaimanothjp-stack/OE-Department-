@@ -49,13 +49,16 @@ async function dbList(table, opts = {}, token) {
   url.searchParams.set('select', opts.select || '*');
   if (opts.eq)   Object.entries(opts.eq).forEach(([k,v]) => url.searchParams.set(k, `eq.${v}`));
   if (opts.neq)  Object.entries(opts.neq).forEach(([k,v]) => url.searchParams.set(k, `neq.${v}`));
-  if (opts.in && Array.isArray(opts.in)) {
-    // opts.in = {field: [v1,v2]} OR [field, [v1,v2]]
+  if (opts.in) {
     if (Array.isArray(opts.in)) {
+      // [field, [v1,v2]] format
       const [field, vals] = opts.in;
-      if (field && vals) url.searchParams.set(field, `in.(${vals.join(',')})`);
-    } else {
-      Object.entries(opts.in).forEach(([k,v]) => url.searchParams.set(k, `in.(${v.join(',')})`));
+      if (field && Array.isArray(vals)) url.searchParams.set(field, `in.(${vals.join(',')})`);
+    } else if (typeof opts.in === 'object') {
+      // {field: [v1,v2]} format — used by employee.html etc
+      Object.entries(opts.in).forEach(([k,v]) => {
+        if (Array.isArray(v)) url.searchParams.set(k, `in.(${v.join(',')})`);
+      });
     }
   }
   if (opts.ilike && Array.isArray(opts.ilike)) {
@@ -613,3 +616,61 @@ Object.assign(window, {
   renderTickets, renderAlerts,
   initCanvas
 });
+
+// ── MOBILE SIDEBAR CSS (injected once) ───────────────────────
+(function() {
+  if (document.getElementById('_sbMobileCSS')) return;
+  const s = document.createElement('style');
+  s.id = '_sbMobileCSS';
+  s.textContent = `
+    @media (max-width: 768px) {
+      .shell { display: block !important; position: relative; }
+      .sb {
+        position: fixed !important;
+        top: 0; right: 0;
+        height: 100vh;
+        width: 220px !important;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform .25s ease;
+        overflow-y: auto;
+      }
+      .sb.show { transform: translateX(0) !important; }
+      .main { margin-right: 0 !important; width: 100% !important; }
+      .menu-btn { display: flex !important; }
+      .sb-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.55); z-index: 999;
+      }
+      .sb-overlay.show { display: block; }
+    }
+    @media (min-width: 769px) {
+      .sb { transform: none !important; }
+      .menu-btn { display: none !important; }
+    }
+    .nav-group {
+      padding: 14px 16px 4px;
+      font-size: 9.5px; letter-spacing: .1em;
+      color: #4a5568;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .nav-group .ng-en { opacity: .45; font-size: 8.5px; }
+    .ni {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 14px; cursor: pointer;
+      text-decoration: none; color: var(--t2,#8b949e);
+      border-radius: 7px; margin: 1px 6px;
+      transition: background .15s, color .15s;
+      font-size: 13px; position: relative;
+    }
+    .ni:hover { background: rgba(255,255,255,.05); color: var(--t1,#e6edf3); }
+    .ni.on { color: var(--DC,#0EA5E9); background: rgba(14,165,233,.1); }
+    .ni.on::after {
+      content:''; position:absolute; left:0; top:20%; bottom:20%;
+      width:3px; border-radius:0 3px 3px 0;
+      background: var(--DC,#0EA5E9);
+    }
+    .ni-ic { font-size: 14px; flex-shrink: 0; }
+  `;
+  document.head.appendChild(s);
+})();

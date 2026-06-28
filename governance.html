@@ -47,8 +47,8 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
-<script src="lang.js"></script>
-<script src="app.js"></script>
+<script src="lang.js?v=9"></script>
+<script src="app.js?v=9"></script>
 <script>
 const BL = 'governance';
 const DC = '#7C3AED';
@@ -819,6 +819,11 @@ async function updateMeetingStatus(id,status){
   startClock();
   setTimeout(function(){trackAttendance();},500);
   document.getElementById('lgEl').innerHTML=LOGO;
+  if(typeof buildNav!=='function'){
+    var _pg=document.getElementById('pgContent');
+    if(_pg)_pg.innerHTML='<div style="padding:24px;color:#EF4444;font-family:monospace">app.js failed to load — check console</div>';
+    return;
+  }
   buildNav(NAV,'dash');go('dash');
 })();
 </script>

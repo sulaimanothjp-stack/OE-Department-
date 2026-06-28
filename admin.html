@@ -577,7 +577,7 @@ async function renderDivs(){
           '<span style="font-size:12px;color:#8098BC">الأعضاء</span>'+
           '<span class="badge bg">'+cnt+' عضو</span>'+
         '</div>'+
-        '<a href="'+(code==='national_grid'?'national-grid':code)+'.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:'+cfg.color+';border-color:'+cfg.color+'33">فتح البورتال ←</a>'+
+        '<a href="'+(code==='national_grid'?'national-grid':code==='technical_alerts'?'technical-alerts':code)+'.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:'+cfg.color+';border-color:'+cfg.color+'33">فتح البورتال ←</a>'+
       '</div>';
     }).join('');
   }catch(e){document.getElementById('divGrid').innerHTML='<div style="color:#EF4444">'+esc(e.message)+'</div>';}

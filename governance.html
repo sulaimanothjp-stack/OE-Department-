@@ -48,25 +48,11 @@ body{background:#020912}
 </div>
 <div id="tc"></div>
 <script src="lang.js"></script>
-<script src="app.js"></script>
+<script src="app2.js"></script>
 <script>
 const BL = 'governance';
 const DC = '#7C3AED';
 const DR = '124,58,237';
-
-// IMMEDIATE DIAGNOSTIC - runs before any async code
-(function(){
-  var pg=document.getElementById('pgContent');
-  if(!pg)return;
-  pg.innerHTML='<div style="padding:16px;font-family:monospace;font-size:12px;background:#060F1E;color:#E8F0FF;border:1px solid #152840;border-radius:8px;margin:10px">'
-    +'<div style="color:#FCD34D;margin-bottom:8px">⏳ Diagnostic Running...</div>'
-    +'<div>buildNav: <span style="color:'+(typeof buildNav==='function'?'#10B981':'#EF4444')+'">'+(typeof buildNav)+'</span></div>'
-    +'<div>skR: <span style="color:'+(typeof skR==='function'?'#10B981':'#EF4444')+'">'+(typeof skR)+'</span></div>'
-    +'<div>esc: <span style="color:'+(typeof esc==='function'?'#10B981':'#EF4444')+'">'+(typeof esc)+'</span></div>'
-    +'<div>App: <span style="color:#60A5FA">'+JSON.stringify({lang:(typeof App!=='undefined'?App.lang:'UNDEFINED')})+'</span></div>'
-    +'<div style="margin-top:8px;color:#8098BC">Waiting for IIFE...</div>'
-    +'</div>';
-})();
 const NAV = [
   {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚖️', fn:"go('dash')"},
   {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
@@ -164,6 +150,7 @@ reg('dash',async el=>{
       dbList('kpis',{eq:{business_line:BL},lim:4}),
     ]);
 
+    if(_cur!=='dash')return;
     const _hk=document.getElementById('hks');if(!_hk)return;_hk.innerHTML=[
       {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
       {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
@@ -278,7 +265,7 @@ reg('tasks',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="tq" placeholder="${t('search')}">
+        <input class="fi" id="tq" placeholder="بحث...">
         <select class="fi" id="tst">
           <option value="">كل الحالات</option>
           <option value="new">جديد</option><option value="open">مفتوح</option>
@@ -469,7 +456,7 @@ reg('afis',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="aq" placeholder="${t('search')}">
+        <input class="fi" id="aq" placeholder="بحث...">
         <select class="fi" id="ast">
           <option value="">كل الحالات</option>
           ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
@@ -777,8 +764,26 @@ async function updateMeetingStatus(id,status){
 }
 
 (async()=>{
-  const p=await initPage({roles:['governance_manager','admin','director','governance_manager']});
-  if(!p)return;
+  const _U='https://ekywcrlcjgbjtwnjozov.supabase.co';
+  const _K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+  const _ok=['governance_manager','admin','director'];
+  const _pr={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
+  function _err(m){var p=document.getElementById('pgContent');if(p)p.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px">⚠️</div><p>'+m+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#7C3AED;border:none;border-radius:8px;color:#fff;cursor:pointer">تسجيل الدخول</button></div>';}
+  var s=null;
+  try{var ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var i=0;i<ks.length;i++){var v=JSON.parse(localStorage.getItem(ks[i])||'null');if(v&&v.access_token){s=v;break;}if(v&&v.session&&v.session.access_token){s=v.session;break;}}}catch(e){}
+  if(!s||!s.access_token){location.href='index.html';return;}
+  var uid=s.user&&s.user.id?s.user.id:null;
+  if(!uid){try{uid=JSON.parse(atob(s.access_token.split('.')[1])).sub;}catch(e){}}
+  if(!uid){location.href='index.html';return;}
+  var prof=null;
+  try{var r=await fetch(_U+'/rest/v1/profiles?id=eq.'+uid+'&select=*&limit=1',{headers:{'apikey':_K,'Authorization':'Bearer '+s.access_token}});var d=await r.json();prof=Array.isArray(d)&&d.length>0?d[0]:null;}catch(e){_err('خطأ في الاتصال');return;}
+  if(!prof){_err('الملف الشخصي غير موجود');return;}
+  if(_ok.indexOf(prof.role)===-1){location.href=_pr[prof.role]||'index.html';return;}
+  App.user={id:uid};App.profile=prof;
+  var ini=(prof.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var ub=document.getElementById('ubEl');
+  if(ub)ub.innerHTML='<div class="ub-av" style="background:#7C3AED22;color:#7C3AED">'+ini+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(prof.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[prof.role]||prof.role)+'</div></div>';
+  startClock();
   document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'dash');go('dash');
 })();

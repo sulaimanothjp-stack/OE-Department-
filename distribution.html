@@ -18,11 +18,23 @@ body{background:#020912}
 /* Task accent */
 .tr2:hover{background:rgba(16,185,129,.05)}
 .menu-btn{display:none}
+@media(max-width:768px){
+  .menu-btn{display:flex!important;align-items:center;justify-content:center;
+    width:36px;height:36px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);
+    border-radius:8px;color:#10B981;font-size:18px;cursor:pointer;flex-shrink:0}
+  .sb{position:fixed!important;top:0!important;right:0!important;
+    width:260px!important;height:100vh!important;
+    transform:translateX(100%)!important;
+    transition:transform .28s ease!important;z-index:9999!important;overflow-y:auto!important}
+  .sb.show{transform:translateX(0)!important}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
+  .sb-overlay.show{display:block}
+}
 </style>
 </head>
 <body>
 <div class="shell">
-<aside class="sb">
+<aside class="sb" id="sidebar">
   <div class="sb-brand">
     <div id="lgEl"></div>
     <div><div class="sb-t1" style="color:#10B981">se</div><div class="sb-t2">دائرة التوزيع</div></div>
@@ -35,8 +47,9 @@ body{background:#020912}
   </div>
 </aside>
 <div class="main">
-  <div class="topbar">
-    <div class="tb-ttl fhud" id="pgtitle">دائرة التوزيع</div>
+  <div class="topbar" style="display:flex;align-items:center;gap:10px">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">دائرة التوزيع</div>
     <div class="tb-r">
       <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
       <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
@@ -264,7 +277,7 @@ reg('tasks',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="tq" placeholder="${t('search')}">
+        <input class="fi" id="tq" placeholder="بحث...">
         <select class="fi" id="tst">
           <option value="">كل الحالات</option>
           <option value="new">جديد</option><option value="open">مفتوح</option>
@@ -455,7 +468,7 @@ reg('afis',async el=>{
     </div>
     <div class="panel" style="border-color:rgba(${DR},.15)">
       <div class="filters">
-        <input class="fi" id="aq" placeholder="${t('search')}">
+        <input class="fi" id="aq" placeholder="بحث...">
         <select class="fi" id="ast">
           <option value="">كل الحالات</option>
           ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
@@ -568,7 +581,7 @@ window.saveK=async id=>{
 
 /* ═══ TEAM ═════════════════════════════════════════════════ */
 reg('team',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 فريق دائرة التوزيع</h1></div><div class="g3" id="tGrid">${skR(3)}</div>`;
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 ${t2('فريق','Team')} - التوزيع</h1><button class="btn p" onclick="openCreateEmployee()" style="background:${DC};border-color:${DC}">+ ${t2('إضافة موظف','Add Employee')}</button></div><div class="g3" id="tGrid">${skR(3)}</div>`;
   const{data}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
   document.getElementById('tGrid').innerHTML=data.length?data.map(m=>{
     const init=(m.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -818,6 +831,17 @@ async function createEmployee(){
       </div>
       <div class="mf"><button class="btn p" onclick="closeModal();go('team')" style="background:${DC};border-color:${DC}">${t2('تم','Done')}</button></div>`);
   }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
+}
+
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
+  if(!sb)return;
+  const show=sb.classList.toggle('show');
+  let ov=document.getElementById('sbOv');
+  if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.className='sb-overlay';
+    ov.onclick=toggleSidebar;document.body.appendChild(ov);}
+  ov.classList.toggle('show',show);
 }
 
 (async()=>{

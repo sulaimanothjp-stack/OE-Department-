@@ -428,21 +428,6 @@ function initMobileSidebar() {
     document.body.appendChild(overlay);
   }
   
-  // Add close (×) button inside sidebar
-  if(!sb.querySelector('.sb-close-btn')) {
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'sb-close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = 'position:absolute;top:12px;left:12px;width:28px;height:28px;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;color:var(--t2);font-size:18px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:1';
-    closeBtn.onclick = closeSidebar;
-    sb.style.position = 'relative';
-    sb.appendChild(closeBtn);
-    // Show close btn only on mobile
-    const mq = window.matchMedia('(max-width:768px)');
-    const toggleClose = () => closeBtn.style.display = mq.matches ? 'flex' : 'none';
-    toggleClose(); mq.addEventListener('change', toggleClose);
-  }
-  
   // Close sidebar on nav item click (mobile)
   sb.querySelectorAll('.ni').forEach(ni => {
     ni.addEventListener('click', () => {

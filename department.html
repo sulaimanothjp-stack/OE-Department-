@@ -75,19 +75,32 @@ body{background:#020912}
 /* ACTION BADGE */
 .act-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;border:1px solid}
 .menu-btn{display:none}
+@media(max-width:768px){
+  .menu-btn{display:flex!important;align-items:center;justify-content:center;
+    width:36px;height:36px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);
+    border-radius:8px;color:#D4AF37;font-size:18px;cursor:pointer;flex-shrink:0}
+  .sb{position:fixed!important;top:0!important;right:0!important;
+    width:260px!important;height:100vh!important;
+    transform:translateX(100%)!important;
+    transition:transform .28s ease!important;z-index:9999!important}
+  .sb.show{transform:translateX(0)!important}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
+  .sb-overlay.show{display:block}
+}
 </style>
 </head>
 <body>
 <div class="shell">
-<aside class="sb">
+<aside class="sb" id="sidebar">
   <div class="sb-brand"><div id="lgEl"></div><div><div class="sb-t1" style="color:#D4AF37">se</div><div class="sb-t2" style="color:#6B5520">إدارة التميز التشغيلي</div></div></div>
   <div id="ubEl" class="ub"></div>
   <nav class="nav" id="navEl"></nav>
   <div class="sb-foot"><button class="btn-lo" onclick="doLogout()">🚪 خروج</button><button class="btn-lg" onclick="toggleLang()">EN/ع</button></div>
 </aside>
 <div class="main">
-  <div class="topbar" style="background:rgba(2,9,18,.97)">
-    <div class="tb-ttl fhud" id="pgtitle">غرفة العمليات</div>
+  <div class="topbar" style="background:rgba(2,9,18,.97);display:flex;align-items:center;gap:10px">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">غرفة العمليات</div>
     <div class="tb-r">
       <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
       <button class="nbtn" id="escBtn" onclick="go('escalations')" title="تصعيدات معلقة" style="display:none">
@@ -811,17 +824,15 @@ async function createDeptEmployee(){
 <script>
 function toggleSidebar(){
   const sb=document.getElementById('sidebar')||document.querySelector('.sb');
-  if(sb) sb.classList.toggle('show');
-  const ov=document.getElementById('sbOverlay');
-  if(ov) ov.classList.toggle('show');
+  if(!sb)return;
+  const show=sb.classList.toggle('show');
+  let ov=document.getElementById('sbOverlay');
+  if(!ov){
+    ov=document.createElement('div');ov.id='sbOverlay';ov.className='sb-overlay';
+    ov.onclick=function(){toggleSidebar();};document.body.appendChild(ov);
+  }
+  ov.classList.toggle('show',show);
 }
-// Overlay for closing sidebar
-document.addEventListener('DOMContentLoaded',function(){
-  const ov=document.createElement('div');
-  ov.id='sbOverlay';ov.className='sb-overlay';
-  ov.onclick=function(){toggleSidebar()};
-  document.body.appendChild(ov);
-});
 </script>
 </body>
 </html>

@@ -213,14 +213,33 @@ async function initAuth(roles) {
       { headers:{'apikey':SB_KEY,'Authorization':`Bearer ${sess.access_token}`} });
     const data = await res.json();
     const p = Array.isArray(data) ? data[0] : null;
-    if(!p) return null;
+    if(!p) {
+      const pg = document.getElementById('pgContent') || document.getElementById('pageArea') || document.body;
+      if(pg) pg.innerHTML = `<div style="padding:30px;font-family:monospace;color:#F59E0B;background:#0A0F1A;min-height:50vh">
+        <h3>⚠️ Profile Not Found</h3>
+        <p style="color:#FDE68A">uid: ${uid}</p>
+        <p style="color:#FDE68A">data: ${JSON.stringify(data)}</p>
+        <p style="color:#8098BC">HTTP status suggests RLS or missing profile row</p>
+        <button onclick="location.href='index.html'" style="margin-top:12px;padding:8px 16px;background:#F59E0B;border:none;border-radius:6px;cursor:pointer;font-weight:700">تسجيل الدخول مجدداً</button>
+      </div>`;
+      return null;
+    }
     App.user = sess.user || { id:uid }; App.profile = p;
     if(roles) {
       const ok = Array.isArray(roles) ? roles.includes(p.role) : p.role===roles;
       if(!ok && p.role!=='admin') { location.href=PORTALS[p.role]||'index.html'; return null; }
     }
     _renderBadge(); setLang(App.lang); return p;
-  } catch(e) { return null; }
+  } catch(e) {
+    // Show error visibly on page instead of silent null
+    const pg = document.getElementById('pgContent') || document.getElementById('pageArea') || document.body;
+    if(pg) pg.innerHTML = `<div style="padding:30px;font-family:monospace;color:#EF4444;background:#0A0F1A;min-height:50vh">
+      <h3>⚠️ initAuth Error</h3>
+      <p style="color:#FCA5A5">${e.message}</p>
+      <p style="color:#8098BC">Stack: ${e.stack||'none'}</p>
+    </div>`;
+    return null;
+  }
 }
 
 async function doLogout() { clearSession(); location.href='index.html'; }
@@ -267,7 +286,8 @@ function openModal(html, cls='') {
   bd.innerHTML=`<div class="modal ${cls}">${html}</div>`;
   bd.addEventListener('click', e=>{ if(e.target===bd) closeModal(); });
   document.body.appendChild(bd);
-
+  // Auto-translate modal content
+  setTimeout(()=>{ if(typeof translateDOM==='function'&&App.lang!=='ar') translateDOM(bd); },30);
 }
 function closeModal() { document.getElementById('M')?.remove(); }
 
@@ -465,7 +485,15 @@ function go(k) {
   const fn = PAGES[k];
   if(fn) {
     fn(document.getElementById('pg'));
-
+    // Auto-translate after render (multiple passes for async)
+    const doTranslate = () => {
+      if(typeof translateDOM === 'function' && App.lang !== 'ar') {
+        translateDOM(document.querySelector('.main') || document.body);
+      }
+    };
+    setTimeout(doTranslate, 150);
+    setTimeout(doTranslate, 500);
+    setTimeout(doTranslate, 1200);
   } else {
     const pg = document.getElementById('pg');
     if(pg) pg.innerHTML = `<p style="padding:40px;color:var(--t3)">${t2('قيد البناء…','Coming soon…')}</p>`;
@@ -577,7 +605,10 @@ async function initPage(opts={}) {
   setTimeout(initMobileSidebar, 100);
   // Track attendance
   setTimeout(trackAttendance, 500);
-
+  // Translate sidebar
+  setTimeout(()=>{
+    if(typeof translateDOM==='function'&&App.lang!=='ar') translateDOM(document.querySelector('.sb'));
+  },200);
   return p;
 }
 
@@ -604,6 +635,5 @@ Object.assign(window, {
   dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt,
   fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl,
   initCanvas, loadHealth, buildNav, confirm2, logAct, LOGO, go, reg, PAGES,
-  renderTickets, renderAlerts, openNewTicket, openNewAlert, saveNewTicket, saveNewAlert, openTicketDetail,
   getStoredSession, storeSession, clearSession, isSessionValid,
 });

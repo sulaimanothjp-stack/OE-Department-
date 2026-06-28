@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · غرفة العمليات التنفيذية</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root{--DC:#D4AF37;--DR:212,175,55}
+body{background:#020912}
+.ni.on{color:#D4AF37;background:rgba(212,175,55,.12)}.ni.on::after{background:#D4AF37}
+.tb-ttl{color:#D4AF37!important}.clk .ct{color:#D4AF37!important}
+.ld .d{background:#D4AF37;color:#D4AF37;box-shadow:0 0 6px #D4AF37}
+
+/* WAR ROOM HERO */
+.wr{position:relative;overflow:hidden;background:linear-gradient(145deg,#D4AF3706,#020912);border:1px solid rgba(212,175,55,.18);border-radius:12px;margin-bottom:18px}
+#wrcv{position:absolute;inset:0;z-index:0}
+.wr-in{position:relative;z-index:1;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.wr-in h1{font-family:var(--hud);font-size:20px;font-weight:700;background:linear-gradient(135deg,#fff,#FDE68A,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:3px}
+.wr-in .ws{font-size:12px;color:#D4AF3755;font-style:italic}
+.wclk .wt{font-family:var(--hud);font-size:36px;font-weight:700;color:#D4AF37;line-height:1;text-align:center}
+.wclk .wd{font-family:var(--mono);font-size:10px;color:#8B7340;margin-top:3px;text-align:center}
+.wclk .wg{font-size:11px;color:#6B5520;margin-top:3px;text-align:center}
+.wstats{display:flex;gap:16px;flex-wrap:wrap}
+.wkv{text-align:center}
+.wkv .wv{font-family:var(--hud);font-size:24px;font-weight:700;line-height:1;color:#fff}
+.wkv .wl{font-family:var(--mono);font-size:9px;color:#8B7340;margin-top:2px;letter-spacing:.07em}
+.wkv.rd .wv{color:#F87171}.wkv.gn .wv{color:#34D399}.wkv.yw .wv{color:#FCD34D}
+.wrbar{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#D4AF37,#FDE68A,#D4AF37,transparent);animation:sba 4s linear infinite;background-size:200%}
+@keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
+
+/* DIV NODES */
+.dhx{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.dn{position:relative;background:var(--bg2);border:1px solid rgba(212,175,55,.07);border-radius:10px;padding:12px 10px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;overflow:hidden}
+.dn:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.6)}
+.dn.crit{border-color:rgba(239,68,68,.3)}.dn.warn{border-color:rgba(245,158,11,.25)}.dn.ok{border-color:rgba(16,185,129,.2)}
+.dn-ic{font-size:24px}.dn-nm{font-size:10.5px;font-weight:700}
+.dn-sc{font-family:var(--hud);font-size:22px;font-weight:700}
+.dn-st{font-family:var(--mono);font-size:8.5px;letter-spacing:.06em}
+.dn-bar{width:100%;height:2px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:4px}
+.dn-fill{height:100%;border-radius:99px}
+.dn-mt{display:flex;gap:6px;border-top:1px solid rgba(255,255,255,.04);padding-top:5px;width:100%;justify-content:center}
+.dn-m .mv{font-family:var(--hud);font-size:12px;font-weight:700}
+.dn-m .ml{font-size:8.5px;color:var(--t3)}
+
+/* ESCALATION ITEMS */
+.esc-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06);transition:.13s;cursor:pointer}
+.esc-item:hover{background:rgba(212,175,55,.04)}.esc-item:last-child{border-bottom:none}
+.esc-led{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.esc-led.cr{background:#EF4444;box-shadow:0 0 7px #EF4444;animation:pl 1s infinite}
+.esc-led.wr{background:#F59E0B;box-shadow:0 0 5px #F59E0B;animation:pl 2s infinite}
+.esc-led.ok{background:#10B981}
+@keyframes pl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
+
+/* MEETING */
+.mtg-item{padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06);cursor:pointer;transition:.13s}
+.mtg-item:hover{background:rgba(212,175,55,.04)}.mtg-item:last-child{border-bottom:none}
+.mtg-date{font-family:var(--mono);font-size:10px;color:#8B7340;margin-bottom:3px}
+.mtg-title{font-weight:600;font-size:13.5px}
+.mtg-act{font-size:12px;color:var(--t2);margin-top:2px}
+
+/* QPI */
+.qpi-card{background:linear-gradient(145deg,#D4AF3706,#020912);border:1px solid rgba(212,175,55,.15);border-radius:10px;padding:14px 16px;text-align:center;transition:.18s}
+.qpi-card:hover{border-color:rgba(212,175,55,.28)}
+.qpi-card .qv{font-family:var(--hud);font-size:32px;font-weight:700;background:linear-gradient(135deg,#D4AF37,#FDE68A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.qpi-card .ql{font-size:12px;color:#8B7340;margin-top:4px}
+.qpi-card .qc{font-size:11.5px;color:var(--t2);margin-top:5px}
+.qpi-trend{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:5px;font-family:var(--mono);font-size:11px}
+
+/* BRIEF BLOCKS */
+.brief-b{padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06)}
+.brief-b:last-child{border-bottom:none}
+.brief-b h4{font-family:var(--hud);font-size:10.5px;color:#D4AF37;margin-bottom:4px;letter-spacing:.06em}
+.brief-b p{font-size:12.5px;color:var(--t2);line-height:1.6}
+
+/* ACTION BADGE */
+.act-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;border:1px solid}
+.menu-btn{display:none}
+@media(max-width:768px){
+  .menu-btn{display:flex!important;align-items:center;justify-content:center;
+    width:36px;height:36px;background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);
+    border-radius:8px;color:#D4AF37;font-size:18px;cursor:pointer;flex-shrink:0}
+  .sb{position:fixed!important;top:0!important;right:0!important;
+    width:260px!important;height:100vh!important;
+    transform:translateX(100%)!important;
+    transition:transform .28s ease!important;z-index:9999!important}
+  .sb.show{transform:translateX(0)!important}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(2,9,18,.8);z-index:9998}
+  .sb-overlay.show{display:block}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sb" id="sidebar">
+  <div class="sb-brand"><div id="lgEl"></div><div><div class="sb-t1" style="color:#D4AF37">se</div><div class="sb-t2" style="color:#6B5520">إدارة التميز التشغيلي</div></div></div>
+  <div id="ubEl" class="ub"></div>
+  <nav class="nav" id="navEl"></nav>
+  <div class="sb-foot"><button class="btn-lo" onclick="doLogout()">🚪 خروج</button><button class="btn-lg" onclick="toggleLang()">EN/ع</button></div>
+</aside>
+<div class="main">
+  <div class="topbar" style="background:rgba(2,9,18,.97);display:flex;align-items:center;gap:10px">
+    <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">غرفة العمليات</div>
+    <div class="tb-r">
+      <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
+      <button class="nbtn" id="escBtn" onclick="go('escalations')" title="تصعيدات معلقة" style="display:none">
+        ⚡<span class="ndot" id="escDot"></span>
+      </button>
+      <div class="ld"><div class="d"></div><span style="color:#8B734044;font-family:var(--mono);font-size:11px">WAR ROOM</span></div>
+    </div>
+  </div>
+  <div class="page" id="pgContent"></div>
+</div>
+</div>
+<div id="tc"></div>
+<script src="lang.js"></script>
+<script src="app.js"></script>
+<script>
+const NAV = [
+  {k:'warroom',     ar:'غرفة العمليات',        en:'War Room',          ic:'🎯', fn:"go('warroom')"},
+  {k:'heatmap',     ar:'خريطة الدوائر',         en:'Division Map',      ic:'🗺️', fn:"go('heatmap')"},
+  {g:'القرارات',ge:'DECISIONS'},
+  {k:'escalations', ar:'صندوق التصعيد',         en:'Escalations',       ic:'⚡', fn:"go('escalations')"},
+  {k:'approvals',   ar:'موافقات معلقة',          en:'Approvals',         ic:'✅', fn:"go('approvals')"},
+  {g:'الاجتماعات',ge:'MEETINGS'},
+  {k:'meetings',    ar:'اجتماع OE الأسبوعي',    en:'Weekly OE Meeting',  ic:'📅', fn:"go('meetings')"},
+  {k:'newmeeting',  ar:'اجتماع جديد',            en:'New Meeting',        ic:'➕', fn:"go('newmeeting')"},
+  {g:'الأداء',ge:'PERFORMANCE'},
+  {k:'qpi',         ar:'التقرير الربعي QPI',     en:'QPI Report',         ic:'📊', fn:"go('qpi')"},
+  {k:'kpis',        ar:'مؤشرات متدهورة',         en:'KPI Decline',        ic:'📉', fn:"go('kpis')"},
+  {k:'afis',        ar:'AFIs الحرجة',            en:'Critical AFIs',      ic:'▲',  fn:"go('afis')"},
+  {k:'alerts',      ar:'تنبيهات حرجة',           en:'Critical Alerts',    ic:'🚨', fn:"go('alerts')"},
+  {g:'الملخص',ge:'BRIEF'},
+  {k:'brief',       ar:'الملخص التنفيذي',        en:'Executive Brief',    ic:'📋', fn:"go('brief')"},
+];
+const PAGES = {};
+function reg(k,fn){PAGES[k]=fn;}
+function go(k){
+  const item=NAV.find(n=>n.k===k);
+  document.getElementById('pgtitle').textContent=item?(App.lang==='ar'?item.ar:item.en):k;
+  buildNav(NAV,k);
+  const ct=document.getElementById('pgContent');ct.innerHTML='<div class="fade" id="pg"></div>';
+  (PAGES[k]||function(el){el.innerHTML='<p style="padding:40px;color:var(--t3)">قيد البناء…</p>';})(document.getElementById('pg'));
+  window.scrollTo(0,0);
+}
+
+/* WAR ROOM CANVAS */
+function drawWR(){
+  const cv=document.getElementById('wrcv');if(!cv)return;
+  const cx=cv.getContext('2d');let W,H,pts=[],t=0;
+  function r(){const rc=cv.parentElement.getBoundingClientRect();W=cv.width=rc.width;H=cv.height=rc.height;pts=[];const n=Math.floor(W*H/8000);for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.1,vy:(Math.random()-.5)*.1,r:Math.random()*1.2+.5,gold:Math.random()>.65});}
+  function d(){t+=.005;cx.clearRect(0,0,W,H);
+    cx.strokeStyle='rgba(212,175,55,.025)';cx.lineWidth=.4;
+    for(let x=0;x<W;x+=55){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+    for(let y=0;y<H;y+=40){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+    const g=cx.createRadialGradient(W*.72,H*.5,0,W*.72,H*.5,H*.55);
+    g.addColorStop(0,'rgba(212,175,55,.04)');g.addColorStop(1,'transparent');
+    cx.fillStyle=g;cx.fillRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.28);cx.fillStyle=p.gold?'rgba(212,175,55,.45)':'rgba(255,255,255,.1)';cx.fill();});
+    const sy=(Math.sin(t)*.5+.5)*H;cx.fillStyle='rgba(212,175,55,.015)';cx.fillRect(0,sy-1,W,2);
+    requestAnimationFrame(d);}
+  r();window.addEventListener('resize',r);d();
+}
+
+/* WAR ROOM CLOCK */
+function startWRClock(){
+  function tick(){
+    const n=new Date(),h=n.getHours(),l=App.lang;
+    const hh=String(h%12||12).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0'),ss=String(n.getSeconds()).padStart(2,'0');
+    const wt=document.getElementById('wt');if(wt)wt.textContent=`${hh}:${mm}:${ss} ${h<12?(l==='ar'?'ص':'AM'):(l==='ar'?'م':'PM')}`;
+    const ti=T[l]||T.ar;
+    const wd=document.getElementById('wd');if(wd)wd.textContent=`${ti.days[n.getDay()]}، ${n.getDate()} ${ti.months[n.getMonth()]} ${n.getFullYear()}`;
+    const wg=document.getElementById('wg');if(wg)wg.textContent=h<12?'صباح الخير — راجع أولويات اليوم':h<17?'مساء الخير — ماذا يحتاج قرارك؟':'وقت الإغلاق — لخّص إنجازات اليوم';
+  }
+  tick();setInterval(tick,1000);
+}
+
+/* ════════════════════════════════════════════
+   WAR ROOM
+════════════════════════════════════════════ */
+reg('warroom',async el=>{
+  el.innerHTML=`
+    <div class="wr">
+      <canvas id="wrcv"></canvas>
+      <div class="wr-in">
+        <div>
+          <h1>🎯 غرفة العمليات التنفيذية</h1>
+          <div class="ws">"نظرة استراتيجية شاملة — فقط ما يحتاج قرارك"</div>
+          <div class="wstats mt2" id="wStats">
+            <div class="wkv rd"><div class="wv">—</div><div class="wl">AFIs OVERDUE</div></div>
+            <div class="wkv yw"><div class="wv">—</div><div class="wl">KPIs RED</div></div>
+            <div class="wkv rd"><div class="wv">—</div><div class="wl">ESCALATIONS</div></div>
+            <div class="wkv yw"><div class="wv">—</div><div class="wl">APPROVALS</div></div>
+            <div class="wkv gn"><div class="wv">—</div><div class="wl">DEPT HEALTH</div></div>
+          </div>
+        </div>
+        <div class="wclk"><div class="wt" id="wt">—</div><div class="wd" id="wd"></div><div class="wg" id="wg"></div></div>
+      </div>
+      <div class="wrbar"></div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:9.5px;color:#8B7340;letter-spacing:.12em;margin-bottom:10px">◈ OPERATIONAL HEALTH — DIVISION STATUS</div>
+    <div class="dhx" id="dhx">${skR(5)}</div>
+
+    <div class="g3 mb2">
+      <!-- ESCALATIONS -->
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">⚡ تصعيدات تنتظر قرارك</h3>
+          <span id="escCnt" style="font-family:var(--mono);font-size:10px;color:#8B7340">...</span>
+        </div>
+        <div id="escFeed"></div>
+      </div>
+      <!-- KPI DECLINE -->
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">📉 مؤشرات تتراجع</h3>
+          <button class="btn sm" onclick="go('kpis')">عرض الكل</button>
+        </div>
+        <div id="kpiFeed"></div>
+      </div>
+      <!-- EXEC BRIEF -->
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">📋 الملخص التنفيذي</h3>
+          <span class="badge bb" style="font-size:9px">AI BRIEF</span>
+        </div>
+        <div id="briefFeed"></div>
+      </div>
+    </div>
+
+    <!-- MEETINGS + QPI PREVIEW -->
+    <div class="g2">
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">📅 آخر اجتماعات OE</h3>
+          <button class="btn sm" onclick="go('meetings')">عرض الكل</button>
+        </div>
+        <div id="mtgFeed"></div>
+      </div>
+      <div class="panel" style="border-color:rgba(212,175,55,.1)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">📊 أداء الربع الحالي</h3>
+          <button class="btn sm" onclick="go('qpi')">التقرير الكامل</button>
+        </div>
+        <div id="qpiPrev" class="pb"></div>
+      </div>
+    </div>`;
+
+  drawWR(); startWRClock();
+
+  try{
+    const[oAfis,rKpis,escAlerts,pApp,health,afis,kpis,mtgs]=await Promise.all([
+      dbCnt('afis',{eq:{status:'overdue'}}),
+      dbCnt('kpis',{eq:{status:'red'}}),
+      dbCnt('technical_alerts',{eq:{severity:'critical',status:'escalated'}}),
+      dbCnt('assessments',{eq:{approval_status:'pending'}}),
+      loadHealth(),
+      dbList('afis',{eq:{status:'overdue'},lim:5}),
+      dbList('kpis',{eq:{status:'red'},lim:4}),
+      dbList('meetings',{lim:3}),
+    ]);
+
+    // Escalation badge in topbar
+    if(escAlerts>0){
+      const eb=document.getElementById('escBtn');
+      if(eb)eb.style.display='flex';
+    }
+
+    const avgH=health.length?Math.round(health.reduce((s,d)=>{const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;return s+sc;},0)/health.length):0;
+    document.getElementById('wStats').innerHTML=[
+      {v:oAfis,l:'AFIs OVERDUE',cl:oAfis?'rd':'gn'},
+      {v:rKpis,l:'KPIs RED',cl:rKpis?'yw':'gn'},
+      {v:escAlerts,l:'ESCALATIONS',cl:escAlerts?'rd':'gn'},
+      {v:pApp,l:'APPROVALS',cl:pApp?'yw':'gn'},
+      {v:avgH+'%',l:'DEPT HEALTH',cl:avgH>=80?'gn':avgH>=60?'yw':'rd'},
+    ].map(s=>`<div class="wkv ${s.cl}"><div class="wv">${s.v}</div><div class="wl">${s.l}</div></div>`).join('');
+
+    // Division nodes
+    document.getElementById('dhx').innerHTML=health.map(d=>{
+      const cfg=DIVS[d.code]||{};const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
+      const cls=sc>=85?'ok':sc>=65?'warn':'crit';const clr=sc>=85?'#34D399':sc>=65?'#FCD34D':'#F87171';
+      const scAr=sc>=85?'ممتاز':sc>=65?'مراقبة':'تدخل';
+      return`<div class="dn ${cls}" onclick="window.location.href='${d.code==='national_grid'?'national-grid':d.code}.html'">
+        <div class="dn-ic">${cfg.icon||'◧'}</div>
+        <div class="dn-nm">${App.lang==='ar'?d.name_ar:d.name_en}</div>
+        <div class="dn-sc" style="color:${clr}">${sc}%</div>
+        <div class="dn-st" style="color:${clr}88">${scAr}</div>
+        <div class="dn-bar"><div class="dn-fill" style="width:${sc}%;background:${clr}"></div></div>
+        <div class="dn-mt">
+          <div class="dn-m"><div class="mv" style="color:#F87171">${d.overdue_afis}</div><div class="ml">LATE</div></div>
+          <div class="dn-m"><div class="mv" style="color:#FCD34D">${d.open_alerts}</div><div class="ml">ALRT</div></div>
+          <div class="dn-m"><div class="mv" style="color:#60A5FA">${d.active_assessments}</div><div class="ml">ASSM</div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Escalation feed
+    document.getElementById('escCnt').textContent=`${escAlerts} عنصر`;
+    document.getElementById('escFeed').innerHTML=afis.data.length
+      ?afis.data.map(a=>`<div class="esc-item" onclick="go('escalations')">
+          <div class="esc-led ${a.status==='overdue'?'cr':'wr'}"></div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
+          <div style="font-size:11.5px;color:var(--t2)">${a.afi_number||''} · ${DIVS[a.business_line]?.ar||a.business_line||''} · ${fmtD(a.due_date)}</div></div>
+          ${priBadge(a.priority)}
+        </div>`).join('')
+      :`<div style="padding:14px;text-align:center;color:var(--success);font-size:13px">✓ لا تصعيدات معلقة</div>`;
+
+    // KPI decline
+    document.getElementById('kpiFeed').innerHTML=kpis.data.length
+      ?kpis.data.map(k=>`<div class="esc-item" onclick="go('kpis')">
+          <div class="esc-led wr"></div>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(k.name_ar)}</div>
+          <div style="font-size:11.5px;color:var(--t2)">${DIVS[k.business_line]?.ar||''} · الفعلي: ${fmtN(k.actual)} / هدف: ${fmtN(k.target)} ${k.unit||'%'}</div></div>
+          <span style="font-size:17px;color:var(--danger)">↓</span>
+        </div>`).join('')
+      :`<div style="padding:14px;text-align:center;color:var(--success);font-size:13px">✓ كل المؤشرات ضمن الأهداف</div>`;
+
+    // Executive brief
+    document.getElementById('briefFeed').innerHTML=[
+      {h:'الوضع العام',t:`إدارة التميز التشغيلي تعمل بكفاءة ${avgH}%. ${oAfis>0?`${oAfis} AFI متأخرة. `:''}${escAlerts>0?`${escAlerts} تنبيه مصعّد.`:''}`},
+      {h:'أولويات اليوم',t:`${oAfis>0?`متابعة ${oAfis} AFI متأخرة. `:''}${rKpis>0?`${rKpis} مؤشر دون الهدف. `:''}${pApp>0?`${pApp} طلب اعتماد ينتظرك.`:''} `.trim()||'لا قرارات عاجلة — يوم جيد.'},
+      {h:'توصية استراتيجية',t:'راجع الدائرة ذات أعلى AFIs متأخرة. تأكد من اكتمال التحديثات الأسبوعية قبل اجتماع QPI.'},
+    ].map(b=>`<div class="brief-b"><h4>${b.h.toUpperCase()}</h4><p>${b.t}</p></div>`).join('');
+
+    // Meetings feed
+    document.getElementById('mtgFeed').innerHTML=mtgs.data.length
+      ?mtgs.data.map(m=>`<div class="mtg-item" onclick="go('meetings')">
+          <div class="mtg-date">${fmtD(m.meeting_date)} · ${m.type==='weekly_oe'?'أسبوعي':'طارئ'}</div>
+          <div class="mtg-title">${esc(m.title)}</div>
+          ${m.decisions?`<div class="mtg-act">📌 ${esc(m.decisions.slice(0,60))}...</div>`:''}
+        </div>`).join('')
+      :`<div style="padding:14px;text-align:center;color:var(--t2);font-size:12.5px">لا اجتماعات مسجّلة — <button class="btn sm" onclick="go('newmeeting')" style="margin-right:5px">+ اجتماع جديد</button></div>`;
+
+    // QPI preview
+    document.getElementById('qpiPrev').innerHTML=`
+      <div class="g2" style="gap:8px">
+        ${[
+          {l:'معدل إغلاق AFIs',v:avgH>80?'82%':'63%',t:avgH>80?'gn':'yw'},
+          {l:'KPIs ضمن الهدف',v:`${Math.max(0,100-rKpis*15)}%`,t:rKpis<2?'gn':'yw'},
+          {l:'تقييمات مكتملة',v:'4/6',t:'bb'},
+          {l:'صحة الإدارة',v:avgH+'%',t:avgH>=80?'gn':avgH>=60?'ylw':'red'},
+        ].map(s=>`<div style="background:var(--bg1);border-radius:var(--rs);padding:8px;text-align:center">
+          <div class="sc sv ${s.t}" style="font-size:19px">${s.v}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px">${s.l}</div>
+        </div>`).join('')}
+      </div>
+      <button class="btn" onclick="go('qpi')" style="width:100%;margin-top:10px;border-color:rgba(212,175,55,.25);color:#D4AF37;font-size:12.5px">📊 التقرير الكامل</button>`;
+
+  }catch(e){toast(e.message,'e');}
+});
+
+/* ════════════════════════════════════════════
+   HEAT MAP
+════════════════════════════════════════════ */
+reg('heatmap',async el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">🗺️ خريطة الدوائر</h1></div><div class="g3" id="hmG">${skR()}</div>`;
+  const h=await loadHealth();
+  document.getElementById('hmG').innerHTML=h.map(d=>{
+    const cfg=DIVS[d.code]||{};const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;const clr=sc>=85?'var(--success)':sc>=65?'var(--warning)':'var(--danger)';
+    return`<div class="card" style="border-color:${cfg.color||clr}25">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div style="font-size:26px">${cfg.icon||'◧'}</div>
+        <div><div style="font-weight:700;font-size:14px">${cfg.ar||d.name_ar}</div>
+          <div style="font-family:var(--hud);font-size:22px;font-weight:700;color:${clr}">${sc}%</div></div>
+      </div>
+      <div class="g2" style="gap:6px">
+        ${[{l:'AFIs مفتوحة',v:d.open_afis},{l:'AFIs متأخرة',v:d.overdue_afis},{l:'تنبيهات',v:d.open_alerts},{l:'تقييمات',v:d.active_assessments}].map(i=>`<div style="padding:7px;background:var(--bg1);border-radius:var(--rs);text-align:center"><div style="font-family:var(--hud);font-size:17px">${i.v}</div><div style="font-size:9.5px;color:var(--t3)">${i.l}</div></div>`).join('')}
+      </div>
+      ${progBar(sc)}
+      <a href="${d.code==='national_grid'?'national-grid':d.code}.html" class="btn sm" style="width:100%;margin-top:8px;justify-content:center;color:${cfg.color||clr};border-color:${cfg.color||clr}33">فتح البورتال ←</a>
+    </div>`;
+  }).join('');
+});
+
+/* ════════════════════════════════════════════
+   ESCALATIONS — صندوق التصعيد التنفيذي
+════════════════════════════════════════════ */
+reg('escalations',async el=>{
+  el.innerHTML=`
+    <div style="margin-bottom:14px">
+      <h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">⚡ صندوق التصعيد التنفيذي</h1>
+      <div style="font-size:12.5px;color:var(--t2)">التنبيهات والمشاكل المصعّدة لك من مدراء الدوائر — وافق أو أعِد توجيه</div>
+    </div>
+    <div class="g4 mb2" id="escStats">${skR()}</div>
+    <div class="panel" style="border-color:rgba(212,175,55,.12)">
+      <div class="filters">
+        <select class="fi" id="escSev">
+          <option value="">كل الخطورة</option>
+          <option value="critical">🔴 حرج</option>
+          <option value="high">🟠 عالٍ</option>
+          <option value="medium">🟡 متوسط</option>
+        </select>
+        <select class="fi" id="escDiv">
+          <option value="">كل الدوائر</option>
+          ${Object.entries(DIVS).map(([k,v])=>`<option value="${k}">${v.icon} ${v.ar}</option>`).join('')}
+        </select>
+      </div>
+      <div id="escList">${skR()}</div>
+    </div>`;
+
+  async function load(){
+    const sv=document.getElementById('escSev')?.value||'',dv=document.getElementById('escDiv')?.value||'';
+    const listEl=document.getElementById('escList');listEl.innerHTML=skR();
+    try{
+      const opts={eq:{status:'escalated'}};
+      if(sv)opts.eq={...opts.eq,severity:sv};
+      if(dv)opts.eq={...opts.eq,source_division:dv};
+      const[stats,{data}]=await Promise.all([
+        Promise.all([dbCnt('technical_alerts',{eq:{status:'escalated'}}),dbCnt('afis',{eq:{status:'overdue'}}),dbCnt('assessments',{eq:{approval_status:'pending'}}),dbCnt('kpis',{eq:{status:'red'}})]),
+        dbList('technical_alerts',opts),
+      ]);
+      const[esc2,lateAfi,pendApp,redKpi]=stats;
+      document.getElementById('escStats').innerHTML=[
+        {sl:'تنبيهات مصعّدة',sv:esc2,cl:esc2?'red':''},
+        {sl:'AFIs متأخرة',sv:lateAfi,cl:lateAfi?'red':'grn'},
+        {sl:'تقييمات تنتظر اعتماد',sv:pendApp,cl:pendApp?'ylw':'grn'},
+        {sl:'KPIs حمراء',sv:redKpi,cl:redKpi?'red':'grn'},
+      ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
+
+      if(!data.length){listEl.innerHTML=emptyEl('لا تصعيدات معلقة ✓');return;}
+      listEl.innerHTML=data.map(a=>`<div style="padding:12px 14px;border-bottom:1px solid rgba(212,175,55,.06)">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div class="esc-led ${a.severity==='critical'?'cr':'wr'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px">${esc(a.title)}</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:2px">${DIVS[a.source_division]?.icon||''} ${DIVS[a.source_division]?.ar||a.source_division||''} · ${fmtD(a.reported_date)}</div>
+            ${a.description?`<div style="font-size:12.5px;color:var(--t2);margin-top:5px;background:var(--bg1);padding:7px 10px;border-radius:var(--rs)">${esc(a.description)}</div>`:''}
+          </div>
+          <span class="badge ${a.severity==='critical'?'br':'by'}">${a.severity==='critical'?'حرج':'عالٍ'}</span>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:10px;padding-right:19px">
+          <button class="btn sm" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#34D399" onclick="resolveEsc('${a.id}','resolved')">✓ تم المعالجة</button>
+          <button class="btn sm" style="background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#F87171" onclick="resolveEsc('${a.id}','critical')">↑ تصعيد أعلى</button>
+          <button class="btn sm" onclick="addEscNote('${a.id}')">📝 ملاحظة</button>
+        </div>
+      </div>`).join('');
+    }catch(e){listEl.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+  }
+  ['escSev','escDiv'].forEach(id=>document.getElementById(id)?.addEventListener('change',load));
+  load();
+});
+window.resolveEsc=async(id,status)=>{
+  await dbUpd('technical_alerts',id,{status,resolution:status==='resolved'?'تمت المعالجة من مدير الإدارة':null});
+  toast(status==='resolved'?'تم وضع علامة محلول ✓':'تم التصعيد لمستوى أعلى','s');
+  go('escalations');
+};
+window.addEscNote=id=>{
+  openModal(`<div class="mh"><h3>📝 إضافة ملاحظة تنفيذية</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd"><div class="field"><label>الملاحظة</label><textarea id="esc_note" rows="4" placeholder="توجيهات للمعالجة..."></textarea></div></div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn" onclick="saveEscNote('${id}')" style="background:linear-gradient(135deg,#D4AF37,#FDE68A);border:none;color:#020912">حفظ</button></div>`);
+};
+window.saveEscNote=async id=>{
+  const note=mv('esc_note');if(!note)return;
+  await dbUpd('technical_alerts',id,{resolution:note});
+  toast('تم حفظ الملاحظة ✓','s');closeModal();go('escalations');
+};
+
+/* ════════════════════════════════════════════
+   APPROVALS
+════════════════════════════════════════════ */
+reg('approvals',async el=>{
+  el.innerHTML=`
+    <div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">✅ موافقات معلقة</h1>
+    <div style="font-size:12.5px;color:var(--t2)">تقييمات تنتظر اعتمادك النهائي</div></div>
+    <div class="panel" style="border-color:rgba(212,175,55,.12)"><div id="appList">${skR()}</div></div>`;
+  const{data}=await dbList('assessments',{eq:{approval_status:'pending'}}).catch(()=>({data:[]}));
+  document.getElementById('appList').innerHTML=data.length
+    ?data.map(a=>`<div style="padding:12px 14px;border-bottom:1px solid rgba(212,175,55,.06)">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:13.5px">${esc(a.title)}</div>
+            <div style="font-size:12px;color:var(--t2);margin-top:2px">
+              ${DIVS[a.business_line]?.icon||''} ${DIVS[a.business_line]?.ar||a.business_line||''} · المقيّم: ${esc(a.assessor_name||'—')} · ${fmtD(a.due_date)}
+            </div>
+            <div style="margin-top:6px">${stBadge(a.stage)} ${progBar(a.progress||0)}</div>
+          </div>
+          <span class="badge by">بانتظار الاعتماد</span>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:10px">
+          <button class="btn sm" style="background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.35);color:#34D399" onclick="approveAssm('${a.id}','approved')">✓ اعتماد</button>
+          <button class="btn sm d" onclick="approveAssm('${a.id}','rejected')">✕ رفض</button>
+          <button class="btn sm" onclick="openAssm('${a.id}')">عرض التفاصيل</button>
+        </div>
+      </div>`).join('')
+    :emptyEl('لا موافقات معلقة ✓');
+});
+window.approveAssm=async(id,status)=>{
+  await dbUpd('assessments',id,{approval_status:status,approved_by:App.profile?.id});
+  toast(status==='approved'?'تم الاعتماد ✓':'تم الرفض','s');go('approvals');
+};
+window.openAssm=async id=>{
+  const a=await dbGet('assessments',id).catch(()=>null);if(!a)return;
+  openModal(`<div class="mh"><h3>${esc(a.title)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="g2 mb2">
+        <div><label style="font-size:10.5px;color:var(--t3)">الدائرة</label><div style="font-weight:600">${DIVS[a.business_line]?.ar||a.business_line||'—'}</div></div>
+        <div><label style="font-size:10.5px;color:var(--t3)">المقيّم</label><div style="font-weight:600">${esc(a.assessor_name||'—')}</div></div>
+        <div><label style="font-size:10.5px;color:var(--t3)">المرحلة</label><div>${stBadge(a.stage)}</div></div>
+        <div><label style="font-size:10.5px;color:var(--t3)">الإنجاز</label><div>${progBar(a.progress||0)}</div></div>
+      </div>
+      ${a.findings?`<div class="field"><label>النتائج</label><p style="font-size:13px;color:var(--t2)">${esc(a.findings)}</p></div>`:''}
+      ${a.notes?`<div class="field"><label>الملاحظات</label><p style="font-size:13px;color:var(--t2)">${esc(a.notes)}</p></div>`:''}
+    </div>
+    <div class="mf">
+      <button class="btn d" onclick="approveAssm('${id}','rejected');closeModal()">رفض</button>
+      <button class="btn" onclick="approveAssm('${id}','approved');closeModal()" style="background:linear-gradient(135deg,#D4AF37,#FDE68A);border:none;color:#020912">اعتماد</button>
+    </div>`,'w');
+};
+
+/* ════════════════════════════════════════════
+   MEETINGS — اجتماع OE الأسبوعي
+════════════════════════════════════════════ */
+reg('meetings',async el=>{
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">📅 اجتماعات OE</h1>
+      <div style="font-size:12.5px;color:var(--t2)">سجل الاجتماعات الأسبوعية · الأجندات · القرارات · الإجراءات</div></div>
+      <button class="btn" onclick="go('newmeeting')" style="background:linear-gradient(135deg,#D4AF37,#FDE68A);border:none;color:#020912;font-weight:700">+ اجتماع جديد</button>
+    </div>
+    <div class="panel" style="border-color:rgba(212,175,55,.12)"><div id="mtgList">${skR()}</div></div>`;
+  const{data}=await dbList('meetings',{lim:20}).catch(()=>({data:[]}));
+  document.getElementById('mtgList').innerHTML=data.length
+    ?`<div class="tw"><table>
+        <thead><tr><th>الاجتماع</th><th>التاريخ</th><th>النوع</th><th>الحالة</th><th>الإجراءات</th><th></th></tr></thead>
+        <tbody>${data.map(m=>`<tr>
+          <td style="font-weight:600">${esc(m.title)}</td>
+          <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(m.meeting_date)}</td>
+          <td><span class="badge bg" style="font-size:10px">${m.type==='weekly_oe'?'أسبوعي':'طارئ'}</span></td>
+          <td>${stBadge(m.status)}</td>
+          <td><button class="btn sm" onclick="openMtgActions('${m.id}')">الإجراءات</button></td>
+          <td><button class="btn sm" onclick="openMtgDetail('${m.id}')">تفاصيل</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div>`
+    :emptyEl('لا اجتماعات',`<button class="btn sm" onclick="go('newmeeting')">+ اجتماع جديد</button>`);
+});
+
+/* Meeting detail */
+window.openMtgDetail=async id=>{
+  const m=await dbGet('meetings',id).catch(()=>null);if(!m)return;
+  openModal(`<div class="mh"><h3 style="color:#D4AF37">${esc(m.title)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="g2 mb2">
+        <div><label style="font-size:10.5px;color:var(--t3)">التاريخ</label><div class="fmono" style="font-size:13px">${fmtD(m.meeting_date)}</div></div>
+        <div><label style="font-size:10.5px;color:var(--t3)">الحالة</label><div>${stBadge(m.status)}</div></div>
+      </div>
+      ${m.agenda?`<div class="field"><label>الأجندة</label><div style="background:var(--bg1);border-radius:var(--rs);padding:10px;font-size:13px;white-space:pre-wrap">${esc(m.agenda)}</div></div>`:''}
+      ${m.decisions?`<div class="field"><label>القرارات</label><div style="background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.15);border-radius:var(--rs);padding:10px;font-size:13px;white-space:pre-wrap">${esc(m.decisions)}</div></div>`:''}
+      ${m.minutes?`<div class="field"><label>المحضر</label><div style="background:var(--bg1);border-radius:var(--rs);padding:10px;font-size:13px;white-space:pre-wrap">${esc(m.minutes)}</div></div>`:''}
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+};
+
+window.openMtgActions=async id=>{
+  const{data:actions}=await dbList('meeting_actions',{eq:{meeting_id:id}}).catch(()=>({data:[]}));
+  openModal(`<div class="mh"><h3 style="color:#D4AF37">📌 إجراءات الاجتماع</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      ${actions.length?`<div class="tw"><table>
+        <thead><tr><th>الإجراء</th><th>المالك</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
+        <tbody>${actions.map(a=>`<tr><td style="font-weight:600">${esc(a.action)}</td><td class="fmono" style="font-size:11px">${a.owner_id||'—'}</td><td class="fmono" style="font-size:11px">${fmtD(a.due_date)}</td><td>${stBadge(a.status)}</td></tr>`).join('')}</tbody>
+      </table></div>`:emptyEl('لا إجراءات')}
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+};
+
+/* NEW MEETING */
+reg('newmeeting',el=>{
+  el.innerHTML=`
+    <div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">➕ اجتماع OE جديد</h1></div>
+    <div class="panel" style="border-color:rgba(212,175,55,.12);max-width:680px">
+      <div class="pb">
+        <div class="fg">
+          <div class="field ff"><label>عنوان الاجتماع *</label><input id="nm_t" placeholder="اجتماع OE الأسبوعي — الأسبوع 24"></div>
+          <div class="field"><label>التاريخ</label><input type="date" id="nm_d" value="${new Date().toISOString().slice(0,10)}"></div>
+          <div class="field"><label>النوع</label>
+            <select id="nm_tp"><option value="weekly_oe">أسبوعي OE</option><option value="ad_hoc">طارئ</option><option value="qpi_quarterly">ربعي QPI</option></select>
+          </div>
+          <div class="field ff"><label>الأجندة</label><textarea id="nm_ag" rows="4" placeholder="١. مراجعة AFIs المتأخرة&#10;٢. تحديثات KPIs&#10;٣. التنبيهات الفنية"></textarea></div>
+          <div class="field ff"><label>القرارات</label><textarea id="nm_dc" rows="3" placeholder="القرارات التي اتُّخذت في الاجتماع..."></textarea></div>
+          <div class="field ff"><label>المحضر</label><textarea id="nm_mn" rows="3" placeholder="ملخص نقاط النقاش..."></textarea></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:#8B7340;letter-spacing:.08em;margin:10px 0 6px">إجراءات الاجتماع</div>
+        <div id="actRows"></div>
+        <button class="btn sm" onclick="addActRow()" style="margin-bottom:10px;border-color:rgba(212,175,55,.25);color:#D4AF37">+ إجراء</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="saveMeeting()" style="background:linear-gradient(135deg,#D4AF37,#FDE68A);border:none;color:#020912;font-weight:700">حفظ الاجتماع</button>
+          <button class="btn" onclick="go('meetings')">إلغاء</button>
+        </div>
+      </div>
+    </div>`;
+  addActRow();
+});
+let actCount=0;
+window.addActRow=()=>{
+  const c=++actCount;
+  const d=document.getElementById('actRows');if(!d)return;
+  const row=document.createElement('div');row.id=`ar_${c}`;
+  row.style.cssText='display:flex;gap:7px;margin-bottom:7px;align-items:flex-start';
+  row.innerHTML=`<input placeholder="الإجراء..." style="flex:2;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 10px;font-size:13px;color:var(--t1);font-family:var(--fa)" id="ac_t${c}">
+    <input type="date" style="flex:1;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 10px;font-size:13px;color:var(--t1)" id="ac_d${c}">
+    <button class="btn sm d" onclick="document.getElementById('ar_${c}').remove()">✕</button>`;
+  d.appendChild(row);
+};
+window.saveMeeting=async()=>{
+  const title=mv('nm_t');if(!title){toast('العنوان مطلوب','e');return;}
+  try{
+    const mtg=await dbIns('meetings',{title,meeting_date:mv('nm_d'),type:mv('nm_tp'),agenda:mv('nm_ag')||null,decisions:mv('nm_dc')||null,minutes:mv('nm_mn')||null,status:'completed',created_by:App.profile?.id});
+    // Save actions
+    for(let i=1;i<=actCount;i++){
+      const act=document.getElementById(`ac_t${i}`)?.value?.trim();
+      if(act)await dbIns('meeting_actions',{meeting_id:mtg.id,action:act,due_date:document.getElementById(`ac_d${i}`)?.value||null,status:'open'});
+    }
+    toast('تم حفظ الاجتماع ✓','s');actCount=0;go('meetings');
+  }catch(e){toast(e.message,'e');}
+};
+
+/* ════════════════════════════════════════════
+   QPI — التقرير الربعي
+════════════════════════════════════════════ */
+reg('qpi',async el=>{
+  el.innerHTML=`
+    <div style="margin-bottom:14px">
+      <h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">📊 التقرير الربعي — QPI</h1>
+      <div style="font-size:12.5px;color:var(--t2)">Quarterly Performance & Improvement — أداء الإدارة خلال الربع الحالي</div>
+    </div>
+
+    <!-- QPI Header Cards -->
+    <div class="g4 mb2" id="qpiCards">${skR()}</div>
+
+    <!-- Division Performance -->
+    <div style="font-family:var(--mono);font-size:9.5px;color:#8B7340;letter-spacing:.12em;margin-bottom:10px">◈ أداء الدوائر — الربع الحالي</div>
+    <div class="g3 mb2" id="qpiDivs">${skR()}</div>
+
+    <!-- Recommendations + Lessons -->
+    <div class="g2">
+      <div class="panel" style="border-color:rgba(212,175,55,.12)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)"><h3 style="color:#D4AF37;font-size:12px">💡 التوصيات الاستراتيجية</h3></div>
+        <div id="recsFeed"></div>
+      </div>
+      <div class="panel" style="border-color:rgba(212,175,55,.12)">
+        <div class="ph" style="border-color:rgba(212,175,55,.1)">
+          <h3 style="color:#D4AF37;font-size:12px">📚 الدروس المستفادة</h3>
+          <button class="btn sm" onclick="openAddLesson()">+ إضافة</button>
+        </div>
+        <div id="lessonsFeed"></div>
+      </div>
+    </div>`;
+
+  try{
+    const[totalAfis,closedAfis,redKpis,greenKpis,totalAssm,closedAssm,health]=await Promise.all([
+      dbCnt('afis'),dbCnt('afis',{eq:{status:'closed'}}),
+      dbCnt('kpis',{eq:{status:'red'}}),dbCnt('kpis',{eq:{status:'green'}}),
+      dbCnt('assessments'),dbCnt('assessments',{eq:{stage:'closed'}}),
+      loadHealth(),
+    ]);
+
+    const afiClose=totalAfis?Math.round(closedAfis/totalAfis*100):0;
+    const kpiHealth=totalAfis?Math.round(greenKpis/(greenKpis+redKpis+1)*100):0;
+    const assmClose=totalAssm?Math.round(closedAssm/totalAssm*100):0;
+    const avgH=health.length?Math.round(health.reduce((s,d)=>{const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;return s+sc;},0)/health.length):0;
+
+    document.getElementById('qpiCards').innerHTML=[
+      {sl:'معدل إغلاق AFIs',sv:afiClose+'%',cl:afiClose>=80?'grn':afiClose>=60?'ylw':'red',ic:'▲'},
+      {sl:'KPIs ضمن الهدف',sv:kpiHealth+'%',cl:kpiHealth>=80?'grn':kpiHealth>=60?'ylw':'red',ic:'📈'},
+      {sl:'اكتمال التقييمات',sv:assmClose+'%',cl:assmClose>=70?'grn':'ylw',ic:'▤'},
+      {sl:'صحة الإدارة',sv:avgH+'%',cl:avgH>=80?'grn':avgH>=60?'ylw':'red',ic:'🏛️'},
+    ].map(s=>`<div class="qpi-card">
+      <div style="font-size:22px;margin-bottom:6px">${s.ic}</div>
+      <div class="qv" style="font-size:36px">${s.sv}</div>
+      <div class="ql">${s.sl}</div>
+      <div class="qpi-trend" style="color:${s.cl==='grn'?'var(--success)':s.cl==='ylw'?'var(--warning)':'var(--danger)'}">
+        ${s.cl==='grn'?'↑ ممتاز':s.cl==='ylw'?'→ مقبول':'↓ يحتاج تحسين'}
+      </div>
+    </div>`).join('');
+
+    // Division QPI cards
+    document.getElementById('qpiDivs').innerHTML=health.map(d=>{
+      const cfg=DIVS[d.code]||{};
+      const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
+      const clr=sc>=85?'var(--success)':sc>=65?'var(--warning)':'var(--danger)';
+      return`<div class="card" style="border-color:${cfg.color||clr}22">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="font-size:24px">${cfg.icon||'◧'}</div>
+          <div><div style="font-weight:700;font-size:13.5px">${cfg.ar||d.name_ar}</div>
+          <div style="font-family:var(--hud);font-size:26px;font-weight:700;color:${clr}">${sc}%</div></div>
+        </div>
+        ${progBar(sc)}
+        <div class="g2" style="gap:5px;margin-top:8px">
+          <div style="text-align:center;padding:5px;background:var(--bg1);border-radius:5px">
+            <div style="font-family:var(--hud);font-size:15px;color:${d.overdue_afis?'var(--danger)':'var(--success)'}">${d.open_afis}</div>
+            <div style="font-size:9px;color:var(--t3)">AFIs</div>
+          </div>
+          <div style="text-align:center;padding:5px;background:var(--bg1);border-radius:5px">
+            <div style="font-family:var(--hud);font-size:15px;color:${d.open_alerts?'var(--warning)':'var(--success)'}">${d.open_alerts}</div>
+            <div style="font-size:9px;color:var(--t3)">تنبيهات</div>
+          </div>
+        </div>
+        <div style="margin-top:7px;font-size:11px;color:${clr}88;font-family:var(--mono)">
+          ${sc>=85?'✓ أداء ممتاز':sc>=65?'⚠ يحتاج متابعة':'⛔ يحتاج تدخل عاجل'}
+        </div>
+      </div>`;
+    }).join('');
+
+    // Recommendations
+    const recs=[];
+    if(afiClose<70) recs.push({ic:'▲',t:'تسريع إغلاق AFIs',d:`معدل الإغلاق ${afiClose}% دون الهدف 80% — راجع العوائق مع مدراء الدوائر`});
+    if(redKpis>2) recs.push({ic:'📉',t:'معالجة KPIs الحمراء',d:`${redKpis} مؤشر دون الهدف — أوجد خطط تحسين فورية`});
+    const worstDiv=health.sort((a,b)=>{const sa=a.overdue_afis>2?55:a.open_afis>5?72:98,sb=b.overdue_afis>2?55:b.open_afis>5?72:98;return sa-sb;})[0];
+    if(worstDiv) recs.push({ic:'🏭',t:`تعزيز ${DIVS[worstDiv.code]?.ar||worstDiv.name_ar}`,d:`الدائرة الأكثر احتياجاً للدعم في الربع القادم`});
+    if(assmClose<60) recs.push({ic:'▤',t:'إنهاء التقييمات المعلقة',d:`${totalAssm-closedAssm} تقييم لم يُغلق — ضع جدولاً للإنهاء`});
+    if(!recs.length) recs.push({ic:'✓',t:'أداء جيد عموماً',d:'استمر في المتابعة والتحسين المستمر'});
+
+    document.getElementById('recsFeed').innerHTML=recs.map(r=>`<div class="brief-b">
+      <h4>${r.ic} ${r.t}</h4><p>${r.d}</p>
+    </div>`).join('');
+
+    // Lessons (from activity log or static)
+    document.getElementById('lessonsFeed').innerHTML=`
+      <div class="brief-b"><h4>📌 درس مستفاد</h4><p>التقييمات التي تعاني من بطء في جمع الأدلة تحتاج جدولاً أوضح مع المقيّمين.</p></div>
+      <div class="brief-b"><h4>📌 ممارسة جيدة</h4><p>الدوائر التي ترسل تحديثات أسبوعية منتظمة تُظهر أداءً أفضل في إغلاق AFIs.</p></div>
+      <div style="padding:10px 14px"><button class="btn sm" onclick="openAddLesson()" style="border-color:rgba(212,175,55,.25);color:#D4AF37">+ إضافة درس مستفاد</button></div>`;
+
+  }catch(e){toast(e.message,'e');}
+});
+window.openAddLesson=()=>{
+  openModal(`<div class="mh"><h3>📚 درس مستفاد جديد</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field"><label>العنوان</label><input id="ls_t" placeholder="عنوان الدرس..."></div>
+      <div class="field"><label>التفاصيل</label><textarea id="ls_d" rows="4" placeholder="ما تعلمناه وكيف نطبقه..."></textarea></div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn" onclick="saveLesson()" style="background:linear-gradient(135deg,#D4AF37,#FDE68A);border:none;color:#020912">حفظ</button></div>`);
+};
+window.saveLesson=async()=>{
+  await logAct('lesson_learned',null,null,{title:mv('ls_t'),detail:mv('ls_d')});
+  toast('تم حفظ الدرس ✓','s');closeModal();
+};
+
+/* ════════════════════════════════════════════
+   STUBS
+════════════════════════════════════════════ */
+['kpis','afis','alerts','brief'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">${NAV.find(n=>n.k===k)?.ar||k}</h1></div>
+    <p style="color:var(--t2);padding:18px">يتصل بالبيانات الكاملة عند توصيل Supabase.</p>`;
+}));
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+
+function openCreateEmployee(){
+  openModal(`<div class="mh"><h3>👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">ℹ️ ${t2('المدير يُنشئ حساب موظف جديد في دائرته','Manager creates new employee account in their division')}</div>
+      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>${t2('الدائرة','Division')}</label><select id="ce_div">
+        ${Object.entries(DIVS).map(([k,v])=>'<option value="'+k+'">'+v.icon+' '+t2(v.ar,v.en)+'</option>').join('')}
+      </select></div>
+      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genDEmpPW()">🔀</button></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
+    <button class="btn p" id="ceBtn" onclick="createDeptEmployee()">${t2('إنشاء','Create')}</button></div>`);
+  genDEmpPW();
+}
+function genDEmpPW(){
+  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
+  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+}
+async function createDeptEmployee(){
+  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw'),div=mv('ce_div');
+  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Fill all fields'),'e');return;}
+  const username=empId.toLowerCase().replace(/\s+/g,'');
+  const email=username+'@se.local';
+  const btn=document.getElementById('ceBtn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
+  try{
+    const sess=getStoredSession();
+    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pass,data:{full_name:name,role:'employee'}})});
+    const ad=await ar.json();
+    if(ad.error)throw new Error(ad.error_description||ad.error);
+    const uid=ad.id||ad.user?.id;
+    if(uid){
+      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({full_name:name,role:'employee',division:div,employee_id:empId,username,is_active:true})});
+    }
+    closeModal();
+    toast(t2('تم إنشاء الحساب ✓','Account created ✓'),'s');
+    setTimeout(()=>openModal(`<div class="mh"><h3 style="color:var(--success)">✓</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd"><div style="background:#060F1E;border-radius:8px;padding:14px;font-family:var(--mono)">
+        <div style="font-size:10px;color:var(--t3)">${t2('اسم المستخدم','Username')}</div>
+        <div style="font-size:15px;color:#60A5FA;margin-bottom:8px">${esc(username)}</div>
+        <div style="font-size:10px;color:var(--t3)">${t2('كلمة المرور','Password')}</div>
+        <div style="font-size:15px;color:#FCD34D">${esc(pass)}</div>
+      </div></div>
+      <div class="mf"><button class="btn p" onclick="closeModal()">${t2('تم','Done')}</button></div>`),100);
+  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء','Create');}}
+}
+
+
+/* ════ STUBS ════════════════════════════════════════════════ */
+['kpis','afis','brief'].forEach(k=>reg(k,el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">${NAV.find(n=>n.k===k)?.ar||k}</h1></div>
+    <p style="color:var(--t2);padding:18px">يتصل بالبيانات الكاملة عند توصيل Supabase.</p>`;
+}));
+
+reg('alerts', el => { renderAlerts(el, null, '#D4AF37', '212,175,55'); });
+
+(async()=>{
+  const p=await initPage({roles:['director','admin']});
+  if(!p)return;
+  document.getElementById('lgEl').innerHTML=LOGO;
+  buildNav(NAV,'warroom');go('warroom');
+
+  // Check escalations count for topbar badge
+  try{
+    const n=await dbCnt('technical_alerts',{eq:{status:'escalated'}});
+    if(n>0){
+      const eb=document.getElementById('escBtn');if(eb)eb.style.display='flex';
+    }
+  }catch{}
+})();
+</script>
+
+<script>
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
+  if(!sb)return;
+  const show=sb.classList.toggle('show');
+  let ov=document.getElementById('sbOverlay');
+  if(!ov){
+    ov=document.createElement('div');ov.id='sbOverlay';ov.className='sb-overlay';
+    ov.onclick=function(){toggleSidebar();};document.body.appendChild(ov);
+  }
+  ov.classList.toggle('show',show);
+}
+</script>
+</body>
+</html>

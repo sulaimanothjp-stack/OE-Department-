@@ -47,12 +47,26 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
-<script src="lang.js?v=9"></script>
-<script src="app.js?v=9"></script>
+<script src="lang.js"></script>
+<script src="app.js"></script>
 <script>
 const BL = 'governance';
 const DC = '#7C3AED';
 const DR = '124,58,237';
+
+// IMMEDIATE DIAGNOSTIC - runs before any async code
+(function(){
+  var pg=document.getElementById('pgContent');
+  if(!pg)return;
+  pg.innerHTML='<div style="padding:16px;font-family:monospace;font-size:12px;background:#060F1E;color:#E8F0FF;border:1px solid #152840;border-radius:8px;margin:10px">'
+    +'<div style="color:#FCD34D;margin-bottom:8px">⏳ Diagnostic Running...</div>'
+    +'<div>buildNav: <span style="color:'+(typeof buildNav==='function'?'#10B981':'#EF4444')+'">'+(typeof buildNav)+'</span></div>'
+    +'<div>skR: <span style="color:'+(typeof skR==='function'?'#10B981':'#EF4444')+'">'+(typeof skR)+'</span></div>'
+    +'<div>esc: <span style="color:'+(typeof esc==='function'?'#10B981':'#EF4444')+'">'+(typeof esc)+'</span></div>'
+    +'<div>App: <span style="color:#60A5FA">'+JSON.stringify({lang:(typeof App!=='undefined'?App.lang:'UNDEFINED')})+'</span></div>'
+    +'<div style="margin-top:8px;color:#8098BC">Waiting for IIFE...</div>'
+    +'</div>';
+})();
 const NAV = [
   {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚖️', fn:"go('dash')"},
   {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
@@ -763,67 +777,9 @@ async function updateMeetingStatus(id,status){
 }
 
 (async()=>{
-  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
-  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
-  const _allowed=['governance_manager','admin','director'];
-  const _portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
-
-  function _showErr(msg){
-    const pg=document.getElementById('pgContent');
-    if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#7C3AED;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';
-  }
-
-  // 1. Read session
-  let _sess=null;
-  try{
-    const _keys=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});
-    for(var _i=0;_i<_keys.length;_i++){
-      var _v=JSON.parse(localStorage.getItem(_keys[_i])||'null');
-      if(_v&&_v.access_token){_sess=_v;break;}
-      if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}
-    }
-  }catch(_e){}
-
-  if(!_sess||!_sess.access_token){location.href='index.html';return;}
-
-  // 2. Get uid
-  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
-  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
-  if(!_uid){location.href='index.html';return;}
-
-  // 3. Fetch profile
-  var _profile=null;
-  try{
-    var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{
-      headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}
-    });
-    var _data=await _res.json();
-    _profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;
-  }catch(_e){_showErr('خطأ في الاتصال: '+(_e.message||''));return;}
-
-  if(!_profile){_showErr('الملف الشخصي غير موجود — uid: '+_uid);return;}
-
-  // 4. Role check
-  if(_allowed.indexOf(_profile.role)===-1){
-    location.href=_portals[_profile.role]||'index.html';return;
-  }
-
-  // 5. Set App state
-  App.user={id:_uid};App.profile=_profile;
-
-  // 6. Render UI
-  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  var _ubEl=document.getElementById('ubEl');
-  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#7C3AED22;color:#7C3AED">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
-
-  startClock();
-  setTimeout(function(){trackAttendance();},500);
+  const p=await initPage({roles:['governance_manager','admin','director','governance_manager']});
+  if(!p)return;
   document.getElementById('lgEl').innerHTML=LOGO;
-  if(typeof buildNav!=='function'){
-    var _pg=document.getElementById('pgContent');
-    if(_pg)_pg.innerHTML='<div style="padding:24px;color:#EF4444;font-family:monospace">app.js failed to load — check console</div>';
-    return;
-  }
   buildNav(NAV,'dash');go('dash');
 })();
 </script>

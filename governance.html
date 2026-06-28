@@ -830,7 +830,43 @@ async function createEmployee(){
 }
 
 (async()=>{
+  const _pg = document.getElementById('pgContent');
+  const _dbg = (msg, color='#FCD34D') => {
+    if(_pg) _pg.innerHTML = `<div style="padding:24px;font-family:monospace;font-size:13px;color:${color};background:#060F1E;border:1px solid ${color}33;border-radius:8px;margin:16px">
+      <div style="font-size:11px;color:#3E5878;margin-bottom:6px">DEBUG</div>
+      ${msg}
+    </div>`;
+  };
+
+  _dbg('① app.js loaded: ' + (typeof initPage) + ' | lang.js: ' + (typeof t2));
+
+  // Test session
+  let sess;
+  try { sess = getStoredSession(); } catch(e) { _dbg('② getStoredSession error: ' + e.message, '#EF4444'); return; }
+  _dbg('② session: ' + (sess ? 'FOUND ✓ | uid=' + (sess.user?.id||'no user.id') : 'NULL — not logged in'), sess?'#10B981':'#EF4444');
+  if(!sess) return;
+
+  // Test profile fetch
+  let uid = sess.user?.id;
+  if(!uid) { try { uid=JSON.parse(atob(sess.access_token.split('.')[1])).sub; } catch(e){} }
+  _dbg('③ uid: ' + (uid||'NULL'), uid?'#FCD34D':'#EF4444');
+  if(!uid) return;
+
+  try {
+    const res = await fetch('https://ekywcrlcjgbjtwnjozov.supabase.co/rest/v1/profiles?id=eq.'+uid+'&select=role,full_name&limit=1', {
+      headers:{'apikey':'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI','Authorization':'Bearer '+sess.access_token}
+    });
+    const data = await res.json();
+    _dbg('④ profile fetch: HTTP ' + res.status + ' | data: ' + JSON.stringify(data), res.ok?'#10B981':'#EF4444');
+    if(!Array.isArray(data)||!data[0]) return;
+  } catch(e) {
+    _dbg('④ fetch error: ' + e.message, '#EF4444');
+    return;
+  }
+
+  _dbg('⑤ calling initPage...', '#60A5FA');
   const p=await initPage({roles:['governance_manager','admin','director','governance_manager']});
+  _dbg('⑥ initPage returned: ' + (p?'profile ✅ role='+p.role:'null ❌'), p?'#10B981':'#EF4444');
   if(!p)return;
   document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'dash');go('dash');

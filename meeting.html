@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="root">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SE · اجتماع رفيع المستوى — MoM</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+:root { --DC:#D4AF37; --DR:212,175,55; }
+body { background:#020912; }
+
+/* ══ MoM PAGE IDENTITY ══════════════════════════════════════
+   War room aesthetic. Gold on near-black.
+   The signature: a live participants status board that shows
+   who has received and acknowledged their action items.
+══════════════════════════════════════════════════════════════ */
+
+.mom-shell {
+  max-width: 960px; margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+/* Header */
+.mom-header {
+  background: linear-gradient(145deg, #D4AF3708, #020912);
+  border: 1px solid rgba(212,175,55,.2);
+  border-radius: 14px; padding: 20px 24px;
+  margin-bottom: 20px; position: relative; overflow: hidden;
+}
+.mom-header::before {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, #FDE68A, #D4AF37, transparent);
+  animation: sweep 4s ease-in-out infinite;
+  background-size: 200%;
+}
+@keyframes sweep { 0%,100%{background-position:200%} 50%{background-position:0%} }
+
+.mom-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(212,175,55,.1); border: 1px solid rgba(212,175,55,.25);
+  color: #D4AF37; padding: 3px 10px; border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  letter-spacing: .12em; margin-bottom: 10px;
+}
+.mom-meeting-title {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 20px; font-weight: 700; color: #fff;
+  margin-bottom: 6px;
+}
+.mom-meta {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px; color: rgba(212,175,55,.5);
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+
+/* Step indicator */
+.steps {
+  display: flex; gap: 0; margin-bottom: 24px;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid rgba(212,175,55,.12);
+}
+.step {
+  flex: 1; padding: 10px 14px; text-align: center;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  color: rgba(212,175,55,.35); background: rgba(212,175,55,.02);
+  border-right: 1px solid rgba(212,175,55,.08);
+  cursor: pointer; transition: .15s; letter-spacing: .06em;
+}
+.step:last-child { border-right: none; }
+.step.active {
+  color: #D4AF37; background: rgba(212,175,55,.1);
+  font-weight: 700;
+}
+.step.done { color: #4ADE80; background: rgba(74,222,128,.05); }
+.step-num {
+  display: block; font-size: 14px; font-weight: 700; margin-bottom: 2px;
+}
+
+/* Form sections */
+.mom-section {
+  background: #060F1E;
+  border: 1px solid rgba(212,175,55,.1);
+  border-radius: 12px; margin-bottom: 16px;
+  overflow: hidden;
+}
+.mom-section-hdr {
+  padding: 12px 16px;
+  background: rgba(212,175,55,.04);
+  border-bottom: 1px solid rgba(212,175,55,.08);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.mom-section-title {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 12px; font-weight: 700; color: #D4AF37;
+  display: flex; align-items: center; gap: 7px;
+}
+.mom-section-body { padding: 14px 16px; }
+
+/* Attendees */
+.att-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid rgba(212,175,55,.06);
+}
+.att-row:last-child { border-bottom: none; }
+.att-av {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: rgba(212,175,55,.15); border: 1px solid rgba(212,175,55,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Chakra Petch', monospace; font-size: 12px;
+  font-weight: 700; color: #D4AF37; flex-shrink: 0;
+}
+.att-name { font-weight: 600; font-size: 13px; }
+.att-role { font-size: 11px; color: var(--t2); font-family: 'IBM Plex Mono', monospace; }
+.att-check {
+  margin-right: auto;
+  width: 20px; height: 20px; border-radius: 4px;
+  border: 1px solid rgba(212,175,55,.3); background: transparent;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #4ADE80; font-size: 12px; transition: .15s;
+}
+.att-check.present { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.4); }
+
+/* Action items */
+.action-item {
+  background: rgba(212,175,55,.03);
+  border: 1px solid rgba(212,175,55,.1);
+  border-radius: 8px; padding: 12px 14px;
+  margin-bottom: 10px; position: relative;
+}
+.action-item.sending {
+  border-color: rgba(74,222,128,.3);
+  background: rgba(74,222,128,.03);
+}
+.action-num {
+  position: absolute; top: 12px; left: 14px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: #D4AF37; background: rgba(212,175,55,.1);
+  padding: 1px 6px; border-radius: 3px;
+}
+.action-fields { padding-right: 0; }
+.action-sent-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(74,222,128,.15); border: 1px solid rgba(74,222,128,.3);
+  color: #4ADE80; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-family: 'IBM Plex Mono', monospace;
+  margin-top: 6px;
+}
+
+/* Live dispatch board */
+.dispatch-board {
+  background: #020912;
+  border: 1px solid rgba(212,175,55,.15);
+  border-radius: 12px; overflow: hidden;
+  margin-top: 20px;
+}
+.dispatch-hdr {
+  padding: 12px 16px;
+  background: rgba(212,175,55,.06);
+  border-bottom: 1px solid rgba(212,175,55,.1);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.dispatch-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .12em;
+  color: #D4AF37; text-transform: uppercase;
+}
+.dispatch-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; border-bottom: 1px solid rgba(212,175,55,.05);
+  transition: .13s;
+}
+.dispatch-row:last-child { border-bottom: none; }
+.dispatch-div {
+  display: flex; align-items: center; gap: 8px; min-width: 140px;
+}
+.dispatch-count {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 20px; font-weight: 700; color: #D4AF37;
+  min-width: 30px; text-align: center;
+}
+.dispatch-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .08em;
+}
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.3;transform:scale(.6)}
+}
+
+/* MoM preview */
+.mom-preview {
+  background: #010810;
+  border: 1px solid rgba(212,175,55,.1);
+  border-radius: 12px; padding: 24px;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  line-height: 1.8;
+}
+.mom-preview h2 {
+  font-family: 'Chakra Petch', monospace;
+  color: #D4AF37; font-size: 16px; margin-bottom: 16px;
+  padding-bottom: 8px; border-bottom: 1px solid rgba(212,175,55,.2);
+}
+.mom-preview h3 {
+  font-family: 'Chakra Petch', monospace;
+  color: rgba(212,175,55,.7); font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase;
+  margin: 16px 0 8px;
+}
+.mom-preview p, .mom-preview li {
+  color: #c8d3e0; font-size: 13px;
+}
+.mom-preview ul { padding-right: 16px; }
+
+/* Textarea override */
+textarea {
+  background: #060F1E !important;
+  border: 1px solid rgba(212,175,55,.15) !important;
+  color: #E8F0FF !important;
+  border-radius: 8px; padding: 8px 11px;
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-size: 13px; resize: vertical; width: 100%;
+  transition: border-color .15s;
+}
+textarea:focus { border-color: rgba(212,175,55,.4) !important; outline: none; }
+input[type="text"], input[type="date"], input[type="time"], select {
+  background: #060F1E !important;
+  border: 1px solid rgba(212,175,55,.15) !important;
+  color: #E8F0FF !important; border-radius: 8px;
+  padding: 8px 11px; font-size: 13px; width: 100%;
+  transition: border-color .15s;
+}
+input:focus, select:focus { border-color: rgba(212,175,55,.4) !important; outline: none; }
+label { font-size: 11px; color: rgba(212,175,55,.6); margin-bottom: 4px; display: block; font-family: 'IBM Plex Mono', monospace; letter-spacing: .06em; }
+
+.btn-gold {
+  background: linear-gradient(135deg, #D4AF37, #FDE68A) !important;
+  border: none !important; color: #020912 !important; font-weight: 700 !important;
+  padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  transition: opacity .15s;
+}
+.btn-gold:hover { opacity: .9; }
+.btn-ghost {
+  background: transparent; border: 1px solid rgba(212,175,55,.25);
+  color: #D4AF37; padding: 9px 18px; border-radius: 8px;
+  cursor: pointer; font-size: 13px; transition: .15s;
+}
+.btn-ghost:hover { background: rgba(212,175,55,.08); }
+</style>
+</head>
+<body>
+<div class="mom-shell">
+
+  <!-- TOP BAR -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="department.html" style="color:rgba(212,175,55,.5);font-size:13px;text-decoration:none;font-family:'IBM Plex Mono',monospace">← غرفة العمليات</a>
+      <span style="color:rgba(212,175,55,.2)">|</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(212,175,55,.4);letter-spacing:.1em">MINUTES OF MEETING</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="savingState" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(212,175,55,.4)">● DRAFT</div>
+      <button class="btn-ghost" onclick="saveDraft()">💾 حفظ مسودة</button>
+    </div>
+  </div>
+
+  <!-- MEETING HEADER -->
+  <div class="mom-header">
+    <div class="mom-badge">◈ EXECUTIVE MEETING · MoM WRITER</div>
+    <div class="mom-meeting-title" id="displayTitle">اجتماع OE الأسبوعي — اكتب العنوان أدناه</div>
+    <div class="mom-meta">
+      <span id="displayDate">—</span>
+      <span id="displayTime">—</span>
+      <span id="displayLoc">—</span>
+      <span id="displayChair">المدير: —</span>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step1" onclick="showStep(1)"><span class="step-num">01</span>تفاصيل الاجتماع</div>
+    <div class="step" id="step2" onclick="showStep(2)"><span class="step-num">02</span>الحضور</div>
+    <div class="step" id="step3" onclick="showStep(3)"><span class="step-num">03</span>الأجندة والنقاشات</div>
+    <div class="step" id="step4" onclick="showStep(4)"><span class="step-num">04</span>action items</div>
+    <div class="step" id="step5" onclick="showStep(5)"><span class="step-num">05</span>إرسال وإغلاق</div>
+  </div>
+
+  <!-- STEP CONTENT -->
+  <div id="stepContent"></div>
+
+</div>
+
+<script src="lang.js"></script>
+<script src="app.js"></script>
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+const MOM = {
+  id: null,
+  title: 'اجتماع OE الأسبوعي',
+  date: new Date().toISOString().slice(0,10),
+  time: '10:00',
+  location: 'قاعة الاجتماعات الرئيسية',
+  chair: '',
+  recorder: '',
+  attendees: [],   // [{uid, name, role, division, present}]
+  agenda: '',
+  discussions: '',
+  decisions: '',
+  next_steps: '',
+  actions: [],     // [{id, text, division, assignee_name, due_date, priority, sent}]
+  status: 'draft',
+};
+
+let _step = 1;
+
+// ── DIVISIONS CONFIG ─────────────────────────────────────────
+const DIV_LIST = [
+  {code:'governance',       name:'الحوكمة',          icon:'⚖️',  color:'#7C3AED'},
+  {code:'generation',       name:'التوليد',           icon:'⚡',  color:'#F59E0B'},
+  {code:'national_grid',    name:'الشبكة الوطنية',   icon:'🔌',  color:'#0EA5E9'},
+  {code:'distribution',     name:'التوزيع',           icon:'🏙️', color:'#10B981'},
+  {code:'technical_alerts', name:'التنبيهات الفنية', icon:'🚨',  color:'#EF4444'},
+];
+
+// ── STEP NAVIGATION ───────────────────────────────────────────
+function showStep(n) {
+  _step = n;
+  document.querySelectorAll('.step').forEach((s,i)=>{
+    s.classList.toggle('active', i+1===n);
+    s.classList.toggle('done', i+1<n);
+  });
+  const renders = [null, renderStep1, renderStep2, renderStep3, renderStep4, renderStep5];
+  document.getElementById('stepContent').innerHTML = '';
+  renders[n]?.();
+}
+
+// ── STEP 1: Meeting Details ───────────────────────────────────
+function renderStep1() {
+  document.getElementById('stepContent').innerHTML = `
+    <div class="mom-section">
+      <div class="mom-section-hdr">
+        <div class="mom-section-title">📋 تفاصيل الاجتماع</div>
+      </div>
+      <div class="mom-section-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="grid-column:1/-1">
+            <label>عنوان الاجتماع *</label>
+            <input type="text" id="m_title" value="${esc(MOM.title)}" placeholder="مثال: اجتماع OE الأسبوعي — الأسبوع 24" oninput="MOM.title=this.value;document.getElementById('displayTitle').textContent=this.value||'—'">
+          </div>
+          <div>
+            <label>التاريخ</label>
+            <input type="date" id="m_date" value="${MOM.date}" onchange="MOM.date=this.value;updateHeader()">
+          </div>
+          <div>
+            <label>الوقت</label>
+            <input type="time" id="m_time" value="${MOM.time}" onchange="MOM.time=this.value;updateHeader()">
+          </div>
+          <div>
+            <label>المكان</label>
+            <input type="text" id="m_loc" value="${esc(MOM.location)}" oninput="MOM.location=this.value;updateHeader()">
+          </div>
+          <div>
+            <label>نوع الاجتماع</label>
+            <select id="m_type" onchange="MOM.type=this.value">
+              <option value="weekly_oe">أسبوعي OE</option>
+              <option value="quarterly">ربعي QPI</option>
+              <option value="emergency">طارئ</option>
+              <option value="strategic">استراتيجي</option>
+            </select>
+          </div>
+          <div>
+            <label>رئيس الاجتماع (مدير الإدارة)</label>
+            <input type="text" id="m_chair" value="${esc(MOM.chair)}" oninput="MOM.chair=this.value;updateHeader()" placeholder="...">
+          </div>
+          <div>
+            <label>كاتب المحضر</label>
+            <input type="text" id="m_rec" value="${esc(MOM.recorder)}" oninput="MOM.recorder=this.value" placeholder="الشخص المسؤول عن كتابة MoM">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn-gold" onclick="showStep(2)">التالي: الحضور ←</button>
+    </div>`;
+}
+
+function updateHeader() {
+  document.getElementById('displayDate').textContent = MOM.date ? fmtD(MOM.date) : '—';
+  document.getElementById('displayTime').textContent = MOM.time || '—';
+  document.getElementById('displayLoc').textContent = MOM.location || '—';
+  document.getElementById('displayChair').textContent = 'المدير: ' + (MOM.chair || '—');
+}
+
+// ── STEP 2: Attendees ─────────────────────────────────────────
+async function renderStep2() {
+  document.getElementById('stepContent').innerHTML = `
+    <div class="mom-section">
+      <div class="mom-section-hdr">
+        <div class="mom-section-title">👥 الحضور</div>
+        <button class="btn-ghost" style="font-size:11px;padding:5px 12px" onclick="addManualAtt()">+ إضافة يدوية</button>
+      </div>
+      <div class="mom-section-body" id="attList">
+        <div style="text-align:center;padding:20px;color:rgba(212,175,55,.3);font-family:'IBM Plex Mono',monospace;font-size:11px">جاري تحميل المدراء...</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-ghost" onclick="showStep(1)">→ رجوع</button>
+      <button class="btn-gold" onclick="showStep(3)">التالي: الأجندة ←</button>
+    </div>`;
+
+  // Load managers
+  try {
+    const data = await dbList('profiles', {
+      neq: {role: 'employee'},
+      lim: 50
+    });
+    // Ensure directors and managers are represented
+    if (!MOM.attendees.length) {
+      MOM.attendees = data
+        .filter(p => p.role !== 'admin')
+        .map(p => ({
+          uid: p.id, name: p.full_name || '—',
+          role: ROLE_AR[p.role] || p.role,
+          division: DIVS[p.division]?.ar || p.division || '—',
+          present: true
+        }));
+    }
+    renderAttList();
+  } catch(e) {
+    document.getElementById('attList').innerHTML = `<div style="color:#EF4444;padding:10px">${esc(e.message)}</div>`;
+  }
+}
+
+function renderAttList() {
+  const el = document.getElementById('attList');
+  if (!el) return;
+  el.innerHTML = MOM.attendees.length
+    ? MOM.attendees.map((a,i) => `
+      <div class="att-row">
+        <div class="att-av">${(a.name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+        <div style="flex:1">
+          <div class="att-name">${esc(a.name)}</div>
+          <div class="att-role">${esc(a.role)} · ${esc(a.division)}</div>
+        </div>
+        <div class="att-check ${a.present?'present':''}" onclick="toggleAtt(${i})">${a.present?'✓':''}</div>
+        <button onclick="removeAtt(${i})" style="background:none;border:none;color:rgba(239,68,68,.5);cursor:pointer;font-size:12px;padding:4px">✕</button>
+      </div>`).join('')
+    : '<div style="padding:16px;text-align:center;color:rgba(212,175,55,.3);font-size:12px">لا حضور مسجّل</div>';
+}
+window.toggleAtt = i => { MOM.attendees[i].present = !MOM.attendees[i].present; renderAttList(); };
+window.removeAtt = i => { MOM.attendees.splice(i,1); renderAttList(); };
+window.addManualAtt = () => {
+  openModal(`<div class="mh"><h3 style="color:#D4AF37">إضافة حاضر</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="field"><label>الاسم</label><input id="ma_name" placeholder="..."></div>
+      <div class="field"><label>الدور/المنصب</label><input id="ma_role" placeholder="..."></div>
+      <div class="field"><label>الدائرة/الجهة</label><input id="ma_div" placeholder="..."></div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn-gold" onclick="saveManualAtt()">إضافة</button></div>`);
+};
+window.saveManualAtt = () => {
+  const name=mv('ma_name'); if(!name){toast('الاسم مطلوب','e');return;}
+  MOM.attendees.push({uid:null,name,role:mv('ma_role')||'—',division:mv('ma_div')||'—',present:true});
+  closeModal(); renderAttList();
+};
+
+// ── STEP 3: Agenda & Discussions ─────────────────────────────
+function renderStep3() {
+  document.getElementById('stepContent').innerHTML = `
+    <div class="mom-section">
+      <div class="mom-section-hdr"><div class="mom-section-title">📋 الأجندة</div></div>
+      <div class="mom-section-body">
+        <label>بنود الأجندة</label>
+        <textarea id="m_agenda" rows="5" placeholder="١. مراجعة AFIs المتأخرة لكل دائرة&#10;٢. تحديثات KPIs الربعية&#10;٣. التنبيهات الفنية الحرجة&#10;٤. متابعة قرارات الاجتماع السابق">${esc(MOM.agenda)}</textarea>
+      </div>
+    </div>
+    <div class="mom-section">
+      <div class="mom-section-hdr"><div class="mom-section-title">💬 ملخص النقاشات</div></div>
+      <div class="mom-section-body">
+        <label>ما الذي نُوقش؟</label>
+        <textarea id="m_disc" rows="6" placeholder="لخّص النقاشات الرئيسية لكل بند...">${esc(MOM.discussions)}</textarea>
+      </div>
+    </div>
+    <div class="mom-section">
+      <div class="mom-section-hdr"><div class="mom-section-title">⚡ القرارات المتخذة</div></div>
+      <div class="mom-section-body">
+        <label>القرارات الرسمية</label>
+        <textarea id="m_dec" rows="4" placeholder="القرارات التي اتُّخذت رسمياً في هذا الاجتماع...">${esc(MOM.decisions)}</textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-ghost" onclick="saveAgenda();showStep(2)">رجوع</button>
+      <button class="btn-gold" onclick="saveAgenda();showStep(4)">التالي: Action Items ←</button>
+    </div>`;
+}
+function saveAgenda(){
+  MOM.agenda=document.getElementById('m_agenda')?.value||MOM.agenda;
+  MOM.discussions=document.getElementById('m_disc')?.value||MOM.discussions;
+  MOM.decisions=document.getElementById('m_dec')?.value||MOM.decisions;
+}
+
+// ── STEP 4: Action Items ──────────────────────────────────────
+function renderStep4() {
+  if(!MOM.actions.length) addAction();
+  document.getElementById('stepContent').innerHTML = `
+    <div class="mom-section">
+      <div class="mom-section-hdr">
+        <div class="mom-section-title">📌 Action Items — المهام الموزَّعة</div>
+        <button class="btn-ghost" style="font-size:11px;padding:5px 12px" onclick="addAction();renderActionItems()">+ إضافة</button>
+      </div>
+      <div class="mom-section-body" id="actionItems"></div>
+    </div>
+
+    <!-- DISPATCH BOARD -->
+    <div class="dispatch-board">
+      <div class="dispatch-hdr">
+        <div class="dispatch-title">◈ لوحة الإرسال — توزيع المهام على الدوائر</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(212,175,55,.4)" id="dispatchTime"></div>
+      </div>
+      <div id="dispatchBoard"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn-ghost" onclick="showStep(3)">رجوع</button>
+      <button class="btn-gold" onclick="dispatchAll()">⚡ إرسال كل المهام للدوائر</button>
+      <button class="btn-gold" style="background:linear-gradient(135deg,#10B981,#059669)!important" onclick="showStep(5)">التالي: إغلاق MoM ←</button>
+    </div>`;
+
+  renderActionItems();
+  renderDispatchBoard();
+  setInterval(()=>{
+    const el=document.getElementById('dispatchTime');
+    if(el) el.textContent = new Date().toLocaleTimeString('ar-SA');
+  },1000);
+}
+
+function addAction(){
+  MOM.actions.push({
+    id: Date.now().toString(),
+    text: '', division: '',
+    assignee_name: '', due_date: '',
+    priority: 'medium', sent: false
+  });
+}
+
+function renderActionItems() {
+  const el=document.getElementById('actionItems'); if(!el)return;
+  el.innerHTML = MOM.actions.map((a,i)=>`
+    <div class="action-item ${a.sent?'sending':''}" id="ai_${a.id}">
+      <div class="action-num">#${i+1}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:4px">
+        <div style="grid-column:1/-1">
+          <label>وصف المهمة *</label>
+          <textarea rows="2" placeholder="ما الذي يجب تنفيذه؟..." onchange="MOM.actions[${i}].text=this.value">${esc(a.text)}</textarea>
+        </div>
+        <div>
+          <label>الدائرة المسؤولة</label>
+          <select onchange="MOM.actions[${i}].division=this.value;renderDispatchBoard()">
+            <option value="">— اختر الدائرة —</option>
+            ${DIV_LIST.map(d=>`<option value="${d.code}" ${a.division===d.code?'selected':''}>${d.icon} ${d.name}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <label>اسم المسؤول (اختياري)</label>
+          <input type="text" placeholder="..." value="${esc(a.assignee_name)}" onchange="MOM.actions[${i}].assignee_name=this.value">
+        </div>
+        <div>
+          <label>تاريخ الاستحقاق</label>
+          <input type="date" value="${a.due_date}" onchange="MOM.actions[${i}].due_date=this.value">
+        </div>
+        <div>
+          <label>الأولوية</label>
+          <select onchange="MOM.actions[${i}].priority=this.value">
+            ${['critical','high','medium','low'].map(p=>`<option value="${p}" ${a.priority===p?'selected':''}>${{critical:'🔴 حرجة',high:'🟠 عالية',medium:'🟡 متوسطة',low:'🟢 منخفضة'}[p]}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:7px">
+          ${a.sent?`<div class="action-sent-badge">✓ تم الإرسال</div>`:`<button class="btn-gold" style="font-size:11px;padding:6px 12px" onclick="sendOne(${i})">📤 إرسال</button>`}
+          <button onclick="MOM.actions.splice(${i},1);renderActionItems();renderDispatchBoard()" style="background:none;border:1px solid rgba(239,68,68,.3);color:#EF4444;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px">حذف</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderDispatchBoard() {
+  const el=document.getElementById('dispatchBoard'); if(!el)return;
+  const grouped = {};
+  DIV_LIST.forEach(d=>{ grouped[d.code]={...d, actions:[], sent:0}; });
+  MOM.actions.forEach(a=>{
+    if(a.division && grouped[a.division]) {
+      grouped[a.division].actions.push(a);
+      if(a.sent) grouped[a.division].sent++;
+    }
+  });
+  const rows = DIV_LIST.map(d=>{
+    const g = grouped[d.code];
+    const total = g.actions.length;
+    const sent = g.sent;
+    if(!total) return '';
+    return `<div class="dispatch-row">
+      <div class="dispatch-div">
+        <span style="font-size:18px">${d.icon}</span>
+        <div>
+          <div style="font-weight:600;font-size:13px">${d.name}</div>
+          <div style="font-size:10px;color:var(--t2);font-family:'IBM Plex Mono',monospace">${total} مهمة</div>
+        </div>
+      </div>
+      <div class="dispatch-count" style="color:${d.color}">${total}</div>
+      <div style="flex:1">
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+          <div style="width:${total?Math.round(sent/total*100):0}%;height:100%;background:${d.color};border-radius:2px;transition:width .5s"></div>
+        </div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);margin-top:3px">${sent}/${total} تم الإرسال</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <div class="pulse-dot" style="background:${sent===total&&total>0?'#4ADE80':sent>0?'#F59E0B':'rgba(255,255,255,.2)'}"></div>
+        <div class="dispatch-status" style="color:${sent===total&&total>0?'#4ADE80':sent>0?'#F59E0B':'rgba(255,255,255,.3)'}">
+          ${sent===total&&total>0?'DISPATCHED':sent>0?'PARTIAL':'PENDING'}
+        </div>
+      </div>
+    </div>`;
+  }).filter(Boolean).join('');
+  el.innerHTML = rows || '<div style="padding:16px;text-align:center;color:rgba(212,175,55,.3);font-size:11px;font-family:\'IBM Plex Mono\',monospace">لا مهام موزَّعة بعد — أضف action items وحدد دائرة لكل منها</div>';
+}
+
+async function sendOne(i) {
+  const a = MOM.actions[i];
+  if(!a.text){toast('أدخل وصف المهمة','e');return;}
+  if(!a.division){toast('اختر الدائرة','e');return;}
+  try {
+    await dbIns('tasks',{
+      title: a.text,
+      division: a.division,
+      assigned_by: App.profile?.id,
+      assigned_to: null,
+      assignee_name: a.assignee_name || null,
+      priority: a.priority,
+      due_date: a.due_date || null,
+      status: 'new',
+      source: 'director',
+      meeting_id: MOM.id || null,
+      related_module: 'meeting'
+    });
+    MOM.actions[i].sent = true;
+    toast(`✓ تم إرسال المهمة لـ ${DIV_LIST.find(d=>d.code===a.division)?.name||a.division}`,'s');
+    renderActionItems(); renderDispatchBoard();
+  } catch(e){toast(e.message,'e');}
+}
+
+async function dispatchAll() {
+  const pending = MOM.actions.filter(a=>!a.sent&&a.division&&a.text);
+  if(!pending.length){toast('لا مهام جاهزة للإرسال','i');return;}
+  let sent=0;
+  for(const a of pending){
+    const i=MOM.actions.indexOf(a);
+    await sendOne(i);
+    sent++;
+  }
+  toast(`تم إرسال ${sent} مهمة للدوائر ✓`,'s');
+}
+
+// ── STEP 5: Preview & Close ───────────────────────────────────
+function renderStep5() {
+  const presentList = MOM.attendees.filter(a=>a.present);
+  const sentActions = MOM.actions.filter(a=>a.sent);
+  const pendingActions = MOM.actions.filter(a=>!a.sent&&a.text);
+
+  document.getElementById('stepContent').innerHTML = `
+    <!-- SUMMARY CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+      ${[
+        {l:'الحاضرون',v:presentList.length,c:'#D4AF37'},
+        {l:'Action Items',v:MOM.actions.filter(a=>a.text).length,c:'#0EA5E9'},
+        {l:'تم الإرسال',v:sentActions.length,c:'#4ADE80'},
+        {l:'معلّقة',v:pendingActions.length,c:'#F59E0B'},
+      ].map(s=>`<div style="background:#060F1E;border:1px solid rgba(${s.c==='#D4AF37'?'212,175,55':s.c==='#4ADE80'?'74,222,128':s.c==='#0EA5E9'?'14,165,233':'245,158,11'},.15);border-radius:10px;padding:14px;text-align:center">
+        <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:${s.c}">${s.v}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);margin-top:3px">${s.l}</div>
+      </div>`).join('')}
+    </div>
+
+    ${pendingActions.length?`<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12.5px;color:#FCD34D">
+      ⚠️ ${pendingActions.length} مهمة لم تُرسل بعد — <button class="btn-ghost" style="font-size:11px;padding:4px 10px;margin-right:8px" onclick="dispatchAll();renderStep5()">إرسال الكل الآن</button>
+    </div>`:''}
+
+    <!-- MoM PREVIEW -->
+    <div class="mom-preview">
+      <h2>محضر اجتماع — ${esc(MOM.title)}</h2>
+      <h3>التفاصيل</h3>
+      <p>📅 التاريخ: ${fmtD(MOM.date)} · الوقت: ${MOM.time||'—'} · المكان: ${esc(MOM.location||'—')}</p>
+      <p>👤 رئيس الاجتماع: ${esc(MOM.chair||'—')} · كاتب المحضر: ${esc(MOM.recorder||'—')}</p>
+
+      <h3>الحضور (${presentList.length})</h3>
+      <ul>${presentList.map(a=>`<li>${esc(a.name)} — ${esc(a.role)} · ${esc(a.division)}</li>`).join('')||'<li>—</li>'}</ul>
+
+      ${MOM.agenda?`<h3>الأجندة</h3><p style="white-space:pre-wrap">${esc(MOM.agenda)}</p>`:''}
+      ${MOM.discussions?`<h3>ملخص النقاشات</h3><p style="white-space:pre-wrap">${esc(MOM.discussions)}</p>`:''}
+      ${MOM.decisions?`<h3>القرارات المتخذة</h3><p style="white-space:pre-wrap">${esc(MOM.decisions)}</p>`:''}
+
+      ${MOM.actions.filter(a=>a.text).length?`
+      <h3>Action Items (${MOM.actions.filter(a=>a.text).length})</h3>
+      <ul>${MOM.actions.filter(a=>a.text).map((a,i)=>`<li>
+        <strong>#${i+1}</strong> ${esc(a.text)} —
+        ${DIV_LIST.find(d=>d.code===a.division)?.name||'—'}
+        ${a.assignee_name?`(${esc(a.assignee_name)})`:''}
+        · استحقاق: ${fmtD(a.due_date)}
+        · أولوية: ${{critical:'حرجة',high:'عالية',medium:'متوسطة',low:'منخفضة'}[a.priority]||'—'}
+        ${a.sent?'· <span style="color:#4ADE80">✓ تم الإرسال</span>':'· <span style="color:#F59E0B">⏳ معلّقة</span>'}
+      </li>`).join('')}</ul>`:''}
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap">
+      <button class="btn-ghost" onclick="showStep(4)">رجوع</button>
+      <button class="btn-ghost" onclick="window.print()">🖨️ طباعة</button>
+      <button class="btn-gold" onclick="saveMoM()">💾 حفظ المحضر</button>
+      <button class="btn-gold" style="background:linear-gradient(135deg,#10B981,#059669)!important" onclick="closeMoM()">✓ إغلاق الاجتماع</button>
+    </div>`;
+}
+
+async function saveDraft() {
+  const el=document.getElementById('savingState');
+  if(el) el.textContent='● جارٍ الحفظ...';
+  try {
+    const data = {
+      title: MOM.title,
+      meeting_date: MOM.date,
+      type: MOM.type||'weekly_oe',
+      status: 'draft',
+      agenda: MOM.agenda,
+      decisions: MOM.decisions,
+      minutes: MOM.discussions,
+      created_by: App.profile?.id
+    };
+    if(MOM.id){
+      await dbUpd('meetings',MOM.id,data);
+    } else {
+      const saved=await dbIns('meetings',data);
+      if(saved?.id) MOM.id=saved.id;
+    }
+    if(el) el.textContent='✓ محفوظ';
+    setTimeout(()=>{ if(el) el.textContent='● DRAFT'; },2000);
+  }catch(e){toast(e.message,'e');if(el)el.textContent='● DRAFT';}
+}
+
+async function saveMoM() {
+  await saveDraft();
+  toast('تم حفظ المحضر ✓','s');
+}
+
+async function closeMoM() {
+  if(!confirm('هل تريد إغلاق الاجتماع وإرسال المحضر النهائي؟')) return;
+  try{
+    const data={
+      title:MOM.title, meeting_date:MOM.date,
+      type:MOM.type||'weekly_oe', status:'completed',
+      agenda:MOM.agenda, decisions:MOM.decisions,
+      minutes:MOM.discussions, created_by:App.profile?.id
+    };
+    if(MOM.id){await dbUpd('meetings',MOM.id,{...data,status:'completed'});}
+    else{const s=await dbIns('meetings',data);if(s?.id)MOM.id=s.id;}
+    toast('تم إغلاق الاجتماع ✓','s');
+    setTimeout(()=>location.href='department.html',1500);
+  }catch(e){toast(e.message,'e');}
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+(async()=>{
+  const sess = getStoredSession();
+  if(!sess?.access_token){location.href='index.html';return;}
+  const uid=sess.user?.id||JSON.parse(atob(sess.access_token.split('.')[1])).sub;
+  try{
+    const res=await fetch(SUPA_URL+'/rest/v1/profiles?id=eq.'+uid+'&limit=1',{headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+sess.access_token}});
+    const d=await res.json();
+    const prof=d[0];
+    if(!prof||!['director','admin'].includes(prof.role)){location.href=PORTALS[prof?.role]||'index.html';return;}
+    App.user={id:uid};App.profile=prof;
+    MOM.chair=prof.full_name||'';
+    MOM.recorder=prof.full_name||'';
+    updateHeader();
+  }catch(e){console.error(e);}
+  showStep(1);
+})();
+</script>
+</body>
+</html>

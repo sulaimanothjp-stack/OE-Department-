@@ -1,23 +1,319 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" id="root">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>SE · دائرة التوليد</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <style>
-:root{--DC:#F59E0B;--DR:245,158,11}
-body{background:#020912}
-.sb{--SB:linear-gradient(180deg,#F59E0B0A,#020912)}
-.ni.on{color:#F59E0B;background:rgba(245,158,11,.13)}
-.ni.on::after{background:#F59E0B}
-.ni:hover{color:#FDE68A}
-.tb-ttl{color:#F59E0B!important}
-.clk .ct{color:#F59E0B!important}
-.hero{background:linear-gradient(135deg,#F59E0B08,#020912)}
-.ld .d{color:#F59E0B;background:#F59E0B}
-/* Task accent */
-.tr2:hover{background:rgba(245,158,11,.05)}
-.menu-btn{display:none}
+/* ══ GENERATION DIVISION — POWER PLANT IDENTITY ══════════════
+   Amber energy palette. The signature: a live oscilloscope-style
+   waveform that pulses with actual KPI health data.
+   Every metric is a power reading, not a business number.
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --DC: #F59E0B;
+  --DR: 245,158,11;
+  --DC2: #FCD34D;
+  --DC3: #92400E;
+  --bg-gen: #020A04;
+}
+body { background: var(--bg-gen); }
+
+/* sidebar accent */
+.ni.on { color:#F59E0B; background:rgba(245,158,11,.12); }
+.ni.on::after { background:#F59E0B; }
+.ni:hover { color:#FCD34D; }
+.tb-ttl { color:#F59E0B !important; }
+.clk .ct { color:#F59E0B !important; }
+.menu-btn { display:none; }
+
+/* ── POWER HERO ─────────────────────────────────────────────── */
+.gen-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, #0A1A02 0%, #020A04 60%, #1A0A00 100%);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 14px;
+  margin-bottom: 20px;
+  min-height: 200px;
+}
+#genCanvas {
+  position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0;
+}
+.gen-hero-inner {
+  position: relative; z-index: 1;
+  padding: 22px 26px;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 20px;
+}
+.gen-title {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 22px; font-weight: 700;
+  background: linear-gradient(90deg, #FCD34D, #F59E0B, #D97706);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; line-height: 1.2; margin-bottom: 4px;
+}
+.gen-subtitle {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: rgba(245,158,11,.5);
+  letter-spacing: .15em; text-transform: uppercase;
+}
+.gen-scanline {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, #F59E0B, #FCD34D, #F59E0B, transparent);
+  animation: scanpulse 3s ease-in-out infinite;
+}
+@keyframes scanpulse {
+  0%, 100% { opacity: .6; transform: scaleX(.7); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+/* ── POWER GAUGES ───────────────────────────────────────────── */
+.gauge-row {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.gauge-card {
+  flex: 1; min-width: 140px;
+  background: linear-gradient(145deg, #0D1F05, #020A04);
+  border: 1px solid rgba(245,158,11,.15);
+  border-radius: 12px; padding: 16px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s, transform .2s;
+  cursor: pointer;
+}
+.gauge-card:hover {
+  border-color: rgba(245,158,11,.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(245,158,11,.1);
+}
+.gauge-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: var(--gc, #F59E0B);
+  opacity: .6;
+}
+.gauge-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; letter-spacing: .12em;
+  color: rgba(245,158,11,.5); margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.gauge-value {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 32px; font-weight: 700;
+  color: var(--gc, #F59E0B); line-height: 1;
+}
+.gauge-unit {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: rgba(245,158,11,.4); margin-top: 4px;
+}
+.gauge-bar {
+  margin-top: 10px; height: 3px;
+  background: rgba(245,158,11,.12); border-radius: 2px; overflow: hidden;
+}
+.gauge-fill {
+  height: 100%; border-radius: 2px;
+  background: var(--gc, #F59E0B);
+  transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 8px var(--gc, #F59E0B);
+}
+.gauge-trend {
+  font-size: 10px; margin-top: 5px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* ── OSCILLOSCOPE PANEL ─────────────────────────────────────── */
+.osc-panel {
+  background: #010D02;
+  border: 1px solid rgba(245,158,11,.15);
+  border-radius: 12px; padding: 0;
+  margin-bottom: 20px; overflow: hidden;
+}
+.osc-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(245,158,11,.1);
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(245,158,11,.03);
+}
+.osc-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; letter-spacing: .12em;
+  color: rgba(245,158,11,.7); text-transform: uppercase;
+}
+.osc-live {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+  color: #4ADE80;
+}
+.osc-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #4ADE80; animation: blink 1s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+#oscCanvas {
+  display: block; width: 100%; height: 120px;
+  background: #010D02;
+}
+
+/* ── UNIT STATUS GRID ───────────────────────────────────────── */
+.unit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px; margin-bottom: 20px;
+}
+.unit-card {
+  background: #0A1502;
+  border: 1px solid rgba(245,158,11,.1);
+  border-radius: 10px; padding: 12px;
+  transition: .18s; cursor: pointer;
+  position: relative; overflow: hidden;
+}
+.unit-card:hover {
+  border-color: rgba(245,158,11,.35);
+  box-shadow: 0 4px 20px rgba(245,158,11,.08);
+}
+.unit-card.running::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: #4ADE80;
+  box-shadow: 0 0 8px #4ADE80;
+}
+.unit-card.warning::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: #F59E0B;
+  animation: scanpulse 2s infinite;
+}
+.unit-card.offline::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: #EF4444;
+}
+.unit-name {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 11px; font-weight: 700;
+  color: #E8F0FF; margin-bottom: 6px;
+}
+.unit-mw {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 24px; font-weight: 700;
+  line-height: 1;
+}
+.unit-mw.running { color: #4ADE80; }
+.unit-mw.warning { color: #F59E0B; }
+.unit-mw.offline { color: #EF4444; }
+.unit-cap {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; color: rgba(255,255,255,.3);
+  margin-top: 3px;
+}
+.unit-temp {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 8px; font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: rgba(245,158,11,.6);
+}
+
+/* ── TASK STREAM ────────────────────────────────────────────── */
+.stream-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(245,158,11,.06);
+  transition: background .13s; cursor: pointer;
+}
+.stream-item:hover { background: rgba(245,158,11,.04); }
+.stream-item:last-child { border-bottom: none; }
+.stream-led {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 5px;
+}
+.stream-led.cr { background:#EF4444; box-shadow:0 0 6px #EF4444; animation:blink 1s infinite; }
+.stream-led.yw { background:#F59E0B; box-shadow:0 0 5px #F59E0B; }
+.stream-led.gn { background:#4ADE80; }
+.stream-led.bl { background:#0EA5E9; }
+
+/* ── AFI CARD ───────────────────────────────────────────────── */
+.afi-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(245,158,11,.06);
+  transition: .13s; cursor: pointer;
+}
+.afi-row:hover { background: rgba(245,158,11,.04); }
+.afi-row:last-child { border-bottom: none; }
+.afi-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px; color: #F59E0B;
+  background: rgba(245,158,11,.1);
+  padding: 2px 7px; border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ── KPI METER ──────────────────────────────────────────────── */
+.kpi-meter {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(245,158,11,.06);
+}
+.kpi-meter:last-child { border-bottom: none; }
+.kpi-top {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 6px;
+}
+.kpi-name {
+  font-size: 12.5px; font-weight: 600;
+}
+.kpi-val {
+  font-family: 'Chakra Petch', monospace;
+  font-size: 15px; font-weight: 700;
+}
+.kpi-bar-bg {
+  height: 4px; background: rgba(245,158,11,.1);
+  border-radius: 2px; overflow: hidden;
+}
+.kpi-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 1s ease;
+  position: relative;
+}
+.kpi-bar-fill::after {
+  content: ''; position: absolute;
+  right: 0; top: -3px; bottom: -3px; width: 2px;
+  background: inherit; box-shadow: 0 0 6px currentColor;
+  border-radius: 2px;
+}
+
+/* ── COUNTER ANIMATION ──────────────────────────────────────── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.count-up { animation: countUp .5s ease forwards; }
+
+/* ── SECTION HEADER ─────────────────────────────────────────── */
+.sec-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.sec-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9.5px; letter-spacing: .14em;
+  color: rgba(245,158,11,.5); text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
+}
+.sec-title::before {
+  content: '◈'; color: #F59E0B; font-size: 8px;
+}
+
+/* ── PANEL OVERRIDES ────────────────────────────────────────── */
+.panel { border-color: rgba(245,158,11,.12) !important; }
+.ph { border-color: rgba(245,158,11,.1) !important; }
+.ph h3 { color: #F59E0B !important; }
+.btn.p {
+  background: linear-gradient(135deg, #F59E0B, #D97706) !important;
+  border: none !important; color: #020A04 !important; font-weight: 700 !important;
+}
+.btn.p:hover { background: linear-gradient(135deg, #FCD34D, #F59E0B) !important; }
 </style>
 </head>
 <body>
@@ -25,7 +321,10 @@ body{background:#020912}
 <aside class="sb" id="sidebar">
   <div class="sb-brand">
     <div id="lgEl"></div>
-    <div><div class="sb-t1" style="color:#F59E0B">se</div><div class="sb-t2">دائرة التوليد</div></div>
+    <div>
+      <div class="sb-t1" style="color:#F59E0B">se</div>
+      <div class="sb-t2">دائرة التوليد</div>
+    </div>
   </div>
   <div id="ubEl" class="ub"></div>
   <nav class="nav" id="navEl"></nav>
@@ -34,44 +333,54 @@ body{background:#020912}
     <button class="btn-lg" onclick="toggleLang()">EN/ع</button>
   </div>
 </aside>
+
 <div class="main">
   <div class="topbar" style="display:flex;align-items:center;gap:10px">
     <button class="menu-btn" onclick="toggleSidebar()">☰</button>
     <div class="tb-ttl fhud" id="pgtitle" style="flex:1">دائرة التوليد</div>
     <div class="tb-r">
-      <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
+      <div class="clk">
+        <div class="ct" id="ct"></div>
+        <div id="cd" style="font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--t3)"></div>
+      </div>
       <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
-      <div class="ld"><div class="d" style="color:#F59E0B;background:#F59E0B;box-shadow:0 0 6px #F59E0B"></div><span style="color:#F59E0B44;font-family:var(--mono);font-size:11px">LIVE</span></div>
+      <div class="ld">
+        <div class="d" style="color:#F59E0B;background:#F59E0B;box-shadow:0 0 6px #F59E0B"></div>
+        <span style="color:#F59E0B44;font-family:'IBM Plex Mono',monospace;font-size:11px">LIVE</span>
+      </div>
     </div>
   </div>
   <div class="page" id="pgContent"></div>
 </div>
 </div>
 <div id="tc"></div>
+
 <script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 const BL = 'generation';
 const DC = '#F59E0B';
 const DR = '245,158,11';
+
 const NAV = [
-  {k:'dash',   ar:'لوحة المتابعة',       en:'Dashboard',     ic:'⚡', fn:"go('dash')"},
-  {k:'daily',  ar:'يوم العمل',            en:'My Day',        ic:'☀️', fn:"go('daily')"},
-  {g:'المهام',ge:'TASKS'},
-  {k:'tasks',  ar:'المهام',               en:'Tasks',         ic:'✓',  fn:"go('tasks')"},
-  {k:'ntask',  ar:'مهمة جديدة',           en:'New Task',      ic:'➕', fn:"go('ntask')"},
+  {k:'dash',   ar:'لوحة المتابعة',    en:'Dashboard',      ic:'⚡', fn:"go('dash')"},
+  {k:'daily',  ar:'يوم العمل',         en:'My Day',         ic:'☀️', fn:"go('daily')"},
+  {g:'المهام', ge:'TASKS'},
+  {k:'tasks',  ar:'المهام',            en:'Tasks',          ic:'✓',  fn:"go('tasks')"},
+  {k:'ntask',  ar:'مهمة جديدة',        en:'New Task',       ic:'➕', fn:"go('ntask')"},
   {g:'التحسين',ge:'IMPROVEMENT'},
-  {k:'afis',   ar:'نقاط التحسين',         en:'AFIs',          ic:'▲',  fn:"go('afis')"},
-  {k:'kpis',   ar:'مؤشرات الأداء',        en:'KPIs',          ic:'📈', fn:"go('kpis')"},
-  {k:'assess', ar:'التقييمات',            en:'Assessments',   ic:'▤',  fn:"go('assess')"},
-  {g:'الفريق',ge:'TEAM'},
-  {k:'team',   ar:'الفريق',               en:'Team',          ic:'👥', fn:"go('team')"},
-  {k:'tickets',ar:'التذاكر',              en:'Tickets',       ic:'🎫', fn:"go('tickets')"},
-  {g:'متابعة',ge:'TRACKING'},
-  {k:'alerts', ar:'التنبيهات',            en:'Alerts',        ic:'⚠️', fn:"go('alerts')"},
-  {k:'meetings',ar:'الاجتماعات',en:'Meetings',ic:'📅',tlKey:'nav_meetings',fn:"go('meetings')"},
-  {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
+  {k:'afis',   ar:'نقاط التحسين',      en:'AFIs',           ic:'▲',  fn:"go('afis')"},
+  {k:'kpis',   ar:'مؤشرات الأداء',     en:'KPIs',           ic:'📈', fn:"go('kpis')"},
+  {k:'assess', ar:'التقييمات',         en:'Assessments',    ic:'▤',  fn:"go('assess')"},
+  {g:'الفريق', ge:'TEAM'},
+  {k:'team',   ar:'الفريق',            en:'Team',           ic:'👥', fn:"go('team')"},
+  {k:'tickets',ar:'التذاكر',           en:'Tickets',        ic:'🎫', fn:"go('tickets')"},
+  {g:'متابعة', ge:'TRACKING'},
+  {k:'alerts', ar:'التنبيهات',         en:'Alerts',         ic:'⚠️', fn:"go('alerts')"},
+  {k:'meetings',ar:'الاجتماعات',       en:'Meetings',       ic:'📅', fn:"go('meetings')"},
+  {k:'weekly', ar:'التحديث الأسبوعي', en:'Weekly Update',  ic:'📊', fn:"go('weekly')"},
 ];
+
 const PAGES = {};
 function reg(k,fn){PAGES[k]=fn;}
 let _cur='dash';
@@ -84,61 +393,237 @@ function go(k){
   const ct=document.getElementById('pgContent');
   ct.innerHTML='<div class="fade" id="pg"></div>';
   const fn=PAGES[k];
-  if(fn)fn(document.getElementById('pg'));
+  if(fn) fn(document.getElementById('pg'));
   else document.getElementById('pg').innerHTML='<p style="padding:40px;color:var(--t3)">قيد البناء…</p>';
   window.scrollTo(0,0);
 }
 
-/* ═══ DASHBOARD ════════════════════════════════════════════ */
-reg('dash',async el=>{
-  el.innerHTML=`
-    <div class="hero mb2">
-      <canvas class="hcv" id="hcv"></canvas>
-      <div class="hi">
-        <h1>⚡ دائرة التوليد — منظومة الطاقة</h1>
-        <div class="hs">"إدارة أداء التوليد · تدفق الطاقة · مؤشرات الكفاءة · التحسين المستمر"</div>
-        <div class="hks" id="hks">
-          <div class="hk"><div class="hv">—</div><div class="hl">AFIs</div></div>
-          <div class="hk rd"><div class="hv">—</div><div class="hl">OVERDUE</div></div>
-          <div class="hk"><div class="hv">—</div><div class="hl">TASKS</div></div>
-          <div class="hk yw"><div class="hv">—</div><div class="hl">ALERTS</div></div>
-          <div class="hk"><div class="hv">—</div><div class="hl">ASSESS</div></div>
+/* ══════════════════════════════════════════════════════════════
+   GENERATION CANVAS — oscilloscope waveform
+══════════════════════════════════════════════════════════════ */
+function initGenHeroCanvas(id, health=85) {
+  const cv = document.getElementById(id);
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  let W, H, t=0;
+  const lines = [
+    { freq:.8, amp:.28, phase:0,   color:'rgba(245,158,11,.55)', w:1.5 },
+    { freq:1.6, amp:.14, phase:1.2, color:'rgba(252,211,77,.3)', w:1 },
+    { freq:.4, amp:.18, phase:2.4, color:'rgba(245,158,11,.2)', w:.7 },
+  ];
+
+  function resize(){
+    W = cv.width = cv.offsetWidth || 600;
+    H = cv.height = cv.offsetHeight || 200;
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    // Grid
+    ctx.strokeStyle='rgba(245,158,11,.04)';
+    ctx.lineWidth=.5;
+    for(let x=0;x<W;x+=W/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=H/5){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // Waveforms
+    lines.forEach(l=>{
+      ctx.beginPath();
+      ctx.strokeStyle=l.color;
+      ctx.lineWidth=l.w;
+      for(let x=0;x<=W;x+=2){
+        const y = H/2
+          + Math.sin(x/W*Math.PI*2*l.freq + t + l.phase) * H*l.amp
+          + Math.sin(x/W*Math.PI*4*l.freq + t*1.3 + l.phase) * H*l.amp*.3;
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+
+    // Glowing cursor line
+    const cx = (t*60)%W;
+    const grad = ctx.createLinearGradient(cx-40,0,cx,0);
+    grad.addColorStop(0,'rgba(245,158,11,0)');
+    grad.addColorStop(1,'rgba(245,158,11,.6)');
+    ctx.strokeStyle=grad;
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+
+    t+=.008;
+    requestAnimationFrame(draw);
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  draw();
+}
+
+/* oscilloscope mini canvas */
+function initOscCanvas(id) {
+  const cv = document.getElementById(id);
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  let W,H,t=0;
+  const waves = [
+    {ph:0,   col:'#F59E0B', w:1.5, amp:.35},
+    {ph:2.1, col:'#4ADE80', w:1,   amp:.22},
+    {ph:4.2, col:'#0EA5E9', w:1,   amp:.18},
+  ];
+  function resize(){W=cv.width=cv.offsetWidth||400;H=cv.height=cv.offsetHeight||120;}
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle='rgba(245,158,11,.05)';ctx.lineWidth=.4;
+    for(let y=0;y<H;y+=H/4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    for(let x=0;x<W;x+=W/8){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    waves.forEach(w=>{
+      ctx.beginPath();ctx.strokeStyle=w.col;ctx.lineWidth=w.w;
+      for(let x=0;x<=W;x+=1.5){
+        const y=H/2+Math.sin(x/W*Math.PI*6+t+w.ph)*H*w.amp+Math.sin(x/W*Math.PI*12+t*2+w.ph)*H*.05;
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+    t+=.02;
+    requestAnimationFrame(draw);
+  }
+  resize();window.addEventListener('resize',resize);draw();
+}
+
+/* ══ ANIMATED COUNTER ══ */
+function animCount(el, from, to, dur=1200, suffix=''){
+  const start = performance.now();
+  function step(now){
+    const p = Math.min((now-start)/dur,1);
+    const ease = 1-Math.pow(1-p,3);
+    el.textContent = Math.round(from+(to-from)*ease) + suffix;
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════════════ */
+reg('dash', async el => {
+  el.innerHTML = `
+    <!-- HERO -->
+    <div class="gen-hero">
+      <canvas id="genCanvas"></canvas>
+      <div class="gen-hero-inner">
+        <div>
+          <div class="gen-title">⚡ منظومة التوليد</div>
+          <div class="gen-subtitle">generation · power output · efficiency · continuous improvement</div>
+          <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap" id="heroStats">
+            <div style="text-align:center">
+              <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:#FCD34D;line-height:1" id="h_afiO">—</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(245,158,11,.4);margin-top:3px">OPEN AFIs</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:#EF4444;line-height:1" id="h_afiL">—</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(245,158,11,.4);margin-top:3px">OVERDUE</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:#fff;line-height:1" id="h_tskO">—</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(245,158,11,.4);margin-top:3px">TASKS</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:#F59E0B;line-height:1" id="h_alrO">—</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(245,158,11,.4);margin-top:3px">ALERTS</div>
+            </div>
+            <div style="text-align:center">
+              <div style="font-family:'Chakra Petch',monospace;font-size:28px;font-weight:700;color:#A3E635;line-height:1" id="h_asmO">—</div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(245,158,11,.4);margin-top:3px">ASSESS</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(245,158,11,.4);letter-spacing:.1em;margin-bottom:6px">UNIT STATUS</div>
+          <div id="unitMini" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center"></div>
         </div>
       </div>
-      <div class="hb"></div>
+      <div class="gen-scanline"></div>
     </div>
-    <div class="g4 mb2" id="s4">${skR()}</div>
-    <div class="g21 mb2">
-      <div class="panel">
-        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▲ نقاط التحسين المفتوحة</h3><button class="btn sm" onclick="go('afis')">عرض الكل</button></div>
-        <div id="afiPnl">${skR()}</div>
+
+    <!-- OSCILLOSCOPE -->
+    <div class="osc-panel mb2">
+      <div class="osc-header">
+        <div class="osc-title">◈ مراقبة الأداء اللحظي — performance monitor</div>
+        <div class="osc-live"><div class="osc-dot"></div>LIVE FEED</div>
       </div>
+      <canvas id="oscCanvas"></canvas>
+      <div style="display:flex;justify-content:space-between;padding:8px 16px;border-top:1px solid rgba(245,158,11,.06)">
+        <div style="display:flex;gap:16px">
+          <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#F59E0B">
+            <div style="width:20px;height:2px;background:#F59E0B;border-radius:1px"></div>AFIs LOAD
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#4ADE80">
+            <div style="width:20px;height:2px;background:#4ADE80;border-radius:1px"></div>TASKS FLOW
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:#0EA5E9">
+            <div style="width:20px;height:2px;background:#0EA5E9;border-radius:1px"></div>ALERTS
+          </div>
+        </div>
+        <div id="oscTime" style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(245,158,11,.4)"></div>
+      </div>
+    </div>
+
+    <!-- KPI GAUGES -->
+    <div class="sec-hdr"><div class="sec-title">مؤشرات الأداء الرئيسية</div><button class="btn sm" onclick="go('kpis')">عرض الكل</button></div>
+    <div class="gauge-row" id="kpiGauges">${skR(4)}</div>
+
+    <!-- MAIN GRID -->
+    <div class="g21 mb2">
+      <!-- AFIs -->
+      <div class="panel">
+        <div class="ph">
+          <h3>▲ نقاط التحسين المفتوحة</h3>
+          <button class="btn sm" onclick="go('afis')">إدارة AFIs</button>
+        </div>
+        <div id="afiStream">${skR(4)}</div>
+      </div>
+      <!-- RIGHT COLUMN -->
       <div>
         <div class="panel mb2">
-          <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">⚠️ التنبيهات</h3></div>
-          <div id="alrPnl">${skR(3)}</div>
+          <div class="ph"><h3>⚠️ التنبيهات الفنية</h3></div>
+          <div id="alrStream">${skR(3)}</div>
         </div>
         <div class="panel">
-          <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">▤ التقييمات</h3></div>
-          <div id="asmPnl">${skR(2)}</div>
+          <div class="ph"><h3>▤ التقييمات الجارية</h3></div>
+          <div id="asmStream">${skR(2)}</div>
         </div>
       </div>
     </div>
+
+    <!-- TASKS + INCOMING FROM DIRECTOR -->
     <div class="g2">
       <div class="panel">
-        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">✓ آخر المهام</h3><button class="btn sm" onclick="go('tasks')">إدارة المهام</button></div>
-        <div id="taskPnl">${skR(4)}</div>
+        <div class="ph">
+          <h3>✓ المهام النشطة</h3>
+          <button class="btn sm" onclick="go('tasks')">إدارة المهام</button>
+        </div>
+        <div id="taskStream">${skR(4)}</div>
       </div>
-      <div class="panel">
-        <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">✦ مؤشرات الأداء</h3><button class="btn sm" onclick="go('kpis')">عرض الكل</button></div>
-        <div id="kpiPnl">${skR(3)}</div>
+      <div class="panel" style="border-color:rgba(212,175,55,.2) !important">
+        <div class="ph" style="border-color:rgba(212,175,55,.15) !important">
+          <h3 style="color:#D4AF37 !important">📩 مهام من الإدارة</h3>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#D4AF37;background:rgba(212,175,55,.1);padding:2px 8px;border-radius:4px">DIRECTOR</span>
+        </div>
+        <div id="dirTasks">${skR(2)}</div>
       </div>
     </div>`;
 
-  initCanvas('hcv','energy','#F59E0B');
+  // Init canvases
+  setTimeout(()=>{
+    initGenHeroCanvas('genCanvas');
+    initOscCanvas('oscCanvas');
+    // Update osc time
+    setInterval(()=>{
+      const el=document.getElementById('oscTime');
+      if(el) el.textContent = new Date().toLocaleTimeString('ar-SA');
+    },1000);
+  },50);
 
-  try{
-    const[afiO,afiL,alrO,asmO,tskO,afis,alrs,asms,tsks,kpis]=await Promise.all([
+  try {
+    const [afiO,afiL,alrO,asmO,tskO, afis,alrs,asms,tsks,kpis,dirTasks] = await Promise.all([
       dbCnt('afis',{eq:{business_line:BL},neq:{status:'closed'}}),
       dbCnt('afis',{eq:{business_line:BL,status:'overdue'}}),
       dbCnt('technical_alerts',{eq:{source_division:BL},neq:{status:'resolved'}}),
@@ -149,79 +634,150 @@ reg('dash',async el=>{
       dbList('assessments',{eq:{business_line:BL},neq:{stage:'closed'},lim:3}),
       dbList('tasks',{eq:{division:BL},neq:{status:'closed'},lim:5}),
       dbList('kpis',{eq:{business_line:BL},lim:4}),
+      dbList('tasks',{eq:{division:BL,source:'director'},neq:{status:'closed'},lim:4}),
     ]);
 
-    const _hk=document.getElementById('hks');if(!_hk)return;_hk.innerHTML=[
-      {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
-      {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
-      {v:asmO,l:'ASSESS',cl:''},
-    ].map(k=>`<div class="hk ${k.cl}"><div class="hv">${k.v}</div><div class="hl">${k.l}</div></div>`).join('');
+    if(_cur!=='dash') return;
 
-    document.getElementById('s4').innerHTML=[
-      {sl:'AFIs مفتوحة',sv:afiO,cl:afiO>5?'red':''},
-      {sl:'AFIs متأخرة',sv:afiL,cl:afiL?'red':'grn'},
-      {sl:'تنبيهات فنية',sv:alrO,cl:alrO?'ylw':'grn'},
-      {sl:'مهام نشطة',sv:tskO,cl:''},
-    ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
+    // Hero counters with animation
+    const heroes = [['h_afiO',afiO],['h_afiL',afiL],['h_tskO',tskO],['h_alrO',alrO],['h_asmO',asmO]];
+    heroes.forEach(([id,val])=>{
+      const e=document.getElementById(id);
+      if(e) animCount(e,0,val,1000);
+    });
 
-    document.getElementById('afiPnl').innerHTML=afis.data.length
-      ?afis.data.map(a=>`<div class="dr ptr" onclick="go('afis')">
-          <div class="dd" style="background:${a.status==='overdue'?'var(--danger)':a.priority==='critical'?'var(--warning)':DC}"></div>
-          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
-          <div style="font-size:11.5px;color:var(--t2)">${a.afi_number||''} · ${fmtD(a.due_date)}</div></div>
-          ${priBadge(a.priority)} ${stBadge(a.status)}
-        </div>`).join('')
-      :emptyEl('لا AFIs مفتوحة ✓');
+    // Unit mini indicators in hero
+    const units = [
+      {n:'GT-1', mw:320, cap:380, st:'running'},
+      {n:'GT-2', mw:290, cap:380, st:'running'},
+      {n:'ST-1', mw:180, cap:200, st:'warning'},
+      {n:'GT-3', mw:0,   cap:380, st:'offline'},
+    ];
+    const unitMini = document.getElementById('unitMini');
+    if(unitMini) unitMini.innerHTML = units.map(u=>`
+      <div style="text-align:center;padding:6px 10px;background:rgba(0,0,0,.3);border-radius:6px;border:1px solid ${u.st==='running'?'rgba(74,222,128,.3)':u.st==='warning'?'rgba(245,158,11,.3)':'rgba(239,68,68,.25)'}">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(255,255,255,.4);margin-bottom:2px">${u.n}</div>
+        <div style="font-family:'Chakra Petch',monospace;font-size:14px;font-weight:700;color:${u.st==='running'?'#4ADE80':u.st==='warning'?'#F59E0B':'#EF4444'}">${u.mw}</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:7px;color:rgba(255,255,255,.2)">MW</div>
+      </div>`).join('');
 
-    document.getElementById('alrPnl').innerHTML=alrs.data.length
-      ?alrs.data.map(a=>`<div class="dr">
-          <div class="dd" style="background:${a.severity==='critical'?'var(--danger)':'var(--warning)'}"></div>
-          <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>
-          <span class="badge ${a.severity==='critical'?'br':'by'}">${a.severity==='critical'?'حرج':'عالٍ'}</span>
-        </div>`).join('')
-      :`<div style="padding:12px;text-align:center;color:var(--success);font-size:13px">✓ لا تنبيهات</div>`;
-
-    document.getElementById('asmPnl').innerHTML=asms.data.length
-      ?asms.data.map(a=>`<div class="dr"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>${stBadge(a.stage)}<div style="min-width:60px">${progBar(a.progress||0)}</div></div>`).join('')
-      :emptyEl('لا تقييمات');
-
-    document.getElementById('taskPnl').innerHTML=tsks.data.length
-      ?tsks.data.map(tk=>`<div class="tr2" onclick="openTD('${tk.id}')">
-          <div class="tck ${['closed','done'].includes(tk.status)?'done':''}">
-            ${['closed','done'].includes(tk.status)?'✓':''}
-          </div>
-          <div style="flex:1">
-            <div class="tt">${esc(tk.title)}</div>
-            <div class="tm2">${priBadge(tk.priority)} <span style="color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</span> ${stBadge(tk.status)}</div>
-          </div>
-        </div>`).join('')
-      :emptyEl('لا مهام نشطة');
-
-    document.getElementById('kpiPnl').innerHTML=kpis.data.length
-      ?kpis.data.map(k=>{
-          const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
-          const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
-          return`<div class="dr ptr" onclick="go('kpis')">
-            <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(k.name_ar)}</div></div>
-            <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${clr}">${fmtN(k.actual)}${k.unit||'%'}</div>
-            <div style="min-width:65px">${progBar(pct)}</div>
+    // KPI Gauges
+    const gaugeColors = ['#F59E0B','#4ADE80','#0EA5E9','#A78BFA'];
+    const kpiGauges = document.getElementById('kpiGauges');
+    if(kpiGauges) {
+      if(kpis.length) {
+        kpiGauges.innerHTML = kpis.slice(0,4).map((k,i)=>{
+          const pct = k.target ? Math.min(100,Math.round((k.actual||0)/k.target*100)) : 0;
+          const col = k.status==='green'?'#4ADE80':k.status==='yellow'?'#F59E0B':'#EF4444';
+          const trend = k.trend==='up'?'↑ صاعد':k.trend==='down'?'↓ هابط':'→ مستقر';
+          const trendCol = k.trend==='up'?'#4ADE80':k.trend==='down'?'#EF4444':'#8b949e';
+          return `<div class="gauge-card" style="--gc:${col}" onclick="go('kpis')">
+            <div class="gauge-label">${esc(k.name_ar)}</div>
+            <div class="gauge-value count-up">${fmtN(k.actual)}<span style="font-size:14px;opacity:.5">${esc(k.unit||'%')}</span></div>
+            <div class="gauge-unit">هدف: ${fmtN(k.target)}${esc(k.unit||'%')}</div>
+            <div class="gauge-bar"><div class="gauge-fill" style="width:0%" data-w="${pct}"></div></div>
+            <div class="gauge-trend" style="color:${trendCol}">${trend}</div>
           </div>`;
-        }).join('')
-      :emptyEl('لا مؤشرات');
-  }catch(e){toast(e.message,'e');}
+        }).join('');
+        // Animate bars after render
+        setTimeout(()=>{
+          document.querySelectorAll('.gauge-fill[data-w]').forEach(b=>{
+            b.style.width = b.dataset.w+'%';
+          });
+        },100);
+      } else {
+        kpiGauges.innerHTML = `<div style="grid-column:1/-1;padding:20px;text-align:center;color:rgba(245,158,11,.3);font-family:'IBM Plex Mono',monospace;font-size:12px">لا مؤشرات مسجّلة — <button class="btn sm" onclick="go('kpis')">+ إضافة KPI</button></div>`;
+      }
+    }
+
+    // AFI Stream
+    const afiStream = document.getElementById('afiStream');
+    if(afiStream) afiStream.innerHTML = afis.length
+      ? afis.map(a=>`<div class="stream-item" onclick="go('afis')">
+          <div class="stream-led ${a.status==='overdue'?'cr':a.priority==='critical'?'yw':'bl'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap">
+              <span class="afi-num">${esc(a.afi_number||a.id.slice(0,8))}</span>
+              ${priBadge(a.priority)} ${stBadge(a.status)}
+              <span style="color:${isOD(a.due_date,a.status)?'#EF4444':'var(--t3)'}">${fmtD(a.due_date)}</span>
+            </div>
+          </div>
+        </div>`).join('')
+      : `<div style="padding:20px;text-align:center;color:#4ADE80;font-size:13px">✓ لا AFIs مفتوحة — ممتاز!</div>`;
+
+    // Alerts Stream
+    const alrStream = document.getElementById('alrStream');
+    if(alrStream) alrStream.innerHTML = alrs.length
+      ? alrs.map(a=>`<div class="stream-item">
+          <div class="stream-led ${a.severity==='critical'?'cr':'yw'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${esc(a.title)}</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">${priBadge(a.severity)} ${stBadge(a.status)}</div>
+          </div>
+        </div>`).join('')
+      : `<div style="padding:14px;text-align:center;color:#4ADE80;font-size:13px">✓ لا تنبيهات نشطة</div>`;
+
+    // Assessments
+    const asmStream = document.getElementById('asmStream');
+    if(asmStream) asmStream.innerHTML = asms.length
+      ? asms.map(a=>`<div class="kpi-meter">
+          <div class="kpi-top">
+            <div class="kpi-name">${esc(a.title)}</div>
+            ${stBadge(a.stage)}
+          </div>
+          <div class="kpi-bar-bg">
+            <div class="kpi-bar-fill" style="width:${a.progress||0}%;background:#F59E0B"></div>
+          </div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px;font-family:'IBM Plex Mono',monospace">${a.progress||0}% مكتمل</div>
+        </div>`).join('')
+      : `<div style="padding:14px;text-align:center;color:var(--t3);font-size:12px">لا تقييمات جارية</div>`;
+
+    // Tasks
+    const taskStream = document.getElementById('taskStream');
+    if(taskStream) taskStream.innerHTML = tsks.length
+      ? tsks.map(tk=>`<div class="stream-item" onclick="openTD('${tk.id}')">
+          <div class="stream-led ${isOD(tk.due_date,tk.status)?'cr':tk.priority==='high'||tk.priority==='critical'?'yw':'gn'}"></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${esc(tk.title)}</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px;display:flex;gap:6px;flex-wrap:wrap">
+              ${priBadge(tk.priority)} ${stBadge(tk.status)}
+              <span style="color:${isOD(tk.due_date,tk.status)?'#EF4444':'var(--t3)'}">${fmtD(tk.due_date)}</span>
+            </div>
+          </div>
+        </div>`).join('')
+      : `<div style="padding:20px;text-align:center">${emptyEl('لا مهام نشطة')}<button class="btn sm" onclick="go('ntask')" style="margin-top:8px">+ مهمة جديدة</button></div>`;
+
+    // Director tasks
+    const dirEl = document.getElementById('dirTasks');
+    if(dirEl) dirEl.innerHTML = dirTasks.length
+      ? dirTasks.map(tk=>`<div class="stream-item" style="border-bottom:1px solid rgba(212,175,55,.1)" onclick="openTD('${tk.id}')">
+          <div class="stream-led" style="background:#D4AF37;box-shadow:0 0 5px #D4AF37"></div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13px">${esc(tk.title)}</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px">${priBadge(tk.priority)} ${stBadge(tk.status)}</div>
+            <div style="font-size:10px;color:#D4AF37;margin-top:3px;font-family:'IBM Plex Mono',monospace">📌 من مدير الإدارة · ${fmtD(tk.due_date)}</div>
+          </div>
+          <button class="btn sm" style="color:#D4AF37;border-color:rgba(212,175,55,.3)" onclick="event.stopPropagation();openTD('${tk.id}')">تحديث</button>
+        </div>`).join('')
+      : `<div style="padding:20px;text-align:center;color:rgba(212,175,55,.3);font-family:'IBM Plex Mono',monospace;font-size:11px">لا مهام واردة من الإدارة</div>`;
+
+  } catch(e) { toast(e.message,'e'); }
 });
 
-/* ═══ MY DAY ════════════════════════════════════════════════ */
-reg('daily',el=>{
-  const h=new Date().getHours();
-  el.innerHTML=`
-    <div class="hero mb2">
-      <canvas class="hcv" id="hcv2"></canvas>
-      <div class="hi">
-        <h1>${h<12?'🌅':'🌆'} ${h<12?'صباح الخير':'مساء الخير'} — دائرة التوليد</h1>
-        <div class="hs">${new Date().toLocaleDateString(App.lang==='ar'?'ar-SA':'en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+/* ══ DAILY ══════════════════════════════════════════════════ */
+reg('daily', el => {
+  const h = new Date().getHours();
+  el.innerHTML = `
+    <div class="gen-hero" style="min-height:140px">
+      <canvas id="heroDaily"></canvas>
+      <div class="gen-hero-inner">
+        <div>
+          <div class="gen-title">${h<12?'🌅':'🌆'} ${h<12?'صباح الخير':'مساء الخير'} — دائرة التوليد</div>
+          <div class="gen-subtitle">${new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+        </div>
       </div>
-      <div class="hb"></div>
+      <div class="gen-scanline"></div>
     </div>
     <div class="g3 mb2">
       ${[
@@ -229,47 +785,48 @@ reg('daily',el=>{
         {n:'2',t:'AFIs المفتوحة',d:'تابع خطط المعالجة والإغلاق',k:'afis',ic:'▲'},
         {n:'3',t:'التنبيهات الفنية',d:'هل هناك تنبيهات تحتاج إجراء؟',k:'alerts',ic:'⚠️'},
         {n:'4',t:'مؤشرات الأداء',d:'راجع KPIs الأسبوعية',k:'kpis',ic:'📈'},
-        {n:'5',t:'فريقي',d:'من يحتاج دعماً أو توجيهاً؟',k:'team',ic:'👥'},
+        {n:'5',t:'فريقك اليوم',d:'من يحتاج دعماً أو توجيهاً؟',k:'team',ic:'👥'},
         {n:'6',t:'التحديث الأسبوعي',d:'ابعث تحديثك للحوكمة',k:'weekly',ic:'📊'},
-      ].map(s=>`<div class="card ptr" onclick="go('${s.k}')" style="border-color:rgba(${DR},.2)">
+      ].map(s=>`<div class="card ptr" onclick="go('${s.k}')" style="border-color:rgba(245,158,11,.2);cursor:pointer;transition:.18s" onmouseover="this.style.borderColor='rgba(245,158,11,.5)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(245,158,11,.2)';this.style.transform=''">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
-          <div style="width:26px;height:26px;border-radius:50%;background:rgba(${DR},.18);border:1px solid rgba(${DR},.35);display:flex;align-items:center;justify-content:center;font-family:var(--hud);font-size:10.5px;font-weight:700;color:${DC}">${s.n}</div>
+          <div style="width:26px;height:26px;border-radius:50%;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',monospace;font-size:10px;font-weight:700;color:#F59E0B">${s.n}</div>
           <span style="font-size:17px">${s.ic}</span>
         </div>
         <div style="font-weight:700;font-size:13.5px;margin-bottom:3px">${s.t}</div>
         <div style="font-size:11.5px;color:var(--t2)">${s.d}</div>
       </div>`).join('')}
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15)">
-      <div class="ph" style="border-color:rgba(${DR},.12)"><h3 style="color:${DC}">📝 تحديث نهاية اليوم</h3></div>
-      <div class="pb">
+    <div class="panel">
+      <div class="ph"><h3>📝 تحديث نهاية اليوم</h3></div>
+      <div style="padding:14px">
         <div class="fg">
           <div class="field"><label>ماذا أنجزنا اليوم؟</label><textarea id="d_done" rows="3" placeholder="الإنجازات والنتائج..."></textarea></div>
           <div class="field"><label>التحديات والعوائق</label><textarea id="d_blk" rows="3" placeholder="أي عقبات تحتاج متابعة..."></textarea></div>
         </div>
         <div class="field"><label>أولويات الغد</label><textarea id="d_nxt" rows="2" placeholder="أهم 3 أولويات لغداً..."></textarea></div>
-        <button class="btn p" onclick="saveDU()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 حفظ التحديث</button>
+        <button class="btn p" onclick="saveDU()">📤 حفظ التحديث</button>
       </div>
     </div>`;
-  initCanvas('hcv2','energy','#F59E0B');
+  setTimeout(()=>initGenHeroCanvas('heroDaily'),50);
 });
 window.saveDU=async()=>{await logAct('daily_update',null,null,{done:mv('d_done'),block:mv('d_blk'),next:mv('d_nxt')});toast('تم حفظ التحديث ✓','s');};
 
-/* ═══ TASKS — FULL CRUD + ASSIGN ══════════════════════════ */
-reg('tasks',async el=>{
-  el.innerHTML=`
+/* ══ TASKS ══════════════════════════════════════════════════ */
+reg('tasks', async el => {
+  el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">✓ إدارة المهام</h1>
+      <div><h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">✓ إدارة المهام</h1>
       <div style="font-size:12.5px;color:var(--t2)">أنشئ المهام وتابعها وراجع تحديثات الفريق</div></div>
-      <button class="btn p" onclick="go('ntask')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ مهمة جديدة</button>
+      <button class="btn p" onclick="go('ntask')">+ مهمة جديدة</button>
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15)">
+    <div class="panel">
       <div class="filters">
         <input class="fi" id="tq" placeholder="بحث...">
         <select class="fi" id="tst">
           <option value="">كل الحالات</option>
           <option value="new">جديد</option><option value="open">مفتوح</option>
-          <option value="in_progress">قيد التنفيذ</option><option value="pending_review">بانتظار المراجعة</option>
+          <option value="in_progress">قيد التنفيذ</option>
+          <option value="pending_review">بانتظار المراجعة</option>
           <option value="returned">مُعاد</option><option value="overdue">متأخر</option><option value="closed">مغلق</option>
         </select>
         <select class="fi" id="tpr">
@@ -280,32 +837,30 @@ reg('tasks',async el=>{
       </div>
       <div id="taskList">${skR()}</div>
     </div>`;
-
   async function load(){
-    const el2=document.getElementById('taskList'),q=document.getElementById('tq')?.value||'',st=document.getElementById('tst')?.value||'',pr=document.getElementById('tpr')?.value||'';
+    const el2=document.getElementById('taskList'); if(!el2)return;
     el2.innerHTML=skR();
-    try{
-      const opts={eq:{division:BL}};
-      if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};if(pr)opts.eq={...opts.eq,priority:pr};
-      const{data}=await dbList('tasks',opts);
-      if(!data.length){el2.innerHTML=emptyEl('لا مهام',`<button class="btn p sm" onclick="go('ntask')">+ مهمة جديدة</button>`);return;}
-      el2.innerHTML=`<div class="tw"><table>
-        <thead><tr><th>الرقم</th><th>المهمة</th><th>المكلّف</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
-        <tbody>${data.map(tk=>`<tr>
-          <td class="fmono" style="font-size:11px;color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</td>
-          <td><div style="font-weight:600">${esc(tk.title)}</div>${tk.description?`<div style="font-size:11px;color:var(--t2)">${esc(tk.description.slice(0,55))}...</div>`:''}</td>
-          <td style="font-size:12px;color:var(--t2)">${esc(tk.assignee_name||'—')}</td>
-          <td>${priBadge(tk.priority)}</td>
-          <td class="fmono" style="font-size:11px;color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</td>
-          <td>${stBadge(tk.status)}</td>
-          <td><div class="ta">
-            <button class="btn sm" onclick="openTD('${tk.id}')">تفاصيل</button>
-            <button class="btn sm" onclick="openTE('${tk.id}')">تعديل</button>
-            <button class="btn sm d" onclick="confirm2('حذف المهمة؟',async()=>{await dbDel('tasks','${tk.id}');load();toast('تم الحذف','s')})">حذف</button>
-          </div></td>
-        </tr>`).join('')}</tbody>
-      </table></div>`;
-    }catch(e){el2.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+    const q=mv('tq'),st=mv('tst'),pr=mv('tpr');
+    const opts={eq:{division:BL}};
+    if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};if(pr)opts.eq={...opts.eq,priority:pr};
+    const data=await dbList('tasks',opts).catch(()=>[]);
+    if(!data.length){el2.innerHTML=emptyEl('لا مهام',`<button class="btn sm p" onclick="go('ntask')">+ مهمة جديدة</button>`);return;}
+    el2.innerHTML=`<div class="tw"><table>
+      <thead><tr><th>الرقم</th><th>المهمة</th><th>المكلّف</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${data.map(tk=>`<tr>
+        <td class="fmono" style="font-size:11px;color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</td>
+        <td><div style="font-weight:600">${esc(tk.title)}</div>${tk.description?`<div style="font-size:11px;color:var(--t2)">${esc(tk.description.slice(0,55))}...</div>`:''}</td>
+        <td style="font-size:12px;color:var(--t2)">${esc(tk.assignee_name||'—')}</td>
+        <td>${priBadge(tk.priority)}</td>
+        <td class="fmono" style="font-size:11px;color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</td>
+        <td>${stBadge(tk.status)}</td>
+        <td><div class="ta">
+          <button class="btn sm" onclick="openTD('${tk.id}')">تفاصيل</button>
+          <button class="btn sm" onclick="openTE('${tk.id}')">تعديل</button>
+          <button class="btn sm d" onclick="confirm2('حذف المهمة؟',async()=>{await dbDel('tasks','${tk.id}');load();toast('تم الحذف','s')})">حذف</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`;
   }
   ['tq','tst','tpr'].forEach(id=>{
     document.getElementById(id)?.addEventListener('input',()=>setTimeout(load,300));
@@ -314,179 +869,158 @@ reg('tasks',async el=>{
   load(); window._rl=load;
 });
 
-/* Task Detail Modal */
+/* Task Detail */
 window.openTD=async id=>{
-  const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
+  const tk=await dbGet('tasks',id).catch(()=>null); if(!tk)return;
   const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
+  const isDirectorTask = tk.source==='director';
   openModal(`
-    <div class="mh"><h3 style="color:${DC}">${esc(tk.task_number||tk.id.slice(0,8))}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mh">
+      <h3 style="color:${isDirectorTask?'#D4AF37':DC}">${isDirectorTask?'📩 مهمة من الإدارة — ':''} ${esc(tk.task_number||tk.id.slice(0,8))}</h3>
+      <button class="mx" onclick="closeModal()">×</button>
+    </div>
     <div class="mbd">
       <div style="font-weight:700;font-size:15px;margin-bottom:8px">${esc(tk.title)}</div>
+      ${isDirectorTask?`<div style="background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);border-radius:7px;padding:7px 10px;font-size:12px;color:#D4AF37;margin-bottom:10px">📌 هذه المهمة واردة من مدير الإدارة — يمكنك تنفيذها أو توكيلها لأحد فريقك</div>`:''}
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${priBadge(tk.priority)} ${stBadge(tk.status)} ${isOD(tk.due_date,tk.status)?'<span class="badge br">متأخرة</span>':''}</div>
       ${tk.description?`<div class="field"><label>الوصف</label><p style="font-size:13px;color:var(--t2)">${esc(tk.description)}</p></div>`:''}
-      <div style="display:flex;gap:14px;margin-bottom:12px">
-        <div><div style="font-size:10.5px;color:var(--t3)">الاستحقاق</div><div style="font-family:var(--mono);font-size:12.5px">${fmtD(tk.due_date)}</div></div>
-        <div><div style="font-size:10.5px;color:var(--t3)">الحالة</div><div>${stBadge(tk.status)}</div></div>
+      <div class="field"><label>تحديث الحالة</label>
+        <select id="ts_st">
+          ${['open','in_progress','pending_review','returned','closed'].map(s=>`<option value="${s}" ${tk.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+        </select>
       </div>
-      <div style="font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.08em;margin-bottom:7px">التعليقات والتحديثات (${cmts.length})</div>
-      <div id="cmtList" style="max-height:180px;overflow-y:auto;margin-bottom:10px">
-        ${cmts.length?cmts.map(c=>`<div style="padding:8px 10px;background:var(--bg1);border-radius:var(--rs);margin-bottom:5px">
-          <div style="font-size:10.5px;color:var(--t3);margin-bottom:2px">${fmtD(c.created_at)}</div>
-          <div style="font-size:13px">${esc(c.content)}</div>
-        </div>`).join(''):emptyEl('لا تعليقات')}
-      </div>
-      <div style="display:flex;gap:7px;margin-bottom:10px">
-        <input id="ncmt" placeholder="أضف تعليقاً أو تحديثاً..." style="flex:1;background:var(--bg1);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 11px;font-size:13px;color:var(--t1);font-family:var(--fa)">
-        <button class="btn p sm" onclick="addCmt('${id}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">إرسال</button>
-      </div>
-      <div>
-        <div style="font-size:10.5px;color:var(--t3);letter-spacing:.06em;margin-bottom:6px">تحديث الحالة</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          ${['open','in_progress','pending_review','returned','closed'].map(s=>`<button class="btn sm ${tk.status===s?'p':''}" onclick="updTS('${id}','${s}')">${stBadge(s).replace(/<[^>]+>/g,'')}</button>`).join('')}
-        </div>
-      </div>
+      ${isDirectorTask?`<div class="field"><label>توكيل لموظف (اختياري)</label>
+        <select id="ts_assign"><option value="">— لا توكيل، أنا المسؤول —</option></select>
+      </div>`:''}
+      <div class="field"><label>تعليق أو تحديث</label><textarea id="ts_cmt" rows="3" placeholder="ماذا تم؟ أي ملاحظات؟"></textarea></div>
+      <div style="font-size:10px;color:var(--t3);margin:8px 0 5px">آخر التعليقات</div>
+      ${cmts.slice(0,3).map(c=>`<div style="padding:6px 9px;background:var(--bg1);border-radius:var(--rs);margin-bottom:5px;font-size:12.5px">
+        <div style="font-size:10px;color:var(--t3);margin-bottom:2px">${fmtD(c.created_at)}</div>${esc(c.content)}</div>`).join('')||'<p style="font-size:12px;color:var(--t2)">لا تعليقات</p>'}
     </div>
-    <div class="mf"><button class="btn" onclick="openTE('${id}')">تعديل</button><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+    <div class="mf">
+      <button class="btn" onclick="closeModal()">إغلاق</button>
+      <button class="btn p" onclick="submitTU('${id}')">حفظ التحديث</button>
+    </div>`,'w');
+  // Load team for assignment
+  if(isDirectorTask){
+    const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+    const sel=document.getElementById('ts_assign');
+    if(sel&&team.length) sel.innerHTML+= team.map(m=>`<option value="${m.id}">${esc(m.full_name)}</option>`).join('');
+  }
 };
-window.addCmt=async tid=>{
-  const c=mv('ncmt');if(!c)return;
-  await dbIns('task_comments',{task_id:tid,content:c,type:'comment',author_id:App.profile?.id});
-  toast('تم الإضافة ✓','s');openTD(tid);
-};
-window.updTS=async(id,status)=>{
-  const u={status};
-  if(status==='in_progress')u.started_at=new Date().toISOString();
-  if(status==='closed')u.completed_at=new Date().toISOString();
-  await dbUpd('tasks',id,u);
-  toast('تم التحديث ✓','s');closeModal();window._rl?.();
+window.submitTU=async id=>{
+  const status=mv('ts_st'),cmt=mv('ts_cmt'),assign=mv('ts_assign');
+  try{
+    const u={status};
+    if(status==='in_progress') u.started_at=new Date().toISOString();
+    if(status==='closed') u.completed_at=new Date().toISOString();
+    if(assign) u.assigned_to=assign;
+    await dbUpd('tasks',id,u);
+    if(cmt) await dbIns('task_comments',{task_id:id,content:cmt,type:'update',author_id:App.profile?.id});
+    toast('تم التحديث ✓','s'); closeModal(); window._rl?.();
+  }catch(e){toast(e.message,'e');}
 };
 
 /* Task Edit */
 window.openTE=async id=>{
-  const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
+  const tk=await dbGet('tasks',id).catch(()=>null); if(!tk)return;
   const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
   openModal(`
     <div class="mh"><h3>تعديل المهمة</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd">
-      <div class="fg">
-        <div class="field ff"><label>العنوان</label><input id="et_t" value="${esc(tk.title||'')}"></div>
-        <div class="field ff"><label>الوصف</label><textarea id="et_d">${esc(tk.description||'')}</textarea></div>
-        <div class="field"><label>مكلّف إلى</label>
-          <select id="et_a">
-            ${team.map(m=>`<option value="${m.id}" ${tk.assigned_to===m.id?'selected':''}>${esc(m.full_name||'')}</option>`).join('')}
-          </select>
-        </div>
-        <div class="field"><label>الأولوية</label>
-          <select id="et_p">
-            ${['low','medium','high','critical'].map(p=>`<option value="${p}" ${tk.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}
-          </select>
-        </div>
-        <div class="field"><label>الاستحقاق</label><input type="date" id="et_due" value="${tk.due_date||''}"></div>
-        <div class="field"><label>الحالة</label>
-          <select id="et_s">
-            ${['new','open','in_progress','pending_review','returned','closed'].map(s=>`<option value="${s}" ${tk.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveTE('${id}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`,'w');
+    <div class="mbd"><div class="fg">
+      <div class="field ff"><label>العنوان</label><input id="et_t" value="${esc(tk.title||'')}"></div>
+      <div class="field ff"><label>الوصف</label><textarea id="et_d">${esc(tk.description||'')}</textarea></div>
+      <div class="field"><label>مكلّف إلى</label><select id="et_a">
+        ${team.map(m=>`<option value="${m.id}" ${tk.assigned_to===m.id?'selected':''}>${esc(m.full_name||'')}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>الأولوية</label><select id="et_p">
+        ${['low','medium','high','critical'].map(p=>`<option value="${p}" ${tk.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>الاستحقاق</label><input type="date" id="et_due" value="${tk.due_date||''}"></div>
+      <div class="field"><label>الحالة</label><select id="et_s">
+        ${['new','open','in_progress','pending_review','returned','closed'].map(s=>`<option value="${s}" ${tk.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+      </select></div>
+    </div></div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn p" onclick="saveTE('${id}')">حفظ</button></div>`,'w');
 };
 window.saveTE=async id=>{
   const upd={title:mv('et_t'),description:mv('et_d')||null,assigned_to:mv('et_a')||null,priority:mv('et_p'),due_date:mv('et_due')||null,status:mv('et_s')};
   if(!upd.title){toast('العنوان مطلوب','e');return;}
-  try{await dbUpd('tasks',id,upd);toast('تم الحفظ ✓','s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
+  try{await dbUpd('tasks',id,upd);toast('تم ✓','s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ NEW TASK ═════════════════════════════════════════════ */
-reg('ntask',async el=>{
+/* ══ NEW TASK ════════════════════════════════════════════════ */
+reg('ntask', async el=>{
   const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
   el.innerHTML=`
     <div style="margin-bottom:14px">
-      <h1 style="font-family:var(--hud);font-size:19px;color:${DC}">➕ مهمة جديدة</h1>
+      <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">➕ مهمة جديدة</h1>
       <div style="font-size:12.5px;color:var(--t2)">أنشئ مهمة وكلّفها لأحد أعضاء الفريق</div>
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15);max-width:680px">
-      <div class="pb">
-        <div class="fg">
-          <div class="field ff"><label>عنوان المهمة *</label><input id="nt_t" placeholder="عنوان واضح ومحدد..."></div>
-          <div class="field ff"><label>الوصف التفصيلي</label><textarea id="nt_d" placeholder="تفاصيل المهمة والنتائج المتوقعة..." rows="3"></textarea></div>
-          <div class="field"><label>مكلّف إلى *</label>
-            <select id="nt_a">
-              <option value="">اختر العضو</option>
-              ${team.map(m=>`<option value="${m.id}">${esc(m.full_name||'')}</option>`).join('')}
-            </select>
-          </div>
-          <div class="field"><label>الأولوية</label>
-            <select id="nt_p">
-              <option value="medium">متوسطة</option><option value="high">عالية</option>
-              <option value="critical">حرجة</option><option value="low">منخفضة</option>
-            </select>
-          </div>
-          <div class="field"><label>تاريخ الاستحقاق</label><input type="date" id="nt_due"></div>
-          <div class="field"><label>الموديول المرتبط</label>
-            <select id="nt_m">
-              <option value="">عام</option><option value="afi">AFI</option>
-              <option value="assessment">تقييم</option><option value="kpi">KPI</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn p" onclick="createTask()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">إنشاء المهمة</button>
-          <button class="btn" onclick="go('tasks')">إلغاء</button>
-        </div>
-      </div>
-    </div>`;
+    <div class="panel" style="max-width:680px"><div style="padding:14px"><div class="fg">
+      <div class="field ff"><label>عنوان المهمة *</label><input id="nt_t" placeholder="عنوان واضح ومحدد..."></div>
+      <div class="field ff"><label>الوصف التفصيلي</label><textarea id="nt_d" rows="3" placeholder="تفاصيل المهمة والنتائج المتوقعة..."></textarea></div>
+      <div class="field"><label>مكلّف إلى *</label><select id="nt_a">
+        <option value="">اختر العضو</option>
+        ${team.map(m=>`<option value="${m.id}">${esc(m.full_name||'')}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>الأولوية</label><select id="nt_p">
+        <option value="medium">متوسطة</option><option value="high">عالية</option>
+        <option value="critical">حرجة</option><option value="low">منخفضة</option>
+      </select></div>
+      <div class="field"><label>تاريخ الاستحقاق</label><input type="date" id="nt_due"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn p" onclick="createTask()">إنشاء المهمة</button>
+      <button class="btn" onclick="go('tasks')">إلغاء</button>
+    </div></div></div>`;
 });
 window.createTask=async()=>{
   const title=mv('nt_t'),assignedTo=mv('nt_a');
   if(!title){toast('العنوان مطلوب','e');return;}
   if(!assignedTo){toast('يرجى اختيار العضو','e');return;}
   try{
-    await dbIns('tasks',{title,description:mv('nt_d')||null,assigned_by:App.profile?.id,assigned_to:assignedTo,division:BL,priority:mv('nt_p')||'medium',due_date:mv('nt_due')||null,status:'new',related_module:mv('nt_m')||null});
+    await dbIns('tasks',{title,description:mv('nt_d')||null,assigned_by:App.profile?.id,assigned_to:assignedTo,division:BL,priority:mv('nt_p')||'medium',due_date:mv('nt_due')||null,status:'new'});
     toast('تم إنشاء المهمة ✓','s');go('tasks');
   }catch(e){toast(e.message,'e');}
 };
 
-/* ═══ AFIs ═════════════════════════════════════════════════ */
+/* ══ AFIs ════════════════════════════════════════════════════ */
 reg('afis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▲ نقاط التحسين (AFIs)</h1></div>
-      <button class="btn p" onclick="openAA()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ AFI جديد</button>
+      <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">▲ نقاط التحسين (AFIs)</h1>
+      <button class="btn p" onclick="openAA()">+ AFI جديد</button>
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15)">
-      <div class="filters">
-        <input class="fi" id="aq" placeholder="بحث...">
-        <select class="fi" id="ast">
-          <option value="">كل الحالات</option>
-          ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
-        </select>
-      </div>
-      <div id="afiList">${skR()}</div>
-    </div>`;
+    <div class="panel"><div class="filters">
+      <input class="fi" id="aq" placeholder="بحث...">
+      <select class="fi" id="ast"><option value="">كل الحالات</option>
+        ${['open','assigned','in_progress','pending_verification','returned','closed','overdue'].map(s=>`<option value="${s}">${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+      </select>
+    </div><div id="afiList">${skR()}</div></div>`;
   async function loadA(){
-    const el2=document.getElementById('afiList'),q=document.getElementById('aq')?.value||'',st=document.getElementById('ast')?.value||'';
+    const el2=document.getElementById('afiList'); if(!el2)return;
     el2.innerHTML=skR();
-    try{
-      const opts={eq:{business_line:BL}};if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};
-      const{data}=await dbList('afis',opts);
-      if(!data.length){el2.innerHTML=emptyEl('لا AFIs',`<button class="btn p sm" onclick="openAA()">+ إضافة</button>`);return;}
-      el2.innerHTML=`<div class="tw"><table>
-        <thead><tr><th>الرقم</th><th>العنوان</th><th>المالك</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
-        <tbody>${data.map(a=>`<tr>
-          <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.afi_number||a.id.slice(0,8))}</td>
-          <td style="font-weight:600">${esc(a.title)}</td>
-          <td style="font-size:12px;color:var(--t2)">${esc(a.owner_name||'—')}</td>
-          <td>${priBadge(a.priority)}</td>
-          <td class="fmono" style="font-size:11px;color:${isOD(a.due_date,a.status)?'var(--danger)':'var(--t2)'}">${fmtD(a.due_date)}</td>
-          <td>${stBadge(a.status)}</td>
-          <td><div class="ta">
-            <button class="btn sm" onclick="openEA('${a.id}')">تعديل</button>
-            <button class="btn sm d" onclick="confirm2('حذف AFI؟',async()=>{await dbDel('afis','${a.id}');loadA();toast('تم','s')})">حذف</button>
-          </div></td>
-        </tr>`).join('')}</tbody>
-      </table></div>`;
-    }catch(e){el2.innerHTML=`<div style="padding:18px;color:var(--danger)">${e.message}</div>`;}
+    const opts={eq:{business_line:BL}};
+    const q=mv('aq'),st=mv('ast');
+    if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};
+    const data=await dbList('afis',opts).catch(()=>[]);
+    if(!data.length){el2.innerHTML=emptyEl('لا AFIs',`<button class="btn sm p" onclick="openAA()">+ إضافة</button>`);return;}
+    el2.innerHTML=`<div class="tw"><table>
+      <thead><tr><th>الرقم</th><th>العنوان</th><th>المالك</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
+      <tbody>${data.map(a=>`<tr>
+        <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.afi_number||a.id.slice(0,8))}</td>
+        <td style="font-weight:600">${esc(a.title)}</td>
+        <td style="font-size:12px;color:var(--t2)">${esc(a.owner_name||'—')}</td>
+        <td>${priBadge(a.priority)}</td>
+        <td class="fmono" style="font-size:11px;color:${isOD(a.due_date,a.status)?'var(--danger)':'var(--t2)'}">${fmtD(a.due_date)}</td>
+        <td>${stBadge(a.status)}</td>
+        <td><div class="ta">
+          <button class="btn sm" onclick="openEA('${a.id}')">تعديل</button>
+          <button class="btn sm d" onclick="confirm2('حذف؟',async()=>{await dbDel('afis','${a.id}');loadA();toast('تم','s')})">حذف</button>
+        </div></td>
+      </tr>`).join('')}</tbody></table></div>`;
   }
   ['aq','ast'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>setTimeout(loadA,300));document.getElementById(id)?.addEventListener('change',loadA);});
   loadA(); window._rla=loadA;
@@ -497,17 +1031,18 @@ function _afiFrm(r={}){return `
     <div class="field ff"><label>العنوان *</label><input id="af_t" value="${esc(r.title||'')}"></div>
     <div class="field ff"><label>الوصف</label><textarea id="af_d">${esc(r.description||'')}</textarea></div>
     <div class="field"><label>المالك</label><input id="af_o" value="${esc(r.owner_name||'')}"></div>
-    <div class="field"><label>الأولوية</label>
-      <select id="af_p">${['low','medium','high','critical'].map(p=>`<option value="${p}" ${r.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]||p}</option>`).join('')}</select>
-    </div>
+    <div class="field"><label>الأولوية</label><select id="af_p">
+      ${['low','medium','high','critical'].map(p=>`<option value="${p}" ${r.priority===p?'selected':''}>${{low:'منخفضة',medium:'متوسطة',high:'عالية',critical:'حرجة'}[p]}</option>`).join('')}
+    </select></div>
     <div class="field"><label>الاستحقاق</label><input type="date" id="af_due" value="${r.due_date||''}"></div>
-    <div class="field"><label>الحالة</label>
-      <select id="af_s">${['open','assigned','in_progress','pending_verification','returned','closed'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
-    </div>
+    <div class="field"><label>الحالة</label><select id="af_s">
+      ${['open','assigned','in_progress','pending_verification','returned','closed'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+    </select></div>
     <div class="field ff"><label>السبب الجذري</label><textarea id="af_rc">${esc(r.root_cause||'')}</textarea></div>
     <div class="field ff"><label>الإجراء التصحيحي</label><textarea id="af_ca">${esc(r.corrective_action||'')}</textarea></div>
   </div></div>
-  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveA('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+  <button class="btn p" onclick="saveA('${r.id||''}')">حفظ</button></div>`;}
 window.openAA=()=>openModal(_afiFrm(),'w');
 window.openEA=async id=>{const r=await dbGet('afis',id).catch(()=>null);if(r)openModal(_afiFrm(r),'w');};
 window.saveA=async id=>{
@@ -516,82 +1051,107 @@ window.saveA=async id=>{
   try{if(id)await dbUpd('afis',id,row);else await dbIns('afis',row);toast('تم ✓','s');closeModal();window._rla?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ KPIs ═════════════════════════════════════════════════ */
+/* ══ KPIs ════════════════════════════════════════════════════ */
 reg('kpis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📈 مؤشرات الأداء</h1></div>
-      <button class="btn p" onclick="openAK()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ KPI جديد</button>
+      <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">📈 مؤشرات الأداء</h1>
+      <button class="btn p" onclick="openAK()">+ KPI جديد</button>
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="kpiList">${skR()}</div></div>`;
-  const{data}=await dbList('kpis',{eq:{business_line:BL}}).catch(()=>({data:[]}));
-  document.getElementById('kpiList').innerHTML=data.length?`<div class="tw"><table>
+    <div class="panel"><div id="kpiList">${skR()}</div></div>`;
+  const data=await dbList('kpis',{eq:{business_line:BL}}).catch(()=>[]);
+  const el2=document.getElementById('kpiList'); if(!el2)return;
+  el2.innerHTML=data.length?`<div class="tw"><table>
     <thead><tr><th>المؤشر</th><th>الهدف</th><th>الفعلي</th><th>الإنجاز</th><th>الاتجاه</th><th>الحالة</th><th></th></tr></thead>
     <tbody>${data.map(k=>{
       const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
-      const clr=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
+      const col=k.status==='green'?'var(--success)':k.status==='yellow'?'var(--warning)':'var(--danger)';
       return`<tr>
         <td style="font-weight:600">${esc(k.name_ar)}</td>
-        <td class="fmono">${fmtN(k.target)}${k.unit||'%'}</td>
-        <td class="fmono" style="font-weight:700;color:${clr}">${fmtN(k.actual)}${k.unit||'%'}</td>
+        <td class="fmono">${fmtN(k.target)}${esc(k.unit||'%')}</td>
+        <td class="fmono" style="font-weight:700;color:${col}">${fmtN(k.actual)}${esc(k.unit||'%')}</td>
         <td style="min-width:100px"><div style="display:flex;align-items:center;gap:6px">${progBar(pct)}<span class="fmono" style="font-size:11px">${pct}%</span></div></td>
         <td style="font-size:17px;color:${k.trend==='up'?'var(--success)':k.trend==='down'?'var(--danger)':'var(--t2)'}">${k.trend==='up'?'↑':k.trend==='down'?'↓':'→'}</td>
         <td><span class="badge ${k.status==='green'?'bgn':k.status==='yellow'?'by':'br'}">${k.status==='green'?'ضمن الهدف':k.status==='yellow'?'تحذير':'دون الهدف'}</span></td>
-        <td><div class="ta"><button class="btn sm" onclick="openEK('${k.id}')">تعديل</button></div></td>
+        <td><button class="btn sm" onclick="openEK('${k.id}')">تعديل</button></td>
       </tr>`;
-    }).join('')}</tbody></table></div>`:emptyEl('لا مؤشرات',`<button class="btn p sm" onclick="openAK()">+ إضافة</button>`);
+    }).join('')}</tbody></table></div>`:emptyEl('لا مؤشرات',`<button class="btn sm p" onclick="openAK()">+ إضافة</button>`);
   window._rlk=()=>go('kpis');
 });
 function _kpiFrm(r={}){return `
   <div class="mh"><h3 style="color:${DC}">${r.id?'تعديل KPI':'KPI جديد'}</h3><button class="mx" onclick="closeModal()">×</button></div>
   <div class="mbd"><div class="fg">
     <div class="field"><label>الاسم (عربي) *</label><input id="kf_ar" value="${esc(r.name_ar||'')}"></div>
-    <div class="field"><label>الاسم (إنجليزي)</label><input id="kf_en" value="${esc(r.name_en||'')}"></div>
     <div class="field"><label>الوحدة</label><input id="kf_u" value="${esc(r.unit||'%')}"></div>
     <div class="field"><label>الهدف</label><input type="number" id="kf_tg" value="${r.target||''}"></div>
-    <div class="field"><label>القيمة الفعلية</label><input type="number" id="kf_ac" value="${r.actual||''}"></div>
-    <div class="field"><label>الاتجاه</label>
-      <select id="kf_tr"><option value="up" ${r.trend==='up'?'selected':''}>↑ صاعد</option><option value="down" ${r.trend==='down'?'selected':''}>↓ هابط</option><option value="stable" ${r.trend==='stable'?'selected':''}>→ مستقر</option></select>
-    </div>
-    <div class="field"><label>الحالة</label>
-      <select id="kf_st"><option value="green" ${r.status==='green'?'selected':''}>🟢 ضمن الهدف</option><option value="yellow" ${r.status==='yellow'?'selected':''}>🟡 تحذير</option><option value="red" ${r.status==='red'?'selected':''}>🔴 دون الهدف</option></select>
-    </div>
-    <div class="field"><label>المالك</label><input id="kf_own" value="${esc(r.owner_name||'')}"></div>
+    <div class="field"><label>الفعلي</label><input type="number" id="kf_ac" value="${r.actual||''}"></div>
+    <div class="field"><label>الاتجاه</label><select id="kf_tr">
+      <option value="up" ${r.trend==='up'?'selected':''}>↑ صاعد</option>
+      <option value="down" ${r.trend==='down'?'selected':''}>↓ هابط</option>
+      <option value="stable" ${r.trend==='stable'?'selected':''}>→ مستقر</option>
+    </select></div>
+    <div class="field"><label>الحالة</label><select id="kf_st">
+      <option value="green" ${r.status==='green'?'selected':''}>🟢 ضمن الهدف</option>
+      <option value="yellow" ${r.status==='yellow'?'selected':''}>🟡 تحذير</option>
+      <option value="red" ${r.status==='red'?'selected':''}>🔴 دون الهدف</option>
+    </select></div>
   </div></div>
-  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveK('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+  <button class="btn p" onclick="saveK('${r.id||''}')">حفظ</button></div>`;}
 window.openAK=()=>openModal(_kpiFrm(),'w');
 window.openEK=async id=>{const r=await dbGet('kpis',id).catch(()=>null);if(r)openModal(_kpiFrm(r),'w');};
 window.saveK=async id=>{
   const name=mv('kf_ar');if(!name){toast('الاسم مطلوب','e');return;}
-  const row={name_ar:name,name_en:mv('kf_en')||null,unit:mv('kf_u')||'%',target:parseFloat(mv('kf_tg'))||null,actual:parseFloat(mv('kf_ac'))||null,trend:mv('kf_tr'),status:mv('kf_st'),business_line:BL,owner_name:mv('kf_own')||null,last_updated:new Date().toISOString()};
+  const row={name_ar:name,unit:mv('kf_u')||'%',target:parseFloat(mv('kf_tg'))||null,actual:parseFloat(mv('kf_ac'))||null,trend:mv('kf_tr'),status:mv('kf_st'),business_line:BL,last_updated:new Date().toISOString()};
   try{if(id)await dbUpd('kpis',id,row);else await dbIns('kpis',row);toast('تم ✓','s');closeModal();go('kpis');}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ TEAM ═════════════════════════════════════════════════ */
-reg('team',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 فريق دائرة التوليد</h1></div><div class="g3" id="tGrid">${skR(3)}</div>`;
-  const{data}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
-  document.getElementById('tGrid').innerHTML=data.length?data.map(m=>{
+/* ══ TEAM ════════════════════════════════════════════════════ */
+reg('team', async el=>{
+  el.innerHTML=`
+    <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">👥 فريق دائرة التوليد</h1>
+      <button class="btn p" onclick="openCreateEmployee()">+ إضافة موظف</button>
+    </div>
+    <div class="g3" id="tGrid">${skR(3)}</div>`;
+  const data=await dbList('profiles',{eq:{division:BL}}).catch(()=>[]);
+  const el2=document.getElementById('tGrid'); if(!el2)return;
+  el2.innerHTML=data.length?data.map(m=>{
     const init=(m.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return`<div class="card" style="border-color:rgba(${DR},.2);text-align:center;padding:18px">
-      <div style="width:48px;height:48px;border-radius:12px;background:rgba(${DR},.18);border:1px solid rgba(${DR},.35);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;margin:0 auto 10px;color:${DC}">${init}</div>
+    return`<div class="card" style="border-color:rgba(${DR},.2);text-align:center;padding:18px;transition:.18s" onmouseover="this.style.borderColor='rgba(${DR},.5)'" onmouseout="this.style.borderColor='rgba(${DR},.2)'">
+      <div style="width:52px;height:52px;border-radius:12px;background:rgba(${DR},.15);border:1px solid rgba(${DR},.3);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;margin:0 auto 10px;color:${DC};font-family:'Chakra Petch',monospace">${init}</div>
       <div style="font-weight:700;font-size:13.5px">${esc(m.full_name||'')}</div>
-      <div style="font-size:11px;color:var(--t2);font-family:var(--mono);margin-top:3px">${esc(m.job_title||ROLE_AR[m.role]||'')}</div>
-      <button class="btn sm p" style="width:100%;margin-top:10px;background:linear-gradient(135deg,${DC}44,${DC}22);border:1px solid ${DC}44;color:${DC}" onclick="go('ntask')">+ مهمة</button>
+      <div style="font-size:11px;color:var(--t2);font-family:'IBM Plex Mono',monospace;margin-top:3px">${esc(m.job_title||ROLE_AR[m.role]||'')}</div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn sm p" style="flex:1;background:rgba(${DR},.15);border:1px solid rgba(${DR},.3);color:${DC}" onclick="go('ntask')">+ مهمة</button>
+        <button class="btn sm" style="flex:1" onclick="openEmpTasks('${m.id}','${esc(m.full_name||'')}')">مهامه</button>
+      </div>
     </div>`;
-  }).join(''):emptyEl('لا أعضاء في هذه الدائرة');
+  }).join(''):emptyEl('لا أعضاء في هذه الدائرة',`<button class="btn sm p" onclick="openCreateEmployee()">+ إضافة موظف</button>`);
 });
 
-/* ═══ ASSESSMENTS ══════════════════════════════════════════ */
+window.openEmpTasks=async(uid,name)=>{
+  const data=await dbList('tasks',{eq:{assigned_to:uid},neq:{status:'closed'},lim:10}).catch(()=>[]);
+  openModal(`<div class="mh"><h3>مهام ${esc(name)}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">${data.length?data.map(tk=>`<div class="stream-item">
+      <div class="stream-led ${isOD(tk.due_date,tk.status)?'cr':tk.status==='in_progress'?'gn':'bl'}"></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(tk.title)}</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:2px">${priBadge(tk.priority)} ${stBadge(tk.status)} <span>${fmtD(tk.due_date)}</span></div>
+      </div></div>`).join(''):emptyEl('لا مهام نشطة')}</div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
+};
+
+/* ══ ASSESSMENTS ════════════════════════════════════════════ */
 reg('assess',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">▤ التقييمات</h1></div>
-      <button class="btn p" onclick="openASM()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ تقييم جديد</button>
+      <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">▤ التقييمات</h1>
+      <button class="btn p" onclick="openASM()">+ تقييم جديد</button>
     </div>
-    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="asmList">${skR()}</div></div>`;
-  const{data}=await dbList('assessments',{eq:{business_line:BL}}).catch(()=>({data:[]}));
-  document.getElementById('asmList').innerHTML=data.length?`<div class="tw"><table>
+    <div class="panel"><div id="asmList">${skR()}</div></div>`;
+  const data=await dbList('assessments',{eq:{business_line:BL}}).catch(()=>[]);
+  const el2=document.getElementById('asmList'); if(!el2)return;
+  el2.innerHTML=data.length?`<div class="tw"><table>
     <thead><tr><th>الرقم</th><th>عنوان التقييم</th><th>المقيّم</th><th>المرحلة</th><th>الإنجاز</th><th>الاستحقاق</th><th></th></tr></thead>
     <tbody>${data.map(a=>`<tr>
       <td class="fmono" style="font-size:11px;color:${DC}">${esc(a.assessment_number||a.id.slice(0,8))}</td>
@@ -601,181 +1161,76 @@ reg('assess',async el=>{
       <td><div style="display:flex;align-items:center;gap:6px">${progBar(a.progress||0)}<span class="fmono" style="font-size:11px">${a.progress||0}%</span></div></td>
       <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(a.due_date)}</td>
       <td><button class="btn sm" onclick="openEASM('${a.id}')">تعديل</button></td>
-    </tr>`).join('')}</tbody></table></div>`:emptyEl('لا تقييمات',`<button class="btn p sm" onclick="openASM()">+ إضافة</button>`);
+    </tr>`).join('')}</tbody></table></div>`:emptyEl('لا تقييمات',`<button class="btn sm p" onclick="openASM()">+ إضافة</button>`);
   window._rlass=()=>go('assess');
 });
 function _asmFrm(r={}){return `
   <div class="mh"><h3 style="color:${DC}">${r.id?'تعديل تقييم':'تقييم جديد'}</h3><button class="mx" onclick="closeModal()">×</button></div>
   <div class="mbd"><div class="fg">
     <div class="field ff"><label>عنوان التقييم *</label><input id="as_t" value="${esc(r.title||'')}"></div>
-    <div class="field"><label>اسم المقيّم</label><input id="as_ass" value="${esc(r.assessor_name||'')}"></div>
-    <div class="field"><label>نوع التقييم</label>
-      <select id="as_typ"><option value="internal" ${r.assessment_type==='internal'?'selected':''}>داخلي</option><option value="external" ${r.assessment_type==='external'?'selected':''}>خارجي</option><option value="self" ${r.assessment_type==='self'?'selected':''}>ذاتي</option></select>
-    </div>
+    <div class="field"><label>المقيّم</label><input id="as_ass" value="${esc(r.assessor_name||'')}"></div>
     <div class="field"><label>تاريخ البداية</label><input type="date" id="as_sd" value="${r.start_date||''}"></div>
     <div class="field"><label>تاريخ النهاية</label><input type="date" id="as_ed" value="${r.due_date||''}"></div>
-    <div class="field"><label>المرحلة</label>
-      <select id="as_stg">${['planning','evidence_collection','assessment','review','approval','closed'].map(s=>`<option value="${s}" ${r.stage===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}</select>
-    </div>
-    <div class="field"><label>نسبة الإنجاز (%)</label><input type="number" id="as_prg" min="0" max="100" value="${r.progress||0}"></div>
+    <div class="field"><label>المرحلة</label><select id="as_stg">
+      ${['planning','evidence_collection','assessment','review','approval','closed'].map(s=>`<option value="${s}" ${r.stage===s?'selected':''}>${stBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('')}
+    </select></div>
+    <div class="field"><label>الإنجاز (%)</label><input type="number" id="as_prg" min="0" max="100" value="${r.progress||0}"></div>
     <div class="field ff"><label>ملاحظات</label><textarea id="as_n">${esc(r.notes||'')}</textarea></div>
   </div></div>
-  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn p" onclick="saveASM('${r.id||''}')" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">حفظ</button></div>`;}
+  <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+  <button class="btn p" onclick="saveASM('${r.id||''}')">حفظ</button></div>`;}
 window.openASM=()=>openModal(_asmFrm(),'w');
 window.openEASM=async id=>{const r=await dbGet('assessments',id).catch(()=>null);if(r)openModal(_asmFrm(r),'w');};
 window.saveASM=async id=>{
   const title=mv('as_t');if(!title){toast('العنوان مطلوب','e');return;}
-  const row={title,assessor_name:mv('as_ass')||null,assessment_type:mv('as_typ'),start_date:mv('as_sd')||null,due_date:mv('as_ed')||null,stage:mv('as_stg'),progress:parseInt(mv('as_prg'))||0,notes:mv('as_n')||null,business_line:BL};
+  const row={title,assessor_name:mv('as_ass')||null,start_date:mv('as_sd')||null,due_date:mv('as_ed')||null,stage:mv('as_stg'),progress:parseInt(mv('as_prg'))||0,notes:mv('as_n')||null,business_line:BL};
   try{if(id)await dbUpd('assessments',id,row);else await dbIns('assessments',row);toast('تم ✓','s');closeModal();window._rlass?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ STUBS ═════════════════════════════════════════════════ */
-reg('tickets',el=>{renderTickets(el,BL,DC,DR);});;
-reg('alerts', el=>{renderAlerts(el,BL,DC,DR);});;
-reg('weekly', el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
-  <div class="panel" style="border-color:rgba(${DR},.15);max-width:600px"><div class="pb">
-    <div class="fg">
-      <div class="field"><label>إنجازات الأسبوع</label><textarea id="wu_d" rows="3" placeholder="الإنجازات..."></textarea></div>
-      <div class="field"><label>التحديات</label><textarea id="wu_c" rows="3" placeholder="العقبات..."></textarea></div>
+/* ══ STUBS ═════════════════════════════════════════════════ */
+reg('tickets', el=>renderTickets(el,BL,DC,DR));
+reg('alerts',  el=>renderAlerts(el,BL,DC,DR));
+reg('meetings', async el=>{
+  el.innerHTML=`<div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+    <h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">📅 الاجتماعات</h1>
+    <a href="meeting.html" class="btn p" target="_blank">+ اجتماع جديد</a>
+  </div>
+  <div id="mtgContent">${skR(3)}</div>`;
+  const data=await dbList('meetings',{eq:{division:BL},lim:20}).catch(()=>[]);
+  const el2=document.getElementById('mtgContent'); if(!el2)return;
+  el2.innerHTML=data.length?`<div class="panel">${data.map(m=>`<div class="stream-item">
+    <div class="stream-led bl"></div>
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:13px">${esc(m.title)}</div>
+      <div style="font-size:11px;color:var(--t2);margin-top:2px">${stBadge(m.status)} <span class="fmono">${fmtD(m.date||m.meeting_date)}</span></div>
     </div>
-    <div class="field"><label>أولويات الأسبوع القادم</label><textarea id="wu_n" rows="2" placeholder="ما سنركز عليه..."></textarea></div>
-    <button class="btn p" onclick="saveW()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 إرسال للحوكمة</button>
+  </div>`).join('')}</div>`:emptyEl('لا اجتماعات');
+});
+reg('weekly', el=>{
+  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:'Chakra Petch',monospace;font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
+  <div class="panel" style="max-width:600px"><div style="padding:14px"><div class="fg">
+    <div class="field"><label>إنجازات الأسبوع</label><textarea id="wu_d" rows="3" placeholder="الإنجازات..."></textarea></div>
+    <div class="field"><label>التحديات</label><textarea id="wu_c" rows="3" placeholder="العقبات..."></textarea></div>
+  </div>
+  <div class="field"><label>أولويات الأسبوع القادم</label><textarea id="wu_n" rows="2" placeholder="ما سنركز عليه..."></textarea></div>
+  <button class="btn p" onclick="saveW()">📤 إرسال للحوكمة</button>
   </div></div>`;
 });
 window.saveW=async()=>{await logAct('weekly_update',null,null,{done:mv('wu_d'),ch:mv('wu_c'),next:mv('wu_n')});toast('تم الإرسال ✓','s');};
-window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
+window.openNotifs=()=>toast('لا إشعارات جديدة','i');
 
-/* ═══ INIT ══════════════════════════════════════════════════ */
-
-reg('meetings', async el => {
-  el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div>
-        <h1 style="font-family:var(--hud);font-size:18px;color:var(--DC)">📅 ${t2('الاجتماعات','Meetings')}</h1>
-        <div style="font-size:12px;color:var(--t3)">${t2('الاجتماعات الأسبوعية والربعية والطارئة','Weekly, quarterly and emergency meetings')}</div>
-      </div>
-      <button class="btn p" onclick="openNewMeeting()" style="background:var(--DC);border-color:var(--DC)">+ ${t2('اجتماع جديد','New Meeting')}</button>
-    </div>
-    <div id="meetingsContent">${skR(3)}</div>`;
-  try {
-    const {data} = await dbList('meetings', {eq:{division:BL}, ord:'date', asc:false, lim:30});
-    const c = document.getElementById('meetingsContent');
-    if(!c) return;
-    if(!data||!data.length){c.innerHTML=emptyEl(t2('لا اجتماعات بعد','No meetings yet'),`<button class="btn sm p" onclick="openNewMeeting()">+ ${t2('اجتماع جديد','New Meeting')}</button>`);return;}
-    c.innerHTML='<div class="panel">'+data.map(m=>`
-      <div class="meeting-card ptr" onclick="openMeetingDetail('${m.id}')">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">
-          <span class="meeting-type ${m.type}">${{weekly:t2('أسبوعي','Weekly'),quarterly:t2('ربعي','Quarterly'),emergency:t2('طارئ','Emergency'),one_on_one:t2('ثنائي','1:1')}[m.type]||m.type}</span>
-          <span style="font-family:var(--mono);font-size:10px;color:var(--t3)">${fmtD(m.date)} ${m.time||''}</span>
-          <span class="badge ${m.status==='completed'?'bgn':m.status==='cancelled'?'br':'bb'}" style="margin-left:auto">${t2({scheduled:'مجدول',completed:'منتهى',cancelled:'ملغي'}[m.status]||m.status,m.status)}</span>
-        </div>
-        <div style="font-weight:600;font-size:13px">${esc(m.title)}</div>
-        ${m.agenda?`<div style="font-size:12px;color:var(--t3);margin-top:2px">${esc(m.agenda.slice(0,80))}${m.agenda.length>80?'…':''}</div>`:''}
-      </div>`).join('')+'</div>';
-  } catch(e){const c=document.getElementById('meetingsContent');if(c)c.innerHTML=emptyEl(e.message);}
-});
-
-function openNewMeeting(){
-  openModal(`<div class="mh"><h3>📅 ${t2('اجتماع جديد','New Meeting')}</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd"><div class="fg2">
-      <div class="field ff"><label>${t2('العنوان','Title')}</label><input id="mt_t" placeholder="..."></div>
-      <div class="field"><label>${t2('النوع','Type')}</label><select id="mt_ty">
-        <option value="weekly">${t2('أسبوعي','Weekly')}</option>
-        <option value="quarterly">${t2('ربعي','Quarterly')}</option>
-        <option value="emergency">${t2('طارئ','Emergency')}</option>
-        <option value="one_on_one">${t2('ثنائي','1:1')}</option>
-      </select></div>
-      <div class="field"><label>${t2('التاريخ','Date')}</label><input type="date" id="mt_d" value="${new Date().toISOString().split('T')[0]}"></div>
-      <div class="field"><label>${t2('الوقت','Time')}</label><input type="time" id="mt_ti" value="09:00"></div>
-      <div class="field ff"><label>${t2('الأجندة','Agenda')}</label><textarea id="mt_a" rows="3" style="width:100%;background:#060F1E;border:1px solid #152840;color:var(--t1);border-radius:8px;padding:8px;font-family:inherit;resize:vertical"></textarea></div>
-    </div></div>
-    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
-    <button class="btn p" onclick="saveMeeting()">${t2('حفظ','Save')}</button></div>`);
-}
-
-async function saveMeeting(){
-  const title=mv('mt_t');
-  if(!title){toast(t2('أدخل العنوان','Enter title'),'e');return;}
-  try{
-    await dbIns('meetings',{title,type:mv('mt_ty')||'weekly',date:mv('mt_d'),time:mv('mt_ti'),
-      agenda:mv('mt_a'),organizer_id:App.profile.id,division:BL,status:'scheduled'});
-    toast(t2('تم الحفظ ✓','Saved ✓'),'s');closeModal();go('meetings');
-  }catch(e){toast('Error: '+e.message,'e');}
-}
-
-async function openMeetingDetail(id){
-  try{
-    const m=await dbGet('meetings',id);
-    const {data:actions}=await dbList('meeting_actions',{eq:{meeting_id:id}});
-    openModal(`<div class="mh"><h3>📅 ${esc(m.title)}</h3><button class="mx" onclick="closeModal()">×</button></div>
-      <div class="mbd">
-        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-          <span class="meeting-type ${m.type}">${m.type}</span>
-          <span style="font-size:12px;color:var(--t3)">${fmtD(m.date)} ${m.time||''}</span>
-        </div>
-        ${m.agenda?`<div class="field" style="margin-bottom:12px"><label>${t2('الأجندة','Agenda')}</label><div style="padding:8px;background:#060F1E;border-radius:8px;font-size:13px">${esc(m.agenda)}</div></div>`:''}
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
-          <div style="font-weight:600;font-size:13px">${t2('الإجراءات','Actions')}</div>
-          <button class="btn sm" onclick="addMAction('${id}')" style="color:var(--DC)">+ ${t2('إجراء','Action')}</button>
-        </div>
-        <div style="border:1px solid var(--bd);border-radius:8px;overflow:hidden">${actions.length?actions.map(a=>`<div class="action-row"><span class="badge ${a.status==='closed'?'bgn':'bb'}" style="font-size:9px">${a.status}</span><span style="flex:1;margin:0 8px">${esc(a.title)}</span>${a.due_date?`<span style="font-size:11px;color:var(--t3)">${fmtD(a.due_date)}</span>`:''}${priBadge(a.priority)}</div>`).join(''):`<div style="padding:12px;text-align:center;color:var(--t3);font-size:12px">${t2('لا إجراءات','No actions')}</div>`}</div>
-        <div style="margin-top:12px;display:flex;gap:7px">
-          <button class="btn sm p" onclick="updateMeetingStatus('${id}','completed')" style="background:var(--success);border-color:var(--success)">${t2('إنهاء الاجتماع','Complete')}</button>
-          <button class="btn sm d" onclick="updateMeetingStatus('${id}','cancelled')">${t2('إلغاء','Cancel')}</button>
-        </div>
-      </div>
-      <div class="mf"><button class="btn" onclick="closeModal()">${t2('إغلاق','Close')}</button></div>`,'w');
-  }catch(e){toast(e.message,'e');}
-}
-
-function addMAction(meetingId){
-  openModal(`<div class="mh"><h3>+ ${t2('إجراء جديد','New Action')}</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd">
-      <div class="field"><label>${t2('العنوان','Title')}</label><input id="ma_t" placeholder="..."></div>
-      <div class="field"><label>${t2('الاستحقاق','Due Date')}</label><input type="date" id="ma_d"></div>
-      <div class="field"><label>${t2('الأولوية','Priority')}</label><select id="ma_p">
-        <option value="low">${t2('منخفضة','Low')}</option>
-        <option value="medium" selected>${t2('متوسطة','Medium')}</option>
-        <option value="high">${t2('عالية','High')}</option>
-        <option value="critical">${t2('حرج','Critical')}</option>
-      </select></div>
-    </div>
-    <div class="mf"><button class="btn" onclick="openMeetingDetail('${meetingId}')">${t2('رجوع','Back')}</button>
-    <button class="btn p" onclick="saveMAction('${meetingId}')">${t2('حفظ','Save')}</button></div>`);
-}
-
-async function saveMAction(meetingId){
-  const title=mv('ma_t');
-  if(!title){toast(t2('أدخل العنوان','Enter title'),'e');return;}
-  try{
-    await dbIns('meeting_actions',{meeting_id:meetingId,title,due_date:mv('ma_d')||null,
-      priority:mv('ma_p')||'medium',assigned_by:App.profile.id,assigned_to:App.profile.id,status:'open'});
-    toast(t2('تم الحفظ ✓','Saved ✓'),'s');openMeetingDetail(meetingId);
-  }catch(e){toast(e.message,'e');}
-}
-
-async function updateMeetingStatus(id,status){
-  try{
-    await dbUpd('meetings',id,{status,updated_at:new Date().toISOString()});
-    toast(status==='completed'?t2('تم إنهاء الاجتماع ✓','Meeting completed ✓'):t2('تم الإلغاء','Cancelled'),'s');
-    closeModal();go('meetings');
-  }catch(e){toast(e.message,'e');}
-}
-
-
+/* ══ CREATE EMPLOYEE ════════════════════════════════════════ */
 function openCreateEmployee(){
-  openModal(`<div class="mh"><h3 style="color:${DC}">👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+  openModal(`<div class="mh"><h3 style="color:${DC}">👤 إضافة موظف جديد</h3><button class="mx" onclick="closeModal()">×</button></div>
     <div class="mbd">
-      <div class="note">ℹ️ ${t2('أعطِ هذه البيانات للموظف وطلب منه تغيير كلمة المرور','Give credentials to employee and ask them to change password')}</div>
-      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
-      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
-      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+      <div class="field"><label>الاسم الكامل *</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>الرقم الوظيفي *</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>كلمة المرور المؤقتة</label>
         <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
       </div>
     </div>
-    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
-    <button class="btn p" id="ceBtn" onclick="createEmployee()" style="background:${DC};border-color:${DC}">${t2('إنشاء الحساب','Create Account')}</button></div>`);
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn p" id="ceBtn" onclick="createEmployee()">إنشاء الحساب</button></div>`,'w');
   genEmpPW();
 }
 function genEmpPW(){
@@ -785,65 +1240,62 @@ function genEmpPW(){
 }
 async function createEmployee(){
   const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw');
-  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Please fill all fields'),'e');return;}
+  if(!name||!empId||!pass){toast('يرجى تعبئة جميع الحقول','e');return;}
   const username=empId.toLowerCase().replace(/\s+/g,'');
   const email=username+'@se.local';
   const btn=document.getElementById('ceBtn');
   if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
   try{
     const sess=getStoredSession();
-    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
-      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+    const ar=await fetch(SUPA_URL+'/auth/v1/signup',{method:'POST',
+      headers:{'apikey':SUPA_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({email,password:pass,data:{full_name:name,role:'employee'}})});
     const ad=await ar.json();
     if(ad.error)throw new Error(ad.error_description||ad.error);
     const uid=ad.id||ad.user?.id;
     if(uid){
-      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
+      await fetch(SUPA_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
         body:JSON.stringify({full_name:name,role:'employee',division:BL,employee_id:empId,username,is_active:true})});
     }
     closeModal();
-    openModal(`<div class="mh"><h3 style="color:var(--success)">✓ ${t2('تم إنشاء الحساب','Account Created')}</h3><button class="mx" onclick="closeModal()">×</button></div>
-      <div class="mbd">
-        <div style="background:#060F1E;border:1px solid ${DC}33;border-radius:8px;padding:14px;font-family:var(--mono)">
-          <div style="font-size:10px;color:var(--t3);margin-bottom:3px">${t2('اسم المستخدم','Username')}</div>
-          <div style="font-size:15px;font-weight:700;color:${DC};margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-            ${esc(username)}<button class="btn sm" onclick="navigator.clipboard?.writeText('${esc(username)}')">${t2('نسخ','Copy')}</button></div>
-          <div style="font-size:10px;color:var(--t3);margin-bottom:3px">${t2('كلمة المرور المؤقتة','Temp Password')}</div>
-          <div style="font-size:15px;font-weight:700;color:#FCD34D;display:flex;align-items:center;justify-content:space-between">
-            ${esc(pass)}<button class="btn sm" onclick="navigator.clipboard?.writeText('${esc(pass)}')">${t2('نسخ','Copy')}</button></div>
-        </div>
-        <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:8px;padding:8px;font-size:12px;color:#FCD34D;margin-top:10px">
-          ⚠️ ${t2('يجب تغيير كلمة المرور عند أول دخول','Must change password on first login')}</div>
-      </div>
-      <div class="mf"><button class="btn p" onclick="closeModal();go('team')" style="background:${DC};border-color:${DC}">${t2('تم','Done')}</button></div>`);
-  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء الحساب','Create Account');}}
+    toast('تم إنشاء الحساب ✓','s');
+    setTimeout(()=>openModal(`<div class="mh"><h3 style="color:var(--success)">✓ تم الإنشاء</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd"><div style="background:#060F1E;border-radius:8px;padding:14px;font-family:'IBM Plex Mono',monospace">
+        <div style="font-size:10px;color:var(--t3)">اسم المستخدم</div>
+        <div style="font-size:15px;color:#60A5FA;margin-bottom:8px">${esc(username)}</div>
+        <div style="font-size:10px;color:var(--t3)">كلمة المرور</div>
+        <div style="font-size:15px;color:#FCD34D">${esc(pass)}</div>
+      </div></div>
+      <div class="mf"><button class="btn p" onclick="closeModal();go('team')">تم</button></div>`),100);
+  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML='إنشاء الحساب';}}
 }
 
-function toggleSidebar(){const sb=document.getElementById("sidebar")||document.querySelector(".sb");if(!sb)return;const show=sb.classList.toggle("show");let ov=document.getElementById("sbOv");if(!ov){ov=document.createElement("div");ov.id="sbOv";ov.className="sb-overlay";ov.onclick=toggleSidebar;document.body.appendChild(ov);}ov.classList.toggle("show",show);}
+/* ══ INIT ════════════════════════════════════════════════════ */
 (async()=>{
-  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
-  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+  const _SBU=SUPA_URL, _SBK=SUPA_KEY;
   const _allowed=['generation_manager','admin','director'];
-  const _portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
-  function _showErr(msg){const pg=document.getElementById('pgContent');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#F59E0B;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
-  var _sess=null;
-  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
+  const _portals=PORTALS;
+  function _showErr(msg){const pg=document.getElementById('pgContent');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#F59E0B;border:none;border-radius:8px;color:#020A04;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
+  var _sess=getStoredSession();
   if(!_sess||!_sess.access_token){location.href='index.html';return;}
-  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
-  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
+  var _uid=_sess.user?.id;
+  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(e){}}
   if(!_uid){location.href='index.html';return;}
   var _profile=null;
-  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
+  try{
+    var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});
+    var _data=await _res.json();
+    _profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;
+  }catch(e){_showErr('خطأ في الاتصال');return;}
   if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
-  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
+  if(!_allowed.includes(_profile.role)){location.href=_portals[_profile.role]||'index.html';return;}
   App.user={id:_uid};App.profile=_profile;
-  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  var _ubEl=document.getElementById('ubEl');
-  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#F59E0B22;color:#F59E0B">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
+  const _init=(_profile.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const _ubEl=document.getElementById('ubEl');
+  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:rgba(245,158,11,.2);color:#F59E0B">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
   startClock();
-  setTimeout(function(){trackAttendance();},500);
+  setTimeout(()=>trackAttendance(),500);
   document.getElementById('lgEl').innerHTML=LOGO;
   buildNav(NAV,'dash');go('dash');
 })();

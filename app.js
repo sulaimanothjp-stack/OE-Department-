@@ -1,199 +1,711 @@
+/* ============================================================
+   app.js — Saudi Energy OE Digital Twin Command Center V3
+   Shared engine — NO initPage / NO initAuth / NO translateDOM
+   ============================================================ */
 'use strict';
 
-// 1. قاعدة بيانات وهمية (Mock DB) للتبسيط حالياً بديل عن Supabase
-// الأرقام الوظيفية للتجربة: 1000 (مدير إدارة), 2000 (مدير توزيع), 3000 (موظف توزيع)
-const MOCK_USERS = {
-    '1000': { name: 'Abdullah Al-Dosari', role: 'oe_director', dept: 'OE Center', deptKey: 'dept', pass: '123' },
-    '2000': { name: 'Khalid Al-Ghamdi', role: 'dept_manager', dept: 'Distribution', deptKey: 'dist', pass: '123' },
-    '3000': { name: 'Faisal Mohammed', role: 'employee', dept: 'Distribution', deptKey: 'dist', pass: '123' }
-};
+// ── CONFIG ────────────────────────────────────────────────────
+const SUPA_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+// Legacy aliases used by some portals
+const SB_URL = SUPA_URL;
+const SB_KEY = SUPA_KEY;
 
-// 2. إعدادات الأقسام (الألوان والثيمات كما كانت سابقاً)
-const DEPT_CONFIG = {
-    dept: { color: '#D4AF37', cv: 'net', ar: 'إدارة التميز التشغيلي' },
-    dist: { color: '#10B981', cv: 'city', ar: 'التوزيع' },
-    gen:  { color: '#F59E0B', cv: 'energy', ar: 'التوليد' },
-    grid: { color: '#0EA5E9', cv: 'grid', ar: 'الشبكة' }
-};
+// ── GLOBAL STATE ──────────────────────────────────────────────
+const App = { user: null, profile: null, lang: 'ar' };
 
-let CURRENT_USER = null;
-let LANG = 'en';
+// ── SESSION ───────────────────────────────────────────────────
+function getStoredSession() {
+  try {
+    // Try se_session first (new pattern)
+    const raw = localStorage.getItem('se_session');
+    if (raw) return JSON.parse(raw);
+    // Fallback: scan all keys (old pattern)
+    const ks = Object.keys(localStorage).filter(k => k.includes('auth-token') || k.includes('supabase'));
+    for (const k of ks) {
+      const v = JSON.parse(localStorage.getItem(k) || 'null');
+      if (v && v.access_token) return v;
+      if (v && v.session && v.session.access_token) return v.session;
+    }
+  } catch {}
+  return null;
+}
+function clearSession() { localStorage.removeItem('se_session'); }
 
-// ==========================================
-// وظائف تسجيل الدخول والتحكم بالواجهات
-// ==========================================
+// ── SUPABASE HELPERS ──────────────────────────────────────────
+function _hdrs(token) {
+  return {
+    'Content-Type': 'application/json',
+    'apikey': SUPA_KEY,
+    'Authorization': `Bearer ${token || SUPA_KEY}`
+  };
+}
 
-function handleLogin() {
-    const id = document.getElementById('userid').value;
-    const pass = document.getElementById('password').value;
-    const err = document.getElementById('login-error');
-    
-    // التحقق من قاعدة البيانات (لاحقاً سيتم استبدالها باستعلام Supabase)
-    const user = MOCK_USERS[id];
-    
-    if (user && user.pass === pass) {
-        err.style.display = 'none';
-        CURRENT_USER = user;
-        startAppSession(user);
+// opts: { select, eq, neq, in, ilike, order, lim, offset }
+async function dbList(table, opts = {}, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
+  url.searchParams.set('select', opts.select || '*');
+  if (opts.eq)   Object.entries(opts.eq).forEach(([k,v]) => url.searchParams.set(k, `eq.${v}`));
+  if (opts.neq)  Object.entries(opts.neq).forEach(([k,v]) => url.searchParams.set(k, `neq.${v}`));
+  if (opts.in) {
+    if (Array.isArray(opts.in)) {
+      // [field, [v1,v2]] format
+      const [field, vals] = opts.in;
+      if (field && Array.isArray(vals)) url.searchParams.set(field, `in.(${vals.join(',')})`);
+    } else if (typeof opts.in === 'object') {
+      // {field: [v1,v2]} format — used by employee.html etc
+      Object.entries(opts.in).forEach(([k,v]) => {
+        if (Array.isArray(v)) url.searchParams.set(k, `in.(${v.join(',')})`);
+      });
+    }
+  }
+  if (opts.ilike && Array.isArray(opts.ilike)) {
+    url.searchParams.set(opts.ilike[0], `ilike.*${opts.ilike[1]}*`);
+  }
+  if (opts.order || opts.ord) url.searchParams.set('order', `${opts.order || opts.ord}.${opts.asc ? 'asc' : 'desc'}`);
+  if (opts.lim || opts.limit) url.searchParams.set('limit', String(opts.lim || opts.limit));
+  if (opts.offset) url.searchParams.set('offset', String(opts.offset));
+  const res = await fetch(url.toString(), { headers: _hdrs(tok) });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  // Return both array AND {data:array} to satisfy old+new patterns
+  const arr = Array.isArray(data) ? data : [];
+  arr.data = arr; // self-reference so .data.length works
+  return arr;
+}
+
+async function dbGet(table, id, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}&limit=1`, { headers: _hdrs(tok) });
+  if (!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  return rows[0] || null;
+}
+
+async function dbIns(table, data, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { ..._hdrs(tok), 'Prefer': 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+async function dbUpd(table, id, data, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { ..._hdrs(tok), 'Prefer': 'return=representation' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+
+async function dbDel(table, id, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: _hdrs(tok)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return true;
+}
+
+async function dbCnt(table, opts = {}, token) {
+  const sess = getStoredSession();
+  const tok = token || sess?.access_token || SUPA_KEY;
+  const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
+  url.searchParams.set('select', 'id');
+  if (opts.eq)  Object.entries(opts.eq).forEach(([k,v]) => url.searchParams.set(k, `eq.${v}`));
+  if (opts.neq) Object.entries(opts.neq).forEach(([k,v]) => url.searchParams.set(k, `neq.${v}`));
+  const res = await fetch(url.toString(), { headers: { ..._hdrs(tok), 'Prefer': 'count=exact' } });
+  if (!res.ok) throw new Error(await res.text());
+  const cr = res.headers.get('content-range');
+  if (cr) { const m = cr.match(/\/(\d+)$/); if (m) return parseInt(m[1], 10); }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows.length : 0;
+}
+
+// ── ACTIVITY LOG ──────────────────────────────────────────────
+async function logAct(type, entityType, entityId, meta) {
+  try {
+    const sess = getStoredSession();
+    if (!sess) return;
+    await dbIns('attendance_log', {
+      user_id: App.profile?.id || sess.user?.id,
+      date: new Date().toISOString().slice(0, 10),
+      activity_type: type,
+      entity_type: entityType,
+      entity_id: entityId,
+      meta: meta ? JSON.stringify(meta) : null,
+      first_seen: new Date().toISOString(),
+      last_seen: new Date().toISOString()
+    }, sess.access_token);
+  } catch {}
+}
+
+// Track attendance (called on portal load)
+async function trackAttendance() {
+  try {
+    const sess = getStoredSession();
+    if (!sess || !App.profile) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const uid = App.profile.id;
+    const existing = await dbList('attendance_log', { eq: { user_id: uid, date: today }, lim: 1 }, sess.access_token);
+    if (existing.length) {
+      await fetch(`${SUPA_URL}/rest/v1/attendance_log?user_id=eq.${uid}&date=eq.${today}`, {
+        method: 'PATCH',
+        headers: { ..._hdrs(sess.access_token), 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ last_seen: new Date().toISOString() })
+      });
     } else {
-        err.style.display = 'block';
-        err.innerText = LANG === 'ar' ? 'الرقم الوظيفي أو كلمة المرور غير صحيحة' : 'Invalid ID or Password';
+      await dbIns('attendance_log', { user_id: uid, date: today, first_seen: new Date().toISOString(), last_seen: new Date().toISOString() }, sess.access_token);
     }
+  } catch {}
 }
 
-function startAppSession(user) {
-    // 1. إخفاء شاشة الدخول وإظهار الداشبورد
-    document.getElementById('login-view').style.display = 'none';
-    document.getElementById('app-view').style.display = 'flex';
-    document.getElementById('langBtn').style.display = 'none'; // نخفي زر اللغة الخارجي
-    
-    // 2. تطبيق هوية المستخدم
-    const deptInfo = DEPT_CONFIG[user.deptKey] || DEPT_CONFIG['dept'];
-    
-    document.getElementById('prof-name').innerText = user.name;
-    document.getElementById('prof-role').innerText = formatRole(user.role);
-    document.getElementById('prof-dept').innerText = LANG === 'ar' ? deptInfo.ar : user.dept;
-    
-    // 3. تغيير ثيم النظام (اللون الخلفي والمؤثرات) حسب دائرته
-    document.documentElement.style.setProperty('--primary', deptInfo.color);
-    
-    // 4. بناء القائمة الجانبية (Routing) حسب الصلاحية
-    buildSidebar(user.role);
-    
-    // 5. تحميل الصفحة الرئيسية للداشبورد
-    loadDashboardData(user);
-}
+// ── PORTAL / ROLE CONFIG ──────────────────────────────────────
+const PORTALS = {
+  admin: 'admin.html', director: 'department.html',
+  governance_manager: 'governance.html', generation_manager: 'generation.html',
+  national_grid_manager: 'national-grid.html', distribution_manager: 'distribution.html',
+  technical_alerts_manager: 'technical-alerts.html', employee: 'employee.html'
+};
+const ROLE_AR = {
+  admin: 'مدير النظام', director: 'مدير الإدارة',
+  governance_manager: 'مدير الحوكمة', generation_manager: 'مدير التوليد',
+  national_grid_manager: 'مدير الشبكة الوطنية', distribution_manager: 'مدير التوزيع',
+  technical_alerts_manager: 'مدير التنبيهات الفنية', employee: 'موظف'
+};
+const ROLE_EN = {
+  admin: 'System Admin', director: 'Director',
+  governance_manager: 'Governance Manager', generation_manager: 'Generation Manager',
+  national_grid_manager: 'National Grid Manager', distribution_manager: 'Distribution Manager',
+  technical_alerts_manager: 'Technical Alerts Manager', employee: 'Employee'
+};
+const DIVS = {
+  governance:       { color: '#7C3AED', icon: '⚖️',  ar: 'الحوكمة',          en: 'Governance' },
+  generation:       { color: '#F59E0B', icon: '⚡',  ar: 'التوليد',           en: 'Generation' },
+  national_grid:    { color: '#0EA5E9', icon: '🔌',  ar: 'الشبكة الوطنية',   en: 'National Grid' },
+  distribution:     { color: '#10B981', icon: '🏙️', ar: 'التوزيع',           en: 'Distribution' },
+  technical_alerts: { color: '#EF4444', icon: '🚨',  ar: 'التنبيهات الفنية', en: 'Technical Alerts' }
+};
+const LOGO = `<span class="logo-mark" style="font-family:var(--hud);font-weight:700;color:var(--DC,#0EA5E9);font-size:18px">se</span>`;
 
-function logout() {
-    CURRENT_USER = null;
-    document.getElementById('app-view').style.display = 'none';
-    document.getElementById('login-view').style.display = 'flex';
-    document.getElementById('langBtn').style.display = 'block';
-    document.getElementById('userid').value = '';
-    document.getElementById('password').value = '';
-}
-
-// ==========================================
-// بناء القوائم والداشبورد (Routing)
-// ==========================================
-
-function buildSidebar(role) {
-    const menu = document.getElementById('nav-menu');
-    menu.innerHTML = ''; // تفريغ القائمة
-    
-    // عناصر مشتركة للجميع
-    addMenuItem(menu, '🏠 Dashboard', 'dashboard', true);
-    addMenuItem(menu, '✅ Daily Routine', 'routine');
-    addMenuItem(menu, '📋 My Tasks', 'tasks');
-    addMenuItem(menu, '🎫 Tickets & Requests', 'tickets');
-
-    // ميزات خاصة بمدراء الدوائر ومدير التميز
-    if (role === 'dept_manager' || role === 'oe_director') {
-        addMenuItem(menu, '👥 Team Management', 'team');
-        addMenuItem(menu, '📊 Analytics Tracking', 'tracking');
-    }
-    
-    // ميزات خاصة بمدير التميز فقط
-    if (role === 'oe_director') {
-        addMenuItem(menu, '🏢 All Departments', 'all_depts');
-    }
-    
-    // غرفة الاجتماعات (مشتركة للمدراء فقط)
-    if (role === 'dept_manager' || role === 'oe_director') {
-        const li = document.createElement('li');
-        li.innerHTML = '🤝 Managers Meeting Room';
-        li.onclick = () => document.getElementById('meeting-modal').style.display = 'flex';
-        menu.appendChild(li);
-    }
-}
-
-function addMenuItem(parent, text, actionKey, isActive = false) {
-    const li = document.createElement('li');
-    li.innerHTML = text;
-    if(isActive) li.className = 'active';
-    li.onclick = (e) => {
-        // إزالة التفعيل من البقية
-        document.querySelectorAll('.nav-menu li').forEach(el => el.classList.remove('active'));
-        e.target.classList.add('active');
-        // هنا يتم تبديل المحتوى في المستقبل بناء على actionKey
-        document.getElementById('page-title').innerText = text.substring(2); // إزالة الإيموجي
+// ── LOAD HEALTH (used by department.html) ─────────────────────
+async function loadHealth() {
+  const sess = getStoredSession();
+  const divCodes = Object.keys(DIVS);
+  const results = await Promise.all(divCodes.map(async code => {
+    const [openAfis, overdueAfis, openAlerts, activeAssm] = await Promise.all([
+      dbCnt('afis', { eq: { business_line: code }, neq: { status: 'closed' } }, sess?.access_token),
+      dbCnt('afis', { eq: { business_line: code, status: 'overdue' } }, sess?.access_token),
+      dbCnt('technical_alerts', { eq: { source_division: code }, neq: { status: 'resolved' } }, sess?.access_token),
+      dbCnt('assessments', { eq: { business_line: code }, neq: { stage: 'closed' } }, sess?.access_token),
+    ]).catch(() => [0, 0, 0, 0]);
+    return {
+      code,
+      name_ar: DIVS[code].ar,
+      name_en: DIVS[code].en,
+      open_afis: openAfis,
+      overdue_afis: overdueAfis,
+      open_alerts: openAlerts,
+      active_assessments: activeAssm
     };
-    parent.appendChild(li);
+  }));
+  return results;
 }
 
-function loadDashboardData(user) {
-    const cards = document.getElementById('dashboard-cards');
-    
-    if (user.role === 'oe_director') {
-        cards.innerHTML = `
-            <div class="card"><h4>Total Tasks (All Depts)</h4><div class="value">1,240</div></div>
-            <div class="card"><h4>Delayed Tasks</h4><div class="value" style="color:#EF4444">18</div></div>
-            <div class="card"><h4>Active Meetings</h4><div class="value">2</div></div>
-        `;
-    } else if (user.role === 'dept_manager') {
-        cards.innerHTML = `
-            <div class="card"><h4>Department Tasks</h4><div class="value">345</div></div>
-            <div class="card"><h4>Team Members</h4><div class="value">12</div></div>
-            <div class="card"><h4>Help Requests (Internal)</h4><div class="value" style="color:#F59E0B">4</div></div>
-        `;
-    } else {
-        // Employee
-        cards.innerHTML = `
-            <div class="card"><h4>My Pending Tasks</h4><div class="value">5</div></div>
-            <div class="card"><h4>Completed This Week</h4><div class="value" style="color:#10B981">12</div></div>
-            <div class="card"><h4>My Active Tickets</h4><div class="value">1</div></div>
-        `;
-    }
+// ── CLOCK ─────────────────────────────────────────────────────
+function startClock(elId) {
+  // If no element id given, try common ids
+  const id = elId || 'ct';
+  const el = document.getElementById(id);
+  if (!el) return;
+  function tick() {
+    const n = new Date();
+    el.textContent = n.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // also update date element if present
+    const cd = document.getElementById('cd');
+    if (cd) cd.textContent = n.toLocaleDateString('ar-SA', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  tick(); setInterval(tick, 1000);
 }
 
-// ==========================================
-// وظائف مساعدة
-// ==========================================
-
-function formatRole(role) {
-    if(role === 'oe_director') return LANG === 'ar' ? 'مدير إدارة التميز' : 'OE Director';
-    if(role === 'dept_manager') return LANG === 'ar' ? 'مدير دائرة' : 'Department Manager';
-    return LANG === 'ar' ? 'موظف' : 'Employee';
+// ── SIDEBAR TOGGLE ────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar') || document.querySelector('.sb');
+  if (!sb) return;
+  const show = sb.classList.toggle('show');
+  let ov = document.getElementById('sbOv');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'sbOv'; ov.className = 'sb-overlay';
+    ov.onclick = toggleSidebar;
+    document.body.appendChild(ov);
+  }
+  ov.classList.toggle('show', show);
 }
 
+// ── LANG TOGGLE ───────────────────────────────────────────────
 function toggleLang() {
-    LANG = LANG === 'en' ? 'ar' : 'en';
-    const isAr = LANG === 'ar';
-    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
-    
-    document.getElementById('langBtn').innerText = isAr ? '🌐 English' : '🌐 العربية';
-    document.getElementById('lbl-title').innerText = isAr ? 'بوابة التميز التشغيلي' : 'OE COMMAND CENTER';
-    document.getElementById('lbl-user').innerText = isAr ? 'الرقم الوظيفي' : 'Employee ID / Username';
-    document.getElementById('lbl-pass').innerText = isAr ? 'كلمة المرور' : 'Password';
-    document.getElementById('lbl-btn').innerText = isAr ? 'دخول' : 'Sign In';
+  App.lang = App.lang === 'ar' ? 'en' : 'ar';
+  document.documentElement.lang = App.lang;
+  document.documentElement.dir = App.lang === 'ar' ? 'rtl' : 'ltr';
 }
 
-function checkMeetingPin() {
-    const pin = document.getElementById('meeting-pin').value;
-    if(pin === '0000') { // رمز افتراضي
-        document.getElementById('meeting-modal').style.display = 'none';
-        alert("Welcome to the Meeting Room Dashboard! (Action Items & Deadlines will be here)");
-        // سيتم برمجة واجهة الاجتماعات هنا لاحقاً
+// ── LOGOUT ────────────────────────────────────────────────────
+function doLogout() {
+  const sess = getStoredSession();
+  if (sess?.access_token) {
+    fetch(`${SUPA_URL}/auth/v1/logout`, { method: 'POST', headers: _hdrs(sess.access_token) }).catch(() => {});
+  }
+  clearSession();
+  location.href = 'index.html';
+}
+// Alias
+function logout() { doLogout(); }
+
+// ── NAV BUILDER ───────────────────────────────────────────────
+// Supports NAV items with {k, ar, en, ic} AND group items {g, ge}
+function buildNav(items, active) {
+  const el = document.getElementById('navEl');
+  if (!el) return;
+  // Build nav HTML: icon uses .ic class (visible at all breakpoints per styles.css)
+  // Text is a direct text node NOT inside span, so .ni span:not(.ic){display:none} does not affect it
+  const parts = [];
+  for (const item of items) {
+    if (item.g) {
+      // Group label
+      parts.push(`<div style="padding:12px 14px 3px;font-size:9.5px;letter-spacing:.1em;color:#3d4f63;display:flex;justify-content:space-between"><span>${item.g}</span><span style="opacity:.35;font-size:8.5px">${item.ge||''}</span></div>`);
+      continue;
+    }
+    const label = App.lang === 'en' ? (item.en || item.ar || '') : (item.ar || item.en || '');
+    const isActive = item.k === active;
+    const fn = item.fn || `go('${item.k}')`;
+    // .ic class → visible even when styles.css hides other spans
+    // label as direct text node after the span
+    parts.push(`<button class="ni${isActive?' on':''} cursor" onclick="${fn}" style="cursor:pointer;border:none;width:100%;background:none">${item.ic?`<span class="ic">${item.ic}</span>`:''}${label}</button>`);
+  }
+  el.innerHTML = parts.join('');
+}
+
+// ── GLOBAL PAGE ROUTER (fallback) ────────────────────────────
+const _PAGES = {};
+function reg(k, fn) { _PAGES[k] = fn; }
+function go(k) {
+  const el = document.getElementById('pgContent');
+  if (!el) return;
+  el.innerHTML = '<div class="fade" id="pg"></div>';
+  const pg = document.getElementById('pg');
+  if (!pg) return;
+  const fn = _PAGES[k];
+  if (fn) fn(pg);
+  else pg.innerHTML = `<p style="padding:40px;color:var(--t3)">قيد البناء…</p>`;
+}
+
+// ── UTILITY HELPERS ───────────────────────────────────────────
+function t2(ar, en) { return App.lang === 'en' ? en : ar; }
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Get form field value by id
+function mv(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  return el.value?.trim() || '';
+}
+
+// Format date
+function fmtD(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }); }
+  catch { return d; }
+}
+
+// Format number
+function fmtN(n) {
+  if (n == null || n === '') return '—';
+  return Number(n).toLocaleString('ar-SA');
+}
+
+// Is task overdue?
+function isOD(dueDate, status) {
+  if (!dueDate || ['closed', 'done', 'resolved'].includes(status)) return false;
+  return new Date(dueDate) < new Date();
+}
+
+// Confirm then run
+function confirm2(msg, fn) {
+  if (confirm(msg)) fn();
+}
+
+// ── SKELETON / EMPTY ──────────────────────────────────────────
+function skR(n = 3) {
+  return Array.from({ length: n }, () =>
+    `<div style="height:54px;margin-bottom:10px;border-radius:8px;background:linear-gradient(90deg,#0d1117 25%,#161b22 50%,#0d1117 75%);background-size:200%;animation:_sk 1.4s infinite"></div>`
+  ).join('') + `<style>@keyframes _sk{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>`;
+}
+
+function emptyEl(msg, extra = '') {
+  return `<div style="text-align:center;padding:48px 20px;opacity:.5">
+    <div style="font-size:2.5rem;margin-bottom:10px">📭</div>
+    <div style="font-size:.9rem;margin-bottom:10px">${esc(msg)}</div>
+    ${extra}
+  </div>`;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg, type = 'i') {
+  const colors = { i: '#0EA5E9', s: '#10B981', e: '#EF4444', w: '#F59E0B',
+                   info: '#0EA5E9', success: '#10B981', error: '#EF4444', warn: '#F59E0B' };
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:${colors[type]||colors.i};color:#fff;padding:10px 22px;border-radius:8px;
+    font-size:.9rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);
+    animation:_tf .25s ease;pointer-events:none`;
+  t.textContent = msg;
+  document.head.insertAdjacentHTML('beforeend', '<style>@keyframes _tf{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>');
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+function openModal(html, size) {
+  closeModal();
+  const maxW = size === 'w' ? '680px' : '560px';
+  const overlay = document.createElement('div');
+  overlay.id = 'modalOverlay';
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:8000;
+    display:flex;align-items:center;justify-content:center;padding:16px`;
+  overlay.innerHTML = `<div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;
+    width:100%;max-width:${maxW};max-height:92vh;overflow-y:auto;padding:24px;position:relative">
+    ${html}
+  </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+function closeModal() {
+  const el = document.getElementById('modalOverlay');
+  if (el) el.remove();
+}
+
+// ── BADGE / STATUS COMPONENTS ─────────────────────────────────
+function priBadge(p) {
+  const m = { critical:['#EF4444','حرجة'], high:['#F59E0B','عالية'], medium:['#0EA5E9','متوسطة'], low:['#10B981','منخفضة'] };
+  const [c, l] = m[p] || ['#8b949e', p || '—'];
+  return `<span style="background:${c}22;color:${c};padding:2px 9px;border-radius:20px;font-size:.78rem;white-space:nowrap">${l}</span>`;
+}
+
+function stBadge(s) {
+  const m = {
+    open:['#F59E0B','مفتوحة'], in_progress:['#0EA5E9','جارية'], closed:['#10B981','مغلقة'],
+    resolved:['#10B981','محلولة'], pending:['#8b949e','معلقة'], active:['#10B981','نشط'],
+    inactive:['#EF4444','غير نشط'], completed:['#10B981','مكتملة'], cancelled:['#EF4444','ملغاة'],
+    on_track:['#10B981','على المسار'], at_risk:['#F59E0B','في خطر'], behind:['#EF4444','متأخرة'],
+    new:['#6366F1','جديد'], overdue:['#EF4444','متأخر'], returned:['#F59E0B','مُعاد'],
+    pending_review:['#0EA5E9','بانتظار المراجعة'], done:['#10B981','منجز'],
+    assigned:['#0EA5E9','مكلّف'], pending_verification:['#F59E0B','بانتظار التحقق'],
+    planning:['#6366F1','تخطيط'], evidence_collection:['#0EA5E9','جمع أدلة'],
+    assessment:['#F59E0B','تقييم'], review:['#7C3AED','مراجعة'], approval:['#F59E0B','اعتماد'],
+    escalated:['#EF4444','مصعّد'], scheduled:['#0EA5E9','مجدول'], red:['#EF4444','أحمر'],
+    green:['#10B981','أخضر'], yellow:['#F59E0B','أصفر']
+  };
+  const [c, l] = m[s] || ['#8b949e', s || '—'];
+  return `<span style="background:${c}22;color:${c};padding:2px 9px;border-radius:20px;font-size:.78rem;white-space:nowrap">${l}</span>`;
+}
+
+function progBar(pct, color) {
+  const p = Math.min(100, Math.max(0, Number(pct) || 0));
+  const c = color || 'var(--DC,#0EA5E9)';
+  return `<div style="background:#21262d;border-radius:4px;height:5px;overflow:hidden">
+    <div style="width:${p}%;height:100%;background:${c};border-radius:4px;transition:width .4s"></div>
+  </div>
+  <div style="font-size:.72rem;color:#8b949e;margin-top:2px">${p}%</div>`;
+}
+
+// ── RENDER TICKETS (shared for division portals) ──────────────
+async function renderTickets(el, BL, DC, DR) {
+  el.innerHTML = `<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">🎫 ${t2('التذاكر','Tickets')}</h1>
+    <div style="font-size:12.5px;color:var(--t2)">${t2('تذاكر الدعم الفني والمشاكل التشغيلية','Technical support & operational tickets')}</div></div>
+    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="tktList">${skR()}</div></div>`;
+  const data = await dbList('tickets', { eq: { source_division: BL } }).catch(() => []);
+  const el2 = document.getElementById('tktList');
+  if (!el2) return;
+  el2.innerHTML = data.length ? `<div class="tw"><table>
+    <thead><tr><th>العنوان</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+    <tbody>${data.map(tk => `<tr>
+      <td style="font-weight:600">${esc(tk.title)}</td>
+      <td>${priBadge(tk.priority)}</td>
+      <td>${stBadge(tk.status)}</td>
+      <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(tk.created_at)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>` : emptyEl(t2('لا تذاكر','No tickets'));
+}
+
+// ── RENDER ALERTS (shared for division portals) ───────────────
+async function renderAlerts(el, BL, DC, DR) {
+  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">⚠️ ${t2('التنبيهات الفنية','Technical Alerts')}</h1></div>
+    <button class="btn p" onclick="openAddAlert()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ ${t2('تنبيه جديد','New Alert')}</button>
+  </div>
+  <div class="panel" style="border-color:rgba(${DR},.15)">
+    <div class="filters">
+      <select class="fi" id="alrSev"><option value="">كل الخطورة</option>
+        <option value="critical">🔴 حرج</option><option value="high">🟠 عالٍ</option>
+        <option value="medium">🟡 متوسط</option></select>
+      <select class="fi" id="alrSt"><option value="">كل الحالات</option>
+        <option value="open">مفتوح</option><option value="in_progress">جاري</option>
+        <option value="escalated">مصعّد</option><option value="resolved">محلول</option></select>
+    </div>
+    <div id="alrList">${skR()}</div>
+  </div>`;
+
+  window._loadAlerts = async () => {
+    const el2 = document.getElementById('alrList'); if (!el2) return;
+    el2.innerHTML = skR();
+    const sv = document.getElementById('alrSev')?.value || '';
+    const st = document.getElementById('alrSt')?.value || '';
+    const opts = { eq: { source_division: BL } };
+    if (sv) opts.eq = { ...opts.eq, severity: sv };
+    if (st) opts.eq = { ...opts.eq, status: st };
+    const data = await dbList('technical_alerts', opts).catch(() => []);
+    el2.innerHTML = data.length ? `<div class="tw"><table>
+      <thead><tr><th>العنوان</th><th>الخطورة</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead>
+      <tbody>${data.map(a => `<tr>
+        <td style="font-weight:600">${esc(a.title)}</td>
+        <td>${priBadge(a.severity)}</td><td>${stBadge(a.status)}</td>
+        <td class="fmono" style="font-size:11px">${fmtD(a.reported_date || a.created_at)}</td>
+        <td><button class="btn sm" onclick="openEditAlert('${a.id}')">تعديل</button></td>
+      </tr>`).join('')}</tbody></table></div>` : emptyEl(t2('لا تنبيهات', 'No alerts'));
+  };
+  ['alrSev', 'alrSt'].forEach(id => document.getElementById(id)?.addEventListener('change', window._loadAlerts));
+  window._loadAlerts();
+
+  window.openAddAlert = () => _alertModal({}, BL, DC);
+  window.openEditAlert = async id => {
+    const r = await dbGet('technical_alerts', id).catch(() => null);
+    if (r) _alertModal(r, BL, DC);
+  };
+}
+
+function _alertModal(r = {}, BL, DC) {
+  openModal(`<div class="mh"><h3 style="color:${DC}">${r.id ? 'تعديل تنبيه' : 'تنبيه جديد'}</h3>
+    <button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd"><div class="fg">
+      <div class="field ff"><label>العنوان *</label><input id="al_t" value="${esc(r.title || '')}"></div>
+      <div class="field ff"><label>الوصف</label><textarea id="al_d">${esc(r.description || '')}</textarea></div>
+      <div class="field"><label>الخطورة</label><select id="al_sv">
+        ${['critical','high','medium','low'].map(v => `<option value="${v}" ${r.severity===v?'selected':''}>${priBadge(v).replace(/<[^>]+>/g,'')}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>الحالة</label><select id="al_st">
+        ${['open','in_progress','escalated','resolved'].map(v => `<option value="${v}" ${r.status===v?'selected':''}>${stBadge(v).replace(/<[^>]+>/g,'')}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>تاريخ الرصد</label><input type="date" id="al_dt" value="${r.reported_date || new Date().toISOString().slice(0,10)}"></div>
+    </div></div>
+    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
+    <button class="btn p" onclick="_saveAlert('${r.id || ''}','${BL}')" style="background:${DC};border-color:${DC}">حفظ</button></div>`, 'w');
+}
+window._saveAlert = async (id, BL) => {
+  const title = mv('al_t'); if (!title) { toast('العنوان مطلوب', 'e'); return; }
+  const row = { title, description: mv('al_d') || null, source_division: BL,
+    severity: mv('al_sv'), status: mv('al_st'), reported_date: mv('al_dt') || null };
+  try {
+    if (id) await dbUpd('technical_alerts', id, row);
+    else await dbIns('technical_alerts', row);
+    toast('تم ✓', 's'); closeModal(); window._loadAlerts?.();
+  } catch (e) { toast(e.message, 'e'); }
+};
+
+// ── ANIMATED CANVAS ───────────────────────────────────────────
+function initCanvas(id, type, color) {
+  const canvas = document.getElementById(id);
+  if (!canvas || typeof canvas.getContext !== 'function') return;
+  const ctx = canvas.getContext('2d');
+  let W, H, raf, nodes = [], lines = [];
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth  || window.innerWidth;
+    H = canvas.height = canvas.offsetHeight || window.innerHeight;
+  }
+
+  function hexRgb(hex) {
+    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : '14,165,233';
+  }
+  const rgb = hexRgb(color || '#0EA5E9');
+  let tick = 0;
+
+  const drawFns = {
+    net() {
+      if (!nodes.length) nodes = Array.from({length:55},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.8+.6}));
+      ctx.clearRect(0,0,W,H);
+      nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;});
+      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
+        const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<110){ctx.strokeStyle=`rgba(${rgb},${(1-d/110)*.22})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();}
+      }
+      nodes.forEach(n=>{ctx.fillStyle=`rgba(${rgb},.55)`;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fill();});
+    },
+    energy() {
+      ctx.clearRect(0,0,W,H); tick+=.018;
+      for(let w=0;w<3;w++){ctx.beginPath();ctx.strokeStyle=`rgba(${rgb},${.13-w*.04})`;ctx.lineWidth=1.4-w*.4;
+        for(let x=0;x<=W;x+=2){const y=H/2+Math.sin(x/75+tick+w*1.1)*(38+w*18)+Math.sin(x/38+tick*1.4)*13;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}
+    },
+    grid() {
+      ctx.clearRect(0,0,W,H); tick+=.007; const step=58;
+      for(let x=0;x<W;x+=step){const a=.04+.025*Math.sin(tick+x*.01);ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+      for(let y=0;y<H;y+=step){const a=.04+.025*Math.sin(tick+y*.01);ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+      for(let x=0;x<W;x+=step)for(let y=0;y<H;y+=step){const a=.28*Math.abs(Math.sin(tick*2+(x+y)*.018));ctx.fillStyle=`rgba(${rgb},${a})`;ctx.beginPath();ctx.arc(x,y,1.4,0,Math.PI*2);ctx.fill();}
+    },
+    city() {
+      if(!lines.length)for(let i=0;i<18;i++)lines.push({x1:Math.random()*W,y1:Math.random()*H,x2:Math.random()*W,y2:Math.random()*H,ph:Math.random()*Math.PI*2,sp:.01+Math.random()*.02});
+      ctx.clearRect(0,0,W,H);
+      lines.forEach(l=>{l.ph+=l.sp;const a=.04+.07*Math.abs(Math.sin(l.ph));ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.stroke();});
+    },
+    radar() {
+      ctx.clearRect(0,0,W,H); tick+=.013;
+      const cx=W/2,cy=H/2,mr=Math.min(W,H)*.44;
+      for(let i=1;i<=4;i++){ctx.strokeStyle=`rgba(${rgb},.1)`;ctx.lineWidth=.7;ctx.beginPath();ctx.arc(cx,cy,mr*i/4,0,Math.PI*2);ctx.stroke();}
+      ctx.strokeStyle=`rgba(${rgb},.08)`;ctx.lineWidth=.6;
+      ctx.beginPath();ctx.moveTo(cx-mr,cy);ctx.lineTo(cx+mr,cy);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(cx,cy-mr);ctx.lineTo(cx,cy+mr);ctx.stroke();
+      ctx.save();ctx.translate(cx,cy);ctx.rotate(tick);
+      const sw=ctx.createLinearGradient(0,0,mr,0);sw.addColorStop(0,`rgba(${rgb},0)`);sw.addColorStop(1,`rgba(${rgb},.32)`);
+      ctx.fillStyle=sw;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,mr,-.35,0);ctx.closePath();ctx.fill();ctx.restore();
+    }
+  };
+
+  resize();
+  window.addEventListener('resize', () => { cancelAnimationFrame(raf); nodes=[]; lines=[]; resize(); loop(); });
+
+  function loop() {
+    (drawFns[type] || drawFns.net)();
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ── EXPORTS ───────────────────────────────────────────────────
+Object.assign(window, {
+  // State
+  App, SUPA_URL, SUPA_KEY, SB_URL, SB_KEY,
+  // Session
+  getStoredSession, clearSession, logout, doLogout,
+  // DB
+  dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt,
+  // Config
+  PORTALS, ROLE_AR, ROLE_EN, DIVS, LOGO,
+  // Helpers
+  loadHealth, trackAttendance, logAct,
+  // UI
+  startClock, toggleSidebar, toggleLang,
+  buildNav, reg, go,
+  t2, esc, mv, fmtD, fmtN, isOD, confirm2,
+  skR, emptyEl, toast,
+  openModal, closeModal,
+  priBadge, stBadge, progBar,
+  renderTickets, renderAlerts,
+  initCanvas
+});
+
+// ── MOBILE SIDEBAR CSS (injected once) ───────────────────────
+(function() {
+  if (document.getElementById('_sbMobileCSS')) return;
+  const s = document.createElement('style');
+  s.id = '_sbMobileCSS';
+  s.textContent = `
+    @media (max-width: 768px) {
+      .shell { display: block !important; position: relative; }
+      .sb {
+        position: fixed !important;
+        top: 0; right: 0;
+        height: 100vh;
+        width: 220px !important;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform .25s ease;
+        overflow-y: auto;
+      }
+      .sb.show { transform: translateX(0) !important; }
+      .main { margin-right: 0 !important; width: 100% !important; }
+      .menu-btn { display: flex !important; }
+      .sb-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,.55); z-index: 999;
+      }
+      .sb-overlay.show { display: block; }
+    }
+    @media (min-width: 769px) {
+      .sb { transform: none !important; }
+      .menu-btn { display: none !important; }
+    }
+    /* nav styles handled by styles.css */
+  `;
+  document.head.appendChild(s);
+})();
+
+// ── MOBILE SIDEBAR: force-hide on load, show on toggle ───────
+(function initMobileSB() {
+  function apply() {
+    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
+    if (!sb) return;
+    if (window.innerWidth <= 768) {
+      // Force hide unless already shown by user
+      if (!sb.classList.contains('show')) {
+        sb.style.cssText = [
+          'position:fixed', 'top:0', 'right:0', 'height:100vh',
+          'width:240px', 'z-index:1000',
+          'transform:translateX(110%)', 'transition:transform .25s ease',
+          'overflow-y:auto'
+        ].join('!important;') + '!important';
+      }
     } else {
-        alert("Incorrect PIN");
+      // Desktop: reset inline styles
+      sb.style.cssText = '';
     }
-}
+  }
 
-// تشغيل الخلفية البسيطة (نفس خلفية دخولك القديمة)
-function drawBg(){
-    const c = document.getElementById('bgcv'), cx = c.getContext('2d');
-    let W = c.width = window.innerWidth, H = c.height = window.innerHeight;
-    let pts = [];
-    for(let i=0; i<40; i++) pts.push({x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-.5)*.5, vy: (Math.random()-.5)*.5, r: Math.random()*2});
-    function draw() {
-        cx.clearRect(0,0,W,H);
-        pts.forEach(p => {
-            p.x += p.vx; p.y += p.vy;
-            if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
-            cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 6.28); cx.fillStyle='rgba(37,99,235,0.2)'; cx.fill();
-        });
-        requestAnimationFrame(draw);
+  // Override toggleSidebar to also apply inline style
+  const _orig = window.toggleSidebar;
+  window.toggleSidebar = function() {
+    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
+    if (!sb) return;
+    const isOpen = sb.classList.toggle('show');
+    if (window.innerWidth <= 768) {
+      sb.style.transform = isOpen ? 'translateX(0)' : 'translateX(110%)';
+      // overlay
+      let ov = document.getElementById('sbOv');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'sbOv';
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:none';
+        ov.onclick = window.toggleSidebar;
+        document.body.appendChild(ov);
+      }
+      ov.style.display = isOpen ? 'block' : 'none';
     }
-    draw();
-}
-drawBg();
+  };
+
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', apply);
+  } else {
+    apply();
+  }
+  window.addEventListener('resize', apply);
+})();

@@ -15,7 +15,6 @@ body{background:#020912}
 .clk .ct{color:#0EA5E9!important}
 .hero{background:linear-gradient(135deg,#0EA5E908,#020912)}
 .ld .d{color:#0EA5E9;background:#0EA5E9}
-/* Task accent */
 .tr2:hover{background:rgba(14,165,233,.05)}
 .menu-btn{display:none}
 </style>
@@ -48,7 +47,6 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
-<script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 const BL = 'national_grid';
@@ -69,13 +67,10 @@ const NAV = [
   {k:'tickets',ar:'التذاكر',              en:'Tickets',       ic:'🎫', fn:"go('tickets')"},
   {g:'متابعة',ge:'TRACKING'},
   {k:'alerts', ar:'التنبيهات',            en:'Alerts',        ic:'⚠️', fn:"go('alerts')"},
-  {k:'meetings',ar:'الاجتماعات',en:'Meetings',ic:'📅',tlKey:'nav_meetings',fn:"go('meetings')"},
+  {k:'meetings',ar:'الاجتماعات',en:'Meetings',ic:'📅',fn:"go('meetings')"},
   {k:'weekly', ar:'التحديث الأسبوعي',    en:'Weekly Update', ic:'📊', fn:"go('weekly')"},
 ];
-const PAGES = {};
-function reg(k,fn){PAGES[k]=fn;}
 let _cur='dash';
-
 function go(k){
   _cur=k;
   const item=NAV.find(n=>n.k===k);
@@ -89,14 +84,13 @@ function go(k){
   window.scrollTo(0,0);
 }
 
-/* ═══ DASHBOARD ════════════════════════════════════════════ */
 reg('dash',async el=>{
   el.innerHTML=`
     <div class="hero mb2">
       <canvas class="hcv" id="hcv"></canvas>
       <div class="hi">
-        <h1>🔌 الشبكة الوطنية — شريان الطاقة</h1>
-        <div class="hs">"موثوقية نقل الطاقة · Grid Reliability · SAIFI · شبكة الطاقة العالية"</div>
+        <h1>🏘️ الشبكة الوطنية — شبكة حية</h1>
+        <div class="hs">"موثوقية النقل · استقرار الشبكة · المخاطر التشغيلية · تحسين الأداء"</div>
         <div class="hks" id="hks">
           <div class="hk"><div class="hv">—</div><div class="hl">AFIs</div></div>
           <div class="hk rd"><div class="hv">—</div><div class="hl">OVERDUE</div></div>
@@ -134,9 +128,7 @@ reg('dash',async el=>{
         <div id="kpiPnl">${skR(3)}</div>
       </div>
     </div>`;
-
   initCanvas('hcv','grid','#0EA5E9');
-
   try{
     const[afiO,afiL,alrO,asmO,tskO,afis,alrs,asms,tsks,kpis]=await Promise.all([
       dbCnt('afis',{eq:{business_line:BL},neq:{status:'closed'}}),
@@ -150,20 +142,17 @@ reg('dash',async el=>{
       dbList('tasks',{eq:{division:BL},neq:{status:'closed'},lim:5}),
       dbList('kpis',{eq:{business_line:BL},lim:4}),
     ]);
-
     const _hk=document.getElementById('hks');if(!_hk)return;_hk.innerHTML=[
       {v:afiO,l:'AFIs',cl:''},{v:afiL,l:'OVERDUE',cl:afiL>0?'rd':'gn'},
       {v:tskO,l:'TASKS',cl:''},{v:alrO,l:'ALERTS',cl:alrO>0?'yw':''},
       {v:asmO,l:'ASSESS',cl:''},
     ].map(k=>`<div class="hk ${k.cl}"><div class="hv">${k.v}</div><div class="hl">${k.l}</div></div>`).join('');
-
     document.getElementById('s4').innerHTML=[
       {sl:'AFIs مفتوحة',sv:afiO,cl:afiO>5?'red':''},
       {sl:'AFIs متأخرة',sv:afiL,cl:afiL?'red':'grn'},
       {sl:'تنبيهات فنية',sv:alrO,cl:alrO?'ylw':'grn'},
       {sl:'مهام نشطة',sv:tskO,cl:''},
     ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
-
     document.getElementById('afiPnl').innerHTML=afis.data.length
       ?afis.data.map(a=>`<div class="dr ptr" onclick="go('afis')">
           <div class="dd" style="background:${a.status==='overdue'?'var(--danger)':a.priority==='critical'?'var(--warning)':DC}"></div>
@@ -172,7 +161,6 @@ reg('dash',async el=>{
           ${priBadge(a.priority)} ${stBadge(a.status)}
         </div>`).join('')
       :emptyEl('لا AFIs مفتوحة ✓');
-
     document.getElementById('alrPnl').innerHTML=alrs.data.length
       ?alrs.data.map(a=>`<div class="dr">
           <div class="dd" style="background:${a.severity==='critical'?'var(--danger)':'var(--warning)'}"></div>
@@ -180,11 +168,9 @@ reg('dash',async el=>{
           <span class="badge ${a.severity==='critical'?'br':'by'}">${a.severity==='critical'?'حرج':'عالٍ'}</span>
         </div>`).join('')
       :`<div style="padding:12px;text-align:center;color:var(--success);font-size:13px">✓ لا تنبيهات</div>`;
-
     document.getElementById('asmPnl').innerHTML=asms.data.length
       ?asms.data.map(a=>`<div class="dr"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(a.title)}</div></div>${stBadge(a.stage)}<div style="min-width:60px">${progBar(a.progress||0)}</div></div>`).join('')
       :emptyEl('لا تقييمات');
-
     document.getElementById('taskPnl').innerHTML=tsks.data.length
       ?tsks.data.map(tk=>`<div class="tr2" onclick="openTD('${tk.id}')">
           <div class="tck ${['closed','done'].includes(tk.status)?'done':''}">
@@ -196,7 +182,6 @@ reg('dash',async el=>{
           </div>
         </div>`).join('')
       :emptyEl('لا مهام نشطة');
-
     document.getElementById('kpiPnl').innerHTML=kpis.data.length
       ?kpis.data.map(k=>{
           const pct=k.target?Math.min(100,Math.round((k.actual||0)/k.target*100)):0;
@@ -211,7 +196,6 @@ reg('dash',async el=>{
   }catch(e){toast(e.message,'e');}
 });
 
-/* ═══ MY DAY ════════════════════════════════════════════════ */
 reg('daily',el=>{
   const h=new Date().getHours();
   el.innerHTML=`
@@ -251,11 +235,10 @@ reg('daily',el=>{
         <button class="btn p" onclick="saveDU()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">📤 حفظ التحديث</button>
       </div>
     </div>`;
-  initCanvas('hcv2','grid','#0EA5E9');
+  initCanvas('hcv2','city','#0EA5E9');
 });
 window.saveDU=async()=>{await logAct('daily_update',null,null,{done:mv('d_done'),block:mv('d_blk'),next:mv('d_nxt')});toast('تم حفظ التحديث ✓','s');};
 
-/* ═══ TASKS — FULL CRUD + ASSIGN ══════════════════════════ */
 reg('tasks',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -280,7 +263,6 @@ reg('tasks',async el=>{
       </div>
       <div id="taskList">${skR()}</div>
     </div>`;
-
   async function load(){
     const el2=document.getElementById('taskList'),q=document.getElementById('tq')?.value||'',st=document.getElementById('tst')?.value||'',pr=document.getElementById('tpr')?.value||'';
     el2.innerHTML=skR();
@@ -313,8 +295,6 @@ reg('tasks',async el=>{
   });
   load(); window._rl=load;
 });
-
-/* Task Detail Modal */
 window.openTD=async id=>{
   const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
   const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
@@ -360,11 +340,9 @@ window.updTS=async(id,status)=>{
   await dbUpd('tasks',id,u);
   toast('تم التحديث ✓','s');closeModal();window._rl?.();
 };
-
-/* Task Edit */
 window.openTE=async id=>{
   const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
-  const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  const team=await appListByDivision(BL).catch(()=>[]);
   openModal(`
     <div class="mh"><h3>تعديل المهمة</h3><button class="mx" onclick="closeModal()">×</button></div>
     <div class="mbd">
@@ -397,9 +375,8 @@ window.saveTE=async id=>{
   try{await dbUpd('tasks',id,upd);toast('تم الحفظ ✓','s');closeModal();window._rl?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ NEW TASK ═════════════════════════════════════════════ */
 reg('ntask',async el=>{
-  const{data:team}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  const team=await appListByDivision(BL).catch(()=>[]);
   el.innerHTML=`
     <div style="margin-bottom:14px">
       <h1 style="font-family:var(--hud);font-size:19px;color:${DC}">➕ مهمة جديدة</h1>
@@ -447,7 +424,6 @@ window.createTask=async()=>{
   }catch(e){toast(e.message,'e');}
 };
 
-/* ═══ AFIs ═════════════════════════════════════════════════ */
 reg('afis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -516,7 +492,6 @@ window.saveA=async id=>{
   try{if(id)await dbUpd('afis',id,row);else await dbIns('afis',row);toast('تم ✓','s');closeModal();window._rla?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ KPIs ═════════════════════════════════════════════════ */
 reg('kpis',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -567,10 +542,9 @@ window.saveK=async id=>{
   try{if(id)await dbUpd('kpis',id,row);else await dbIns('kpis',row);toast('تم ✓','s');closeModal();go('kpis');}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ TEAM ═════════════════════════════════════════════════ */
 reg('team',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 ${t2('فريق','Team')} - الشبكة الوطنية</h1><button class="btn p" onclick="openCreateEmployee()" style="background:${DC};border-color:${DC}">+ ${t2('إضافة موظف','Add Employee')}</button></div><div class="g3" id="tGrid">${skR(3)}</div>`;
-  const{data}=await dbList('profiles',{eq:{division:BL}}).catch(()=>({data:[]}));
+  el.innerHTML=`<div style="margin-bottom:14px"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">👥 فريق الشبكة الوطنية</h1><button class="btn p" onclick="openCreateEmployee()" style="background:${DC};border-color:${DC}">+ إضافة موظف</button></div><div class="g3" id="tGrid">${skR(3)}</div>`;
+  const data=await appListByDivision(BL).catch(()=>[]);
   document.getElementById('tGrid').innerHTML=data.length?data.map(m=>{
     const init=(m.full_name||'U').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     return`<div class="card" style="border-color:rgba(${DR},.2);text-align:center;padding:18px">
@@ -582,7 +556,6 @@ reg('team',async el=>{
   }).join(''):emptyEl('لا أعضاء في هذه الدائرة');
 });
 
-/* ═══ ASSESSMENTS ══════════════════════════════════════════ */
 reg('assess',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -629,9 +602,8 @@ window.saveASM=async id=>{
   try{if(id)await dbUpd('assessments',id,row);else await dbIns('assessments',row);toast('تم ✓','s');closeModal();window._rlass?.();}catch(e){toast(e.message,'e');}
 };
 
-/* ═══ STUBS ═════════════════════════════════════════════════ */
-reg('tickets',el=>{renderTickets(el,BL,DC,DR);});;
-reg('alerts', el=>{renderAlerts(el,BL,DC,DR);});;
+reg('tickets',el=>{renderTickets(el,BL,DC,DR);});
+reg('alerts', el=>{renderAlerts(el,BL,DC,DR);});
 reg('weekly', el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">📊 التحديث الأسبوعي</h1></div>
   <div class="panel" style="border-color:rgba(${DR},.15);max-width:600px"><div class="pb">
@@ -645,8 +617,6 @@ reg('weekly', el=>{
 });
 window.saveW=async()=>{await logAct('weekly_update',null,null,{done:mv('wu_d'),ch:mv('wu_c'),next:mv('wu_n')});toast('تم الإرسال ✓','s');};
 window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
-
-/* ═══ INIT ══════════════════════════════════════════════════ */
 
 reg('meetings', async el => {
   el.innerHTML = `
@@ -675,7 +645,6 @@ reg('meetings', async el => {
       </div>`).join('')+'</div>';
   } catch(e){const c=document.getElementById('meetingsContent');if(c)c.innerHTML=emptyEl(e.message);}
 });
-
 function openNewMeeting(){
   openModal(`<div class="mh"><h3>📅 ${t2('اجتماع جديد','New Meeting')}</h3><button class="mx" onclick="closeModal()">×</button></div>
     <div class="mbd"><div class="fg2">
@@ -693,7 +662,6 @@ function openNewMeeting(){
     <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
     <button class="btn p" onclick="saveMeeting()">${t2('حفظ','Save')}</button></div>`);
 }
-
 async function saveMeeting(){
   const title=mv('mt_t');
   if(!title){toast(t2('أدخل العنوان','Enter title'),'e');return;}
@@ -703,7 +671,6 @@ async function saveMeeting(){
     toast(t2('تم الحفظ ✓','Saved ✓'),'s');closeModal();go('meetings');
   }catch(e){toast('Error: '+e.message,'e');}
 }
-
 async function openMeetingDetail(id){
   try{
     const m=await dbGet('meetings',id);
@@ -728,7 +695,6 @@ async function openMeetingDetail(id){
       <div class="mf"><button class="btn" onclick="closeModal()">${t2('إغلاق','Close')}</button></div>`,'w');
   }catch(e){toast(e.message,'e');}
 }
-
 function addMAction(meetingId){
   openModal(`<div class="mh"><h3>+ ${t2('إجراء جديد','New Action')}</h3><button class="mx" onclick="closeModal()">×</button></div>
     <div class="mbd">
@@ -744,7 +710,6 @@ function addMAction(meetingId){
     <div class="mf"><button class="btn" onclick="openMeetingDetail('${meetingId}')">${t2('رجوع','Back')}</button>
     <button class="btn p" onclick="saveMAction('${meetingId}')">${t2('حفظ','Save')}</button></div>`);
 }
-
 async function saveMAction(meetingId){
   const title=mv('ma_t');
   if(!title){toast(t2('أدخل العنوان','Enter title'),'e');return;}
@@ -754,7 +719,6 @@ async function saveMAction(meetingId){
     toast(t2('تم الحفظ ✓','Saved ✓'),'s');openMeetingDetail(meetingId);
   }catch(e){toast(e.message,'e');}
 }
-
 async function updateMeetingStatus(id,status){
   try{
     await dbUpd('meetings',id,{status,updated_at:new Date().toISOString()});
@@ -763,32 +727,26 @@ async function updateMeetingStatus(id,status){
   }catch(e){toast(e.message,'e');}
 }
 
-function toggleSidebar(){const sb=document.getElementById("sidebar")||document.querySelector(".sb");if(!sb)return;const show=sb.classList.toggle("show");let ov=document.getElementById("sbOv");if(!ov){ov=document.createElement("div");ov.id="sbOv";ov.className="sb-overlay";ov.onclick=toggleSidebar;document.body.appendChild(ov);}ov.classList.toggle("show",show);}
-(async()=>{
-  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
-  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
-  const _allowed=['national_grid_manager','admin','director'];
-  const _portals={admin:'admin.html',director:'department.html',governance_manager:'governance.html',generation_manager:'generation.html',national_grid_manager:'national-grid.html',distribution_manager:'distribution.html',technical_alerts_manager:'technical-alerts.html',employee:'employee.html'};
-  function _showErr(msg){const pg=document.getElementById('pgContent');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#0EA5E9;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
-  var _sess=null;
-  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
-  if(!_sess||!_sess.access_token){location.href='index.html';return;}
-  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
-  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
-  if(!_uid){location.href='index.html';return;}
-  var _profile=null;
-  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
-  if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
-  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
-  App.user={id:_uid};App.profile=_profile;
-  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  var _ubEl=document.getElementById('ubEl');
-  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#0EA5E922;color:#0EA5E9">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
-  startClock();
-  setTimeout(function(){trackAttendance();},500);
-  document.getElementById('lgEl').innerHTML=LOGO;
-  buildNav(NAV,'dash');go('dash');
-})();
+function openCreateEmployee(){
+  openModal(`<div class="mh"><h3 style="color:${DC}">👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd">
+      <div class="note">ℹ️ ${t2('أعطِ هذه البيانات للموظف','Give credentials to employee')}</div>
+      <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
+      <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
+      <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
+    <button class="btn p" id="ceBtn" onclick="createEmployeeShared('${BL}')" style="background:${DC};border-color:${DC}">${t2('إنشاء الحساب','Create Account')}</button></div>`);
+  genEmpPW();
+}
+
+/* ═══ INIT ═══ */
+requireAuth(['national_grid_manager','admin','director']).then(profile=>{
+  if(!profile) return;
+  buildNav(NAV,'dash'); go('dash');
+});
 </script>
 </body>
 </html>

@@ -1,711 +1,454 @@
-/* ============================================================
-   app.js — Saudi Energy OE Digital Twin Command Center V3
-   Shared engine — NO initPage / NO initAuth / NO translateDOM
-   ============================================================ */
 'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   Saudi Energy · OE Command Center · app.js (unified, v6 — custom auth)
+   Single canonical engine for ALL portals. No app2.js needed anymore.
+   Auth: custom username/password via Postgres RPC functions.
+   No Supabase Auth, no fake @se.local emails, no JWT.
+═══════════════════════════════════════════════════════════════ */
 
-// ── CONFIG ────────────────────────────────────────────────────
-const SUPA_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
-// Legacy aliases used by some portals
-const SB_URL = SUPA_URL;
-const SB_KEY = SUPA_KEY;
+const SB_URL = 'https://ekywcrlcjgbjtwnjozov.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
+const SB_SESS_KEY = 'se_session_v1';
 
-// ── GLOBAL STATE ──────────────────────────────────────────────
-const App = { user: null, profile: null, lang: 'ar' };
-
-// ── SESSION ───────────────────────────────────────────────────
+/* ── Session helpers (custom — not Supabase Auth) ─────────────── */
+// Session shape: { id, username, full_name, full_name_en, role, division, job_title, password }
+// We keep `password` in the session so admin actions can re-verify via RPC (app_is_admin checks).
+// This is a small internal ops tool; if this ever handles sensitive data, move admin auth to a
+// server-side session/token instead of storing password client-side.
 function getStoredSession() {
-  try {
-    // Try se_session first (new pattern)
-    const raw = localStorage.getItem('se_session');
-    if (raw) return JSON.parse(raw);
-    // Fallback: scan all keys (old pattern)
-    const ks = Object.keys(localStorage).filter(k => k.includes('auth-token') || k.includes('supabase'));
-    for (const k of ks) {
-      const v = JSON.parse(localStorage.getItem(k) || 'null');
-      if (v && v.access_token) return v;
-      if (v && v.session && v.session.access_token) return v.session;
-    }
-  } catch {}
-  return null;
+  try { return JSON.parse(localStorage.getItem(SB_SESS_KEY) || 'null'); } catch (e) { return null; }
 }
-function clearSession() { localStorage.removeItem('se_session'); }
+function storeSession(s) { try { localStorage.setItem(SB_SESS_KEY, JSON.stringify(s)); } catch (e) {} }
+function clearSession() { try { localStorage.removeItem(SB_SESS_KEY); } catch (e) {} }
 
-// ── SUPABASE HELPERS ──────────────────────────────────────────
-function _hdrs(token) {
-  return {
-    'Content-Type': 'application/json',
-    'apikey': SUPA_KEY,
-    'Authorization': `Bearer ${token || SUPA_KEY}`
-  };
+/* ── App State ────────────────────────────────────────────────── */
+const LANG_VER = '3';
+if (localStorage.getItem('se_lang_ver') !== LANG_VER) {
+  localStorage.removeItem('se_lang_v2');
+  localStorage.setItem('se_lang_ver', LANG_VER);
 }
+const App = { user: null, profile: null, lang: localStorage.getItem('se_lang_v2') || 'ar' };
 
-// opts: { select, eq, neq, in, ilike, order, lim, offset }
-async function dbList(table, opts = {}, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
-  url.searchParams.set('select', opts.select || '*');
-  if (opts.eq)   Object.entries(opts.eq).forEach(([k,v]) => url.searchParams.set(k, `eq.${v}`));
-  if (opts.neq)  Object.entries(opts.neq).forEach(([k,v]) => url.searchParams.set(k, `neq.${v}`));
-  if (opts.in) {
-    if (Array.isArray(opts.in)) {
-      // [field, [v1,v2]] format
-      const [field, vals] = opts.in;
-      if (field && Array.isArray(vals)) url.searchParams.set(field, `in.(${vals.join(',')})`);
-    } else if (typeof opts.in === 'object') {
-      // {field: [v1,v2]} format — used by employee.html etc
-      Object.entries(opts.in).forEach(([k,v]) => {
-        if (Array.isArray(v)) url.searchParams.set(k, `in.(${v.join(',')})`);
-      });
-    }
-  }
-  if (opts.ilike && Array.isArray(opts.ilike)) {
-    url.searchParams.set(opts.ilike[0], `ilike.*${opts.ilike[1]}*`);
-  }
-  if (opts.order || opts.ord) url.searchParams.set('order', `${opts.order || opts.ord}.${opts.asc ? 'asc' : 'desc'}`);
-  if (opts.lim || opts.limit) url.searchParams.set('limit', String(opts.lim || opts.limit));
-  if (opts.offset) url.searchParams.set('offset', String(opts.offset));
-  const res = await fetch(url.toString(), { headers: _hdrs(tok) });
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
-  // Return both array AND {data:array} to satisfy old+new patterns
-  const arr = Array.isArray(data) ? data : [];
-  arr.data = arr; // self-reference so .data.length works
-  return arr;
-}
-
-async function dbGet(table, id, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}&limit=1`, { headers: _hdrs(tok) });
-  if (!res.ok) throw new Error(await res.text());
-  const rows = await res.json();
-  return rows[0] || null;
-}
-
-async function dbIns(table, data, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: { ..._hdrs(tok), 'Prefer': 'return=representation' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows[0] : rows;
-}
-
-async function dbUpd(table, id, data, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: { ..._hdrs(tok), 'Prefer': 'return=representation' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows[0] : rows;
-}
-
-async function dbDel(table, id, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const res = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE',
-    headers: _hdrs(tok)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  return true;
-}
-
-async function dbCnt(table, opts = {}, token) {
-  const sess = getStoredSession();
-  const tok = token || sess?.access_token || SUPA_KEY;
-  const url = new URL(`${SUPA_URL}/rest/v1/${table}`);
-  url.searchParams.set('select', 'id');
-  if (opts.eq)  Object.entries(opts.eq).forEach(([k,v]) => url.searchParams.set(k, `eq.${v}`));
-  if (opts.neq) Object.entries(opts.neq).forEach(([k,v]) => url.searchParams.set(k, `neq.${v}`));
-  const res = await fetch(url.toString(), { headers: { ..._hdrs(tok), 'Prefer': 'count=exact' } });
-  if (!res.ok) throw new Error(await res.text());
-  const cr = res.headers.get('content-range');
-  if (cr) { const m = cr.match(/\/(\d+)$/); if (m) return parseInt(m[1], 10); }
-  const rows = await res.json();
-  return Array.isArray(rows) ? rows.length : 0;
-}
-
-// ── ACTIVITY LOG ──────────────────────────────────────────────
-async function logAct(type, entityType, entityId, meta) {
-  try {
-    const sess = getStoredSession();
-    if (!sess) return;
-    await dbIns('attendance_log', {
-      user_id: App.profile?.id || sess.user?.id,
-      date: new Date().toISOString().slice(0, 10),
-      activity_type: type,
-      entity_type: entityType,
-      entity_id: entityId,
-      meta: meta ? JSON.stringify(meta) : null,
-      first_seen: new Date().toISOString(),
-      last_seen: new Date().toISOString()
-    }, sess.access_token);
-  } catch {}
-}
-
-// Track attendance (called on portal load)
-async function trackAttendance() {
-  try {
-    const sess = getStoredSession();
-    if (!sess || !App.profile) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const uid = App.profile.id;
-    const existing = await dbList('attendance_log', { eq: { user_id: uid, date: today }, lim: 1 }, sess.access_token);
-    if (existing.length) {
-      await fetch(`${SUPA_URL}/rest/v1/attendance_log?user_id=eq.${uid}&date=eq.${today}`, {
-        method: 'PATCH',
-        headers: { ..._hdrs(sess.access_token), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ last_seen: new Date().toISOString() })
-      });
-    } else {
-      await dbIns('attendance_log', { user_id: uid, date: today, first_seen: new Date().toISOString(), last_seen: new Date().toISOString() }, sess.access_token);
-    }
-  } catch {}
-}
-
-// ── PORTAL / ROLE CONFIG ──────────────────────────────────────
+/* ── Config (unchanged) ───────────────────────────────────────── */
+const DIVS = {
+  governance:       { ar:'الحوكمة والتقييم',  en:'Governance',     color:'#7C3AED', icon:'⚖️' },
+  generation:       { ar:'التوليد',            en:'Generation',     color:'#F59E0B', icon:'⚡' },
+  national_grid:    { ar:'الشبكة الوطنية',     en:'National Grid',  color:'#0EA5E9', icon:'🔌' },
+  distribution:     { ar:'التوزيع',            en:'Distribution',   color:'#10B981', icon:'🏘️' },
+  technical_alerts: { ar:'التنبيهات الفنية',   en:'Tech Alerts',    color:'#EF4444', icon:'⚠️' },
+};
 const PORTALS = {
-  admin: 'admin.html', director: 'department.html',
-  governance_manager: 'governance.html', generation_manager: 'generation.html',
-  national_grid_manager: 'national-grid.html', distribution_manager: 'distribution.html',
-  technical_alerts_manager: 'technical-alerts.html', employee: 'employee.html'
+  admin:'admin.html', director:'department.html',
+  governance_manager:'governance.html', generation_manager:'generation.html',
+  national_grid_manager:'national-grid.html', distribution_manager:'distribution.html',
+  technical_alerts_manager:'technical-alerts.html', employee:'employee.html'
 };
 const ROLE_AR = {
-  admin: 'مدير النظام', director: 'مدير الإدارة',
-  governance_manager: 'مدير الحوكمة', generation_manager: 'مدير التوليد',
-  national_grid_manager: 'مدير الشبكة الوطنية', distribution_manager: 'مدير التوزيع',
-  technical_alerts_manager: 'مدير التنبيهات الفنية', employee: 'موظف'
+  admin:'مشرف النظام', director:'مدير الإدارة',
+  governance_manager:'مدير الحوكمة', generation_manager:'مدير التوليد',
+  national_grid_manager:'مدير النقل', distribution_manager:'مدير التوزيع',
+  technical_alerts_manager:'مدير التنبيهات', employee:'موظف'
 };
 const ROLE_EN = {
-  admin: 'System Admin', director: 'Director',
-  governance_manager: 'Governance Manager', generation_manager: 'Generation Manager',
-  national_grid_manager: 'National Grid Manager', distribution_manager: 'Distribution Manager',
-  technical_alerts_manager: 'Technical Alerts Manager', employee: 'Employee'
+  admin:'System Admin', director:'Director',
+  governance_manager:'Governance Manager', generation_manager:'Generation Manager',
+  national_grid_manager:'Grid Manager', distribution_manager:'Distribution Manager',
+  technical_alerts_manager:'Alerts Manager', employee:'Employee'
 };
-const DIVS = {
-  governance:       { color: '#7C3AED', icon: '⚖️',  ar: 'الحوكمة',          en: 'Governance' },
-  generation:       { color: '#F59E0B', icon: '⚡',  ar: 'التوليد',           en: 'Generation' },
-  national_grid:    { color: '#0EA5E9', icon: '🔌',  ar: 'الشبكة الوطنية',   en: 'National Grid' },
-  distribution:     { color: '#10B981', icon: '🏙️', ar: 'التوزيع',           en: 'Distribution' },
-  technical_alerts: { color: '#EF4444', icon: '🚨',  ar: 'التنبيهات الفنية', en: 'Technical Alerts' }
-};
-const LOGO = `<span class="logo-mark" style="font-family:var(--hud);font-weight:700;color:var(--DC,#0EA5E9);font-size:18px">se</span>`;
+const LOCALE_MAP = { ar:'ar-SA', en:'en-GB' };
 
-// ── LOAD HEALTH (used by department.html) ─────────────────────
-async function loadHealth() {
-  const sess = getStoredSession();
-  const divCodes = Object.keys(DIVS);
-  const results = await Promise.all(divCodes.map(async code => {
-    const [openAfis, overdueAfis, openAlerts, activeAssm] = await Promise.all([
-      dbCnt('afis', { eq: { business_line: code }, neq: { status: 'closed' } }, sess?.access_token),
-      dbCnt('afis', { eq: { business_line: code, status: 'overdue' } }, sess?.access_token),
-      dbCnt('technical_alerts', { eq: { source_division: code }, neq: { status: 'resolved' } }, sess?.access_token),
-      dbCnt('assessments', { eq: { business_line: code }, neq: { stage: 'closed' } }, sess?.access_token),
-    ]).catch(() => [0, 0, 0, 0]);
-    return {
-      code,
-      name_ar: DIVS[code].ar,
-      name_en: DIVS[code].en,
-      open_afis: openAfis,
-      overdue_afis: overdueAfis,
-      open_alerts: openAlerts,
-      active_assessments: activeAssm
-    };
-  }));
-  return results;
+/* ── i18n Helpers (unchanged) ─────────────────────────────────── */
+const t2 = (ar, en) => App.lang === 'ar' ? ar : en;
+const tl = (key) => {
+  if (typeof TR !== 'undefined' && TR[key] && TR[key][App.lang]) return TR[key][App.lang];
+  if (typeof TR !== 'undefined' && TR[key]) return TR[key].en || key;
+  return key;
+};
+function setLang(l) {
+  App.lang = l;
+  localStorage.setItem('se_lang_v2', l);
+  localStorage.setItem('se_lang_ver', LANG_VER);
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-ar][data-en]').forEach(el => {
+    el.textContent = l === 'ar' ? el.dataset.ar : el.dataset.en;
+  });
+}
+function toggleLang() {
+  setLang(App.lang === 'ar' ? 'en' : 'ar');
+  if (window._currentNav && window._currentPage) buildNav(window._currentNav, window._currentPage);
+  const ptEl = document.getElementById('pgtitle') || document.getElementById('pgTitle');
+  if (ptEl && window._currentNav) {
+    const item = window._currentNav.find(n => n.k === window._currentPage);
+    if (item) ptEl.textContent = App.lang === 'ar' ? item.ar : item.en;
+  }
+  if (window._currentPage && window.PAGES && window.PAGES[window._currentPage]) {
+    const ct = document.getElementById('pgContent');
+    if (ct) { ct.innerHTML = '<div class="fade" id="pg"></div>'; window.PAGES[window._currentPage](document.getElementById('pg')); }
+  }
 }
 
-// ── CLOCK ─────────────────────────────────────────────────────
-function startClock(elId) {
-  // If no element id given, try common ids
-  const id = elId || 'ct';
-  const el = document.getElementById(id);
-  if (!el) return;
+/* ── RPC helper — calls a Postgres function via PostgREST ───────── */
+async function rpc(fn, args = {}) {
+  const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args)
+  });
+  const text = await res.text();
+  let data; try { data = JSON.parse(text); } catch (e) { data = text; }
+  if (!res.ok) throw new Error((data && data.message) || `HTTP ${res.status}`);
+  return data;
+}
+
+/* ── AUTH — custom username/password (no Supabase Auth) ─────────── */
+async function appLogin(username, password) {
+  const rows = await rpc('app_login', { p_username: username, p_password: password });
+  const row = Array.isArray(rows) ? rows[0] : rows;
+  if (!row || !row.id) throw new Error('اسم المستخدم أو كلمة المرور غير صحيحة');
+  const session = { ...row, username: username.toLowerCase().trim(), password };
+  storeSession(session);
+  return session;
+}
+function doLogout() { clearSession(); location.href = 'index.html'; }
+
+// Admin-only actions — re-send the logged-in admin's own username/password each time
+// (the RPC function verifies server-side that this account really is role='admin').
+function _adminCreds() {
+  const s = getStoredSession();
+  if (!s) throw new Error('غير مسجّل دخول');
+  return { p_admin_username: s.username, p_admin_password: s.password };
+}
+async function appListUsers() {
+  return rpc('app_list_users', _adminCreds());
+}
+async function appCreateUser({ username, password, full_name, role, division, job_title }) {
+  return rpc('app_create_user', {
+    ..._adminCreds(),
+    p_new_username: username, p_new_password: password,
+    p_full_name: full_name, p_role: role,
+    p_division: division || null, p_job_title: job_title || null
+  });
+}
+async function appResetPassword(targetUserId, newPassword) {
+  return rpc('app_reset_password', { ..._adminCreds(), p_target_user_id: targetUserId, p_new_password: newPassword });
+}
+async function appUpdateUser(targetUserId, fields) {
+  return rpc('app_update_user', {
+    ..._adminCreds(), p_target_user_id: targetUserId,
+    p_full_name: fields.full_name, p_full_name_en: fields.full_name_en || null,
+    p_role: fields.role, p_division: fields.division || null,
+    p_job_title: fields.job_title || null, p_job_title_en: fields.job_title_en || null
+  });
+}
+async function appToggleActive(targetUserId, active) {
+  return rpc('app_toggle_active', { ..._adminCreds(), p_target_user_id: targetUserId, p_active: active });
+}
+async function appListByDivision(division) {
+  return rpc('app_list_by_division', { p_division: division });
+}
+
+/* ── PAGE GUARD — replaces old Supabase-Auth IIFE in every portal ──
+   Usage at bottom of each portal file:
+   requireAuth(['director','admin']).then(profile => { if(profile) initPortal(profile); });
+*/
+async function requireAuth(allowedRoles) {
+  const s = getStoredSession();
+  if (!s || !s.id) { location.href = 'index.html'; return null; }
+  if (allowedRoles && !allowedRoles.includes(s.role)) {
+    location.href = PORTALS[s.role] || 'index.html';
+    return null;
+  }
+  App.user = { id: s.id, username: s.username };
+  App.profile = s;
+  _renderBadge();
+  setLang(App.lang);
+  startClock();
+  const lg = document.getElementById('lgEl'); if (lg) lg.innerHTML = LOGO;
+  return s;
+}
+
+function _renderBadge() {
+  const el = document.getElementById('ubEl'); if (!el) return;
+  const p = App.profile;
+  const init = (p.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const dc = DIVS[p.division]?.color || '#2563EB';
+  const roleName = App.lang === 'ar' ? (ROLE_AR[p.role] || p.role) : (ROLE_EN[p.role] || p.role);
+  el.innerHTML = `<div class="ub-av" style="background:${dc}22;color:${dc}">${init}</div>
+    <div style="flex:1;min-width:0">
+      <div class="ub-nm">${esc(p.full_name || '')}</div>
+      <div class="ub-rl">${roleName}</div>
+    </div>`;
+}
+
+function startClock() {
+  const ct = document.getElementById('ct'), cd = document.getElementById('cd');
+  if (!ct && !cd) return;
   function tick() {
-    const n = new Date();
-    el.textContent = n.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    // also update date element if present
-    const cd = document.getElementById('cd');
-    if (cd) cd.textContent = n.toLocaleDateString('ar-SA', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+    const n = new Date(), h = n.getHours(), l = App.lang;
+    const locale = LOCALE_MAP[l] || 'ar-SA';
+    const hh = String(h % 12 || 12).padStart(2, '0'), mm = String(n.getMinutes()).padStart(2, '0'), ss = String(n.getSeconds()).padStart(2, '0');
+    const ampm = h < 12 ? (l === 'ar' ? 'ص' : 'AM') : (l === 'ar' ? 'م' : 'PM');
+    if (ct) ct.textContent = `${hh}:${mm}:${ss} ${ampm}`;
+    if (cd) { try { cd.textContent = n.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) {} }
   }
   tick(); setInterval(tick, 1000);
 }
 
-// ── SIDEBAR TOGGLE ────────────────────────────────────────────
-function toggleSidebar() {
-  const sb = document.getElementById('sidebar') || document.querySelector('.sb');
-  if (!sb) return;
-  const show = sb.classList.toggle('show');
-  let ov = document.getElementById('sbOv');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.id = 'sbOv'; ov.className = 'sb-overlay';
-    ov.onclick = toggleSidebar;
-    document.body.appendChild(ov);
-  }
-  ov.classList.toggle('show', show);
-}
-
-// ── LANG TOGGLE ───────────────────────────────────────────────
-function toggleLang() {
-  App.lang = App.lang === 'ar' ? 'en' : 'ar';
-  document.documentElement.lang = App.lang;
-  document.documentElement.dir = App.lang === 'ar' ? 'rtl' : 'ltr';
-}
-
-// ── LOGOUT ────────────────────────────────────────────────────
-function doLogout() {
-  const sess = getStoredSession();
-  if (sess?.access_token) {
-    fetch(`${SUPA_URL}/auth/v1/logout`, { method: 'POST', headers: _hdrs(sess.access_token) }).catch(() => {});
-  }
-  clearSession();
-  location.href = 'index.html';
-}
-// Alias
-function logout() { doLogout(); }
-
-// ── NAV BUILDER ───────────────────────────────────────────────
-// Supports NAV items with {k, ar, en, ic} AND group items {g, ge}
-function buildNav(items, active) {
-  const el = document.getElementById('navEl');
-  if (!el) return;
-  // Build nav HTML: icon uses .ic class (visible at all breakpoints per styles.css)
-  // Text is a direct text node NOT inside span, so .ni span:not(.ic){display:none} does not affect it
-  const parts = [];
-  for (const item of items) {
-    if (item.g) {
-      // Group label
-      parts.push(`<div style="padding:12px 14px 3px;font-size:9.5px;letter-spacing:.1em;color:#3d4f63;display:flex;justify-content:space-between"><span>${item.g}</span><span style="opacity:.35;font-size:8.5px">${item.ge||''}</span></div>`);
-      continue;
-    }
-    const label = App.lang === 'en' ? (item.en || item.ar || '') : (item.ar || item.en || '');
-    const isActive = item.k === active;
-    const fn = item.fn || `go('${item.k}')`;
-    // .ic class → visible even when styles.css hides other spans
-    // label as direct text node after the span
-    parts.push(`<button class="ni${isActive?' on':''} cursor" onclick="${fn}" style="cursor:pointer;border:none;width:100%;background:none">${item.ic?`<span class="ic">${item.ic}</span>`:''}${label}</button>`);
-  }
-  el.innerHTML = parts.join('');
-}
-
-// ── GLOBAL PAGE ROUTER (fallback) ────────────────────────────
-const _PAGES = {};
-function reg(k, fn) { _PAGES[k] = fn; }
-function go(k) {
-  const el = document.getElementById('pgContent');
-  if (!el) return;
-  el.innerHTML = '<div class="fade" id="pg"></div>';
-  const pg = document.getElementById('pg');
-  if (!pg) return;
-  const fn = _PAGES[k];
-  if (fn) fn(pg);
-  else pg.innerHTML = `<p style="padding:40px;color:var(--t3)">قيد البناء…</p>`;
-}
-
-// ── UTILITY HELPERS ───────────────────────────────────────────
-function t2(ar, en) { return App.lang === 'en' ? en : ar; }
-
-function esc(str) {
-  if (str == null) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Get form field value by id
-function mv(id) {
-  const el = document.getElementById(id);
-  if (!el) return '';
-  return el.value?.trim() || '';
-}
-
-// Format date
-function fmtD(d) {
-  if (!d) return '—';
-  try { return new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }); }
-  catch { return d; }
-}
-
-// Format number
-function fmtN(n) {
-  if (n == null || n === '') return '—';
-  return Number(n).toLocaleString('ar-SA');
-}
-
-// Is task overdue?
-function isOD(dueDate, status) {
-  if (!dueDate || ['closed', 'done', 'resolved'].includes(status)) return false;
-  return new Date(dueDate) < new Date();
-}
-
-// Confirm then run
-function confirm2(msg, fn) {
-  if (confirm(msg)) fn();
-}
-
-// ── SKELETON / EMPTY ──────────────────────────────────────────
-function skR(n = 3) {
-  return Array.from({ length: n }, () =>
-    `<div style="height:54px;margin-bottom:10px;border-radius:8px;background:linear-gradient(90deg,#0d1117 25%,#161b22 50%,#0d1117 75%);background-size:200%;animation:_sk 1.4s infinite"></div>`
-  ).join('') + `<style>@keyframes _sk{0%{background-position:200% 0}100%{background-position:-200% 0}}</style>`;
-}
-
-function emptyEl(msg, extra = '') {
-  return `<div style="text-align:center;padding:48px 20px;opacity:.5">
-    <div style="font-size:2.5rem;margin-bottom:10px">📭</div>
-    <div style="font-size:.9rem;margin-bottom:10px">${esc(msg)}</div>
-    ${extra}
-  </div>`;
-}
-
-// ── TOAST ─────────────────────────────────────────────────────
+/* ── UI Helpers (unchanged from before) ──────────────────────── */
 function toast(msg, type = 'i') {
-  const colors = { i: '#0EA5E9', s: '#10B981', e: '#EF4444', w: '#F59E0B',
-                   info: '#0EA5E9', success: '#10B981', error: '#EF4444', warn: '#F59E0B' };
-  const t = document.createElement('div');
-  t.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-    background:${colors[type]||colors.i};color:#fff;padding:10px 22px;border-radius:8px;
-    font-size:.9rem;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5);
-    animation:_tf .25s ease;pointer-events:none`;
-  t.textContent = msg;
-  document.head.insertAdjacentHTML('beforeend', '<style>@keyframes _tf{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>');
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3200);
+  let c = document.getElementById('tc');
+  if (!c) { c = document.createElement('div'); c.id = 'tc'; document.body.appendChild(c); }
+  const el = document.createElement('div'); el.className = `toast ${type}`;
+  el.innerHTML = `<span>${{ s: '✓', e: '✕', i: 'ℹ', w: '⚠' }[type] || '•'}</span><span style="flex:1">${msg}</span><button style="opacity:.5;cursor:pointer" onclick="this.parentElement.remove()">×</button>`;
+  c.appendChild(el); setTimeout(() => el.remove(), 3500);
 }
-
-// ── MODAL ─────────────────────────────────────────────────────
-function openModal(html, size) {
+function openModal(html, cls = '') {
   closeModal();
-  const maxW = size === 'w' ? '680px' : '560px';
-  const overlay = document.createElement('div');
-  overlay.id = 'modalOverlay';
-  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:8000;
-    display:flex;align-items:center;justify-content:center;padding:16px`;
-  overlay.innerHTML = `<div style="background:#0d1117;border:1px solid #30363d;border-radius:12px;
-    width:100%;max-width:${maxW};max-height:92vh;overflow-y:auto;padding:24px;position:relative">
-    ${html}
-  </div>`;
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
-  document.body.appendChild(overlay);
+  const bd = document.createElement('div'); bd.className = 'mbg'; bd.id = 'M';
+  bd.innerHTML = `<div class="modal ${cls}">${html}</div>`;
+  bd.addEventListener('click', e => { if (e.target === bd) closeModal(); });
+  document.body.appendChild(bd);
 }
-function closeModal() {
-  const el = document.getElementById('modalOverlay');
-  if (el) el.remove();
+function closeModal() { document.getElementById('M')?.remove(); }
+const mv = id => document.getElementById(id)?.value?.trim() || '';
+const ms = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
+
+/* ── Database helpers (still Supabase REST — RLS now open via migration) ─ */
+function _hdrs() { return { 'apikey': SB_KEY, 'Content-Type': 'application/json' }; }
+async function dbList(tbl, opts = {}) {
+  const url = new URL(`${SB_URL}/rest/v1/${tbl}`);
+  url.searchParams.set('select', opts.sel || '*');
+  if (opts.eq) Object.entries(opts.eq).forEach(([k, v]) => url.searchParams.set(k, `eq.${v}`));
+  if (opts.neq) Object.entries(opts.neq).forEach(([k, v]) => url.searchParams.set(k, `neq.${v}`));
+  if (opts.in) Object.entries(opts.in).forEach(([k, v]) => url.searchParams.set(k, `in.(${v.join(',')})`));
+  if (opts.ilike) url.searchParams.set(opts.ilike[0], `ilike.*${opts.ilike[1]}*`);
+  url.searchParams.set('order', `${opts.ord || 'created_at'}.${opts.asc ? 'asc' : 'desc'}`);
+  if (opts.lim) url.searchParams.set('limit', opts.lim);
+  const res = await fetch(url.toString(), { headers: _hdrs() });
+  const data = await res.json().catch(() => []);
+  if (!res.ok) throw new Error((data && data.message) || 'query failed');
+  return { data: Array.isArray(data) ? data : [] };
+}
+async function dbGet(tbl, id) {
+  const res = await fetch(`${SB_URL}/rest/v1/${tbl}?id=eq.${id}&limit=1`, { headers: _hdrs() });
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows[0] : null;
+}
+async function dbIns(tbl, row) {
+  const res = await fetch(`${SB_URL}/rest/v1/${tbl}`, { method: 'POST', headers: { ..._hdrs(), 'Prefer': 'return=representation' }, body: JSON.stringify(row) });
+  const rows = await res.json();
+  if (!res.ok) throw new Error((rows && rows.message) || 'insert failed');
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+async function dbUpd(tbl, id, patch) {
+  const res = await fetch(`${SB_URL}/rest/v1/${tbl}?id=eq.${id}`, { method: 'PATCH', headers: { ..._hdrs(), 'Prefer': 'return=representation' }, body: JSON.stringify(patch) });
+  const rows = await res.json();
+  if (!res.ok) throw new Error((rows && rows.message) || 'update failed');
+  return Array.isArray(rows) ? rows[0] : rows;
+}
+async function dbDel(tbl, id) {
+  const res = await fetch(`${SB_URL}/rest/v1/${tbl}?id=eq.${id}`, { method: 'DELETE', headers: _hdrs() });
+  if (!res.ok) throw new Error('delete failed');
+}
+async function dbCnt(tbl, opts = {}) {
+  const url = new URL(`${SB_URL}/rest/v1/${tbl}`);
+  url.searchParams.set('select', 'id');
+  if (opts.eq) Object.entries(opts.eq).forEach(([k, v]) => url.searchParams.set(k, `eq.${v}`));
+  if (opts.neq) Object.entries(opts.neq).forEach(([k, v]) => url.searchParams.set(k, `neq.${v}`));
+  const res = await fetch(url.toString(), { headers: { ..._hdrs(), 'Prefer': 'count=exact' } });
+  const cr = res.headers.get('content-range');
+  if (cr) { const m = cr.match(/\/(\d+)$/); if (m) return parseInt(m[1], 10); }
+  const rows = await res.json().catch(() => []);
+  return Array.isArray(rows) ? rows.length : 0;
 }
 
-// ── BADGE / STATUS COMPONENTS ─────────────────────────────────
+/* ── Formatters ───────────────────────────────────────────────── */
+const fmtD = d => d ? new Date(d).toLocaleDateString(LOCALE_MAP[App.lang] || 'ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+const fmtN = n => n != null ? Number(n).toLocaleString(LOCALE_MAP[App.lang] || 'ar-SA') : '—';
+const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const isOD = (d, s) => d && !['closed', 'done', 'resolved'].includes(s) && new Date(d) < new Date();
+
+/* ── Badges ───────────────────────────────────────────────────── */
 function priBadge(p) {
-  const m = { critical:['#EF4444','حرجة'], high:['#F59E0B','عالية'], medium:['#0EA5E9','متوسطة'], low:['#10B981','منخفضة'] };
-  const [c, l] = m[p] || ['#8b949e', p || '—'];
-  return `<span style="background:${c}22;color:${c};padding:2px 9px;border-radius:20px;font-size:.78rem;white-space:nowrap">${l}</span>`;
+  const label = t2({ low: 'منخفضة', medium: 'متوسطة', high: 'عالية', critical: 'حرج' }[p] || p, { low: 'Low', medium: 'Medium', high: 'High', critical: 'Critical' }[p] || p);
+  return `<span class="badge ${{ low: 'bg', medium: 'bb', high: 'by', critical: 'br' }[p] || 'bg'}">${label}</span>`;
 }
-
 function stBadge(s) {
-  const m = {
-    open:['#F59E0B','مفتوحة'], in_progress:['#0EA5E9','جارية'], closed:['#10B981','مغلقة'],
-    resolved:['#10B981','محلولة'], pending:['#8b949e','معلقة'], active:['#10B981','نشط'],
-    inactive:['#EF4444','غير نشط'], completed:['#10B981','مكتملة'], cancelled:['#EF4444','ملغاة'],
-    on_track:['#10B981','على المسار'], at_risk:['#F59E0B','في خطر'], behind:['#EF4444','متأخرة'],
-    new:['#6366F1','جديد'], overdue:['#EF4444','متأخر'], returned:['#F59E0B','مُعاد'],
-    pending_review:['#0EA5E9','بانتظار المراجعة'], done:['#10B981','منجز'],
-    assigned:['#0EA5E9','مكلّف'], pending_verification:['#F59E0B','بانتظار التحقق'],
-    planning:['#6366F1','تخطيط'], evidence_collection:['#0EA5E9','جمع أدلة'],
-    assessment:['#F59E0B','تقييم'], review:['#7C3AED','مراجعة'], approval:['#F59E0B','اعتماد'],
-    escalated:['#EF4444','مصعّد'], scheduled:['#0EA5E9','مجدول'], red:['#EF4444','أحمر'],
-    green:['#10B981','أخضر'], yellow:['#F59E0B','أصفر']
-  };
-  const [c, l] = m[s] || ['#8b949e', s || '—'];
-  return `<span style="background:${c}22;color:${c};padding:2px 9px;border-radius:20px;font-size:.78rem;white-space:nowrap">${l}</span>`;
+  const label = t2(
+    { open: 'مفتوح', new: 'جديد', in_progress: 'قيد التنفيذ', closed: 'مغلق', resolved: 'محلول', done: 'منجز', overdue: 'متأخر', returned: 'معاد', escalated: 'مصعد', pending_review: 'بانتظار المراجعة', assigned: 'مكلّف', pending_verification: 'بانتظار التحقق', planning: 'تخطيط', evidence_collection: 'جمع أدلة', assessment: 'تقييم', review: 'مراجعة', approval: 'اعتماد', scheduled: 'مجدول', completed: 'منتهى', cancelled: 'ملغي' }[s] || s,
+    { open: 'Open', new: 'New', in_progress: 'In Progress', closed: 'Closed', resolved: 'Resolved', done: 'Done', overdue: 'Overdue', returned: 'Returned', escalated: 'Escalated', pending_review: 'Pending Review', assigned: 'Assigned', pending_verification: 'Pending Verification', planning: 'Planning', evidence_collection: 'Evidence Collection', assessment: 'Assessment', review: 'Review', approval: 'Approval', scheduled: 'Scheduled', completed: 'Completed', cancelled: 'Cancelled' }[s] || s
+  );
+  return `<span class="badge ${{ open: 'bg', new: 'bg', in_progress: 'bb', closed: 'bgn', resolved: 'bgn', done: 'bgn', overdue: 'br', returned: 'br', escalated: 'br', pending_review: 'by' }[s] || 'bg'}">${label}</span>`;
+}
+function progBar(pct, cl = '') { return `<div class="prog"><div class="pf ${cl || (pct >= 80 ? 'grn' : pct >= 50 ? '' : 'red')}" style="width:${pct}%"></div></div>`; }
+const skR = (n = 4) => Array.from({ length: n }, () => '<div class="sk skr"></div>').join('');
+const emptyEl = (msg, btn = '') => `<div class="empty"><div class="ei">📭</div><p>${msg || t2('لا بيانات', 'No data')}</p>${btn}</div>`;
+
+/* ── Nav Builder ──────────────────────────────────────────────── */
+function buildNav(items, active) {
+  window._currentNav = items; window._currentPage = active;
+  const el = document.getElementById('navEl'); if (!el) return;
+  el.innerHTML = items.map(item => {
+    if (item.g) return `<div class="ng">${t2(item.g, item.ge || item.g)}</div>`;
+    const label = (item.tlKey && typeof tl === 'function') ? tl(item.tlKey) : t2(item.ar, item.en);
+    return `<button class="ni ${item.k === active ? 'on' : ''}" onclick="document.querySelector('.sb')?.classList.remove('show');${item.fn || `go('${item.k}')`}">
+      <span class="ic">${item.ic}</span><span>${label}</span>${item.badge ? `<span class="badge">${item.badge}</span>` : ''}
+    </button>`;
+  }).join('');
 }
 
-function progBar(pct, color) {
-  const p = Math.min(100, Math.max(0, Number(pct) || 0));
-  const c = color || 'var(--DC,#0EA5E9)';
-  return `<div style="background:#21262d;border-radius:4px;height:5px;overflow:hidden">
-    <div style="width:${p}%;height:100%;background:${c};border-radius:4px;transition:width .4s"></div>
-  </div>
-  <div style="font-size:.72rem;color:#8b949e;margin-top:2px">${p}%</div>`;
+/* ── Misc ─────────────────────────────────────────────────────── */
+function confirm2(msg, fn) {
+  openModal(`<div class="mh"><h3>⚠ ${t2('تأكيد', 'Confirm')}</h3><button class="mx" onclick="closeModal()">×</button></div>
+    <div class="mbd"><p style="font-size:14px">${msg}</p></div>
+    <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء', 'Cancel')}</button>
+    <button class="btn d" onclick="closeModal();(${fn.toString()})()">${t2('نعم', 'Yes')}</button></div>`);
 }
-
-// ── RENDER TICKETS (shared for division portals) ──────────────
-async function renderTickets(el, BL, DC, DR) {
-  el.innerHTML = `<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">🎫 ${t2('التذاكر','Tickets')}</h1>
-    <div style="font-size:12.5px;color:var(--t2)">${t2('تذاكر الدعم الفني والمشاكل التشغيلية','Technical support & operational tickets')}</div></div>
-    <div class="panel" style="border-color:rgba(${DR},.15)"><div id="tktList">${skR()}</div></div>`;
-  const data = await dbList('tickets', { eq: { source_division: BL } }).catch(() => []);
-  const el2 = document.getElementById('tktList');
-  if (!el2) return;
-  el2.innerHTML = data.length ? `<div class="tw"><table>
-    <thead><tr><th>العنوان</th><th>الأولوية</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-    <tbody>${data.map(tk => `<tr>
-      <td style="font-weight:600">${esc(tk.title)}</td>
-      <td>${priBadge(tk.priority)}</td>
-      <td>${stBadge(tk.status)}</td>
-      <td class="fmono" style="font-size:11px;color:var(--t2)">${fmtD(tk.created_at)}</td>
-    </tr>`).join('')}</tbody>
-  </table></div>` : emptyEl(t2('لا تذاكر','No tickets'));
+async function logAct(action, etype, eid, details = {}) {
+  try { if (App.profile) await dbIns('activity_log', { user_id: App.profile.id, action, entity_type: etype, entity_id: eid, details }); } catch (e) {}
 }
-
-// ── RENDER ALERTS (shared for division portals) ───────────────
-async function renderAlerts(el, BL, DC, DR) {
-  el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-    <div><h1 style="font-family:var(--hud);font-size:19px;color:${DC}">⚠️ ${t2('التنبيهات الفنية','Technical Alerts')}</h1></div>
-    <button class="btn p" onclick="openAddAlert()" style="background:linear-gradient(135deg,${DC},${DC}99);border:none">+ ${t2('تنبيه جديد','New Alert')}</button>
-  </div>
-  <div class="panel" style="border-color:rgba(${DR},.15)">
-    <div class="filters">
-      <select class="fi" id="alrSev"><option value="">كل الخطورة</option>
-        <option value="critical">🔴 حرج</option><option value="high">🟠 عالٍ</option>
-        <option value="medium">🟡 متوسط</option></select>
-      <select class="fi" id="alrSt"><option value="">كل الحالات</option>
-        <option value="open">مفتوح</option><option value="in_progress">جاري</option>
-        <option value="escalated">مصعّد</option><option value="resolved">محلول</option></select>
-    </div>
-    <div id="alrList">${skR()}</div>
-  </div>`;
-
-  window._loadAlerts = async () => {
-    const el2 = document.getElementById('alrList'); if (!el2) return;
-    el2.innerHTML = skR();
-    const sv = document.getElementById('alrSev')?.value || '';
-    const st = document.getElementById('alrSt')?.value || '';
-    const opts = { eq: { source_division: BL } };
-    if (sv) opts.eq = { ...opts.eq, severity: sv };
-    if (st) opts.eq = { ...opts.eq, status: st };
-    const data = await dbList('technical_alerts', opts).catch(() => []);
-    el2.innerHTML = data.length ? `<div class="tw"><table>
-      <thead><tr><th>العنوان</th><th>الخطورة</th><th>الحالة</th><th>التاريخ</th><th></th></tr></thead>
-      <tbody>${data.map(a => `<tr>
-        <td style="font-weight:600">${esc(a.title)}</td>
-        <td>${priBadge(a.severity)}</td><td>${stBadge(a.status)}</td>
-        <td class="fmono" style="font-size:11px">${fmtD(a.reported_date || a.created_at)}</td>
-        <td><button class="btn sm" onclick="openEditAlert('${a.id}')">تعديل</button></td>
-      </tr>`).join('')}</tbody></table></div>` : emptyEl(t2('لا تنبيهات', 'No alerts'));
-  };
-  ['alrSev', 'alrSt'].forEach(id => document.getElementById(id)?.addEventListener('change', window._loadAlerts));
-  window._loadAlerts();
-
-  window.openAddAlert = () => _alertModal({}, BL, DC);
-  window.openEditAlert = async id => {
-    const r = await dbGet('technical_alerts', id).catch(() => null);
-    if (r) _alertModal(r, BL, DC);
-  };
-}
-
-function _alertModal(r = {}, BL, DC) {
-  openModal(`<div class="mh"><h3 style="color:${DC}">${r.id ? 'تعديل تنبيه' : 'تنبيه جديد'}</h3>
-    <button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd"><div class="fg">
-      <div class="field ff"><label>العنوان *</label><input id="al_t" value="${esc(r.title || '')}"></div>
-      <div class="field ff"><label>الوصف</label><textarea id="al_d">${esc(r.description || '')}</textarea></div>
-      <div class="field"><label>الخطورة</label><select id="al_sv">
-        ${['critical','high','medium','low'].map(v => `<option value="${v}" ${r.severity===v?'selected':''}>${priBadge(v).replace(/<[^>]+>/g,'')}</option>`).join('')}
-      </select></div>
-      <div class="field"><label>الحالة</label><select id="al_st">
-        ${['open','in_progress','escalated','resolved'].map(v => `<option value="${v}" ${r.status===v?'selected':''}>${stBadge(v).replace(/<[^>]+>/g,'')}</option>`).join('')}
-      </select></div>
-      <div class="field"><label>تاريخ الرصد</label><input type="date" id="al_dt" value="${r.reported_date || new Date().toISOString().slice(0,10)}"></div>
-    </div></div>
-    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button>
-    <button class="btn p" onclick="_saveAlert('${r.id || ''}','${BL}')" style="background:${DC};border-color:${DC}">حفظ</button></div>`, 'w');
-}
-window._saveAlert = async (id, BL) => {
-  const title = mv('al_t'); if (!title) { toast('العنوان مطلوب', 'e'); return; }
-  const row = { title, description: mv('al_d') || null, source_division: BL,
-    severity: mv('al_sv'), status: mv('al_st'), reported_date: mv('al_dt') || null };
+async function loadHealth() {
+  const divCodes = Object.keys(DIVS);
   try {
-    if (id) await dbUpd('technical_alerts', id, row);
-    else await dbIns('technical_alerts', row);
-    toast('تم ✓', 's'); closeModal(); window._loadAlerts?.();
-  } catch (e) { toast(e.message, 'e'); }
-};
-
-// ── ANIMATED CANVAS ───────────────────────────────────────────
-function initCanvas(id, type, color) {
-  const canvas = document.getElementById(id);
-  if (!canvas || typeof canvas.getContext !== 'function') return;
-  const ctx = canvas.getContext('2d');
-  let W, H, raf, nodes = [], lines = [];
-
-  function resize() {
-    W = canvas.width  = canvas.offsetWidth  || window.innerWidth;
-    H = canvas.height = canvas.offsetHeight || window.innerHeight;
-  }
-
-  function hexRgb(hex) {
-    const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return r ? `${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}` : '14,165,233';
-  }
-  const rgb = hexRgb(color || '#0EA5E9');
-  let tick = 0;
-
-  const drawFns = {
-    net() {
-      if (!nodes.length) nodes = Array.from({length:55},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.8+.6}));
-      ctx.clearRect(0,0,W,H);
-      nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;});
-      for(let i=0;i<nodes.length;i++) for(let j=i+1;j<nodes.length;j++){
-        const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
-        if(d<110){ctx.strokeStyle=`rgba(${rgb},${(1-d/110)*.22})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.stroke();}
-      }
-      nodes.forEach(n=>{ctx.fillStyle=`rgba(${rgb},.55)`;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fill();});
-    },
-    energy() {
-      ctx.clearRect(0,0,W,H); tick+=.018;
-      for(let w=0;w<3;w++){ctx.beginPath();ctx.strokeStyle=`rgba(${rgb},${.13-w*.04})`;ctx.lineWidth=1.4-w*.4;
-        for(let x=0;x<=W;x+=2){const y=H/2+Math.sin(x/75+tick+w*1.1)*(38+w*18)+Math.sin(x/38+tick*1.4)*13;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();}
-    },
-    grid() {
-      ctx.clearRect(0,0,W,H); tick+=.007; const step=58;
-      for(let x=0;x<W;x+=step){const a=.04+.025*Math.sin(tick+x*.01);ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-      for(let y=0;y<H;y+=step){const a=.04+.025*Math.sin(tick+y*.01);ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-      for(let x=0;x<W;x+=step)for(let y=0;y<H;y+=step){const a=.28*Math.abs(Math.sin(tick*2+(x+y)*.018));ctx.fillStyle=`rgba(${rgb},${a})`;ctx.beginPath();ctx.arc(x,y,1.4,0,Math.PI*2);ctx.fill();}
-    },
-    city() {
-      if(!lines.length)for(let i=0;i<18;i++)lines.push({x1:Math.random()*W,y1:Math.random()*H,x2:Math.random()*W,y2:Math.random()*H,ph:Math.random()*Math.PI*2,sp:.01+Math.random()*.02});
-      ctx.clearRect(0,0,W,H);
-      lines.forEach(l=>{l.ph+=l.sp;const a=.04+.07*Math.abs(Math.sin(l.ph));ctx.strokeStyle=`rgba(${rgb},${a})`;ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(l.x1,l.y1);ctx.lineTo(l.x2,l.y2);ctx.stroke();});
-    },
-    radar() {
-      ctx.clearRect(0,0,W,H); tick+=.013;
-      const cx=W/2,cy=H/2,mr=Math.min(W,H)*.44;
-      for(let i=1;i<=4;i++){ctx.strokeStyle=`rgba(${rgb},.1)`;ctx.lineWidth=.7;ctx.beginPath();ctx.arc(cx,cy,mr*i/4,0,Math.PI*2);ctx.stroke();}
-      ctx.strokeStyle=`rgba(${rgb},.08)`;ctx.lineWidth=.6;
-      ctx.beginPath();ctx.moveTo(cx-mr,cy);ctx.lineTo(cx+mr,cy);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(cx,cy-mr);ctx.lineTo(cx,cy+mr);ctx.stroke();
-      ctx.save();ctx.translate(cx,cy);ctx.rotate(tick);
-      const sw=ctx.createLinearGradient(0,0,mr,0);sw.addColorStop(0,`rgba(${rgb},0)`);sw.addColorStop(1,`rgba(${rgb},.32)`);
-      ctx.fillStyle=sw;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,mr,-.35,0);ctx.closePath();ctx.fill();ctx.restore();
-    }
-  };
-
-  resize();
-  window.addEventListener('resize', () => { cancelAnimationFrame(raf); nodes=[]; lines=[]; resize(); loop(); });
-
-  function loop() {
-    (drawFns[type] || drawFns.net)();
-    raf = requestAnimationFrame(loop);
-  }
-  loop();
+    const results = await Promise.all(divCodes.map(async code => {
+      const [openAfis, overdueAfis, openAlerts, activeAssm] = await Promise.all([
+        dbCnt('afis', { eq: { business_line: code }, neq: { status: 'closed' } }),
+        dbCnt('afis', { eq: { business_line: code, status: 'overdue' } }),
+        dbCnt('technical_alerts', { eq: { source_division: code }, neq: { status: 'resolved' } }),
+        dbCnt('assessments', { eq: { business_line: code }, neq: { stage: 'closed' } }),
+      ]).catch(() => [0, 0, 0, 0]);
+      return { code, name_ar: DIVS[code].ar, name_en: DIVS[code].en, open_afis: openAfis, overdue_afis: overdueAfis, open_alerts: openAlerts, active_assessments: activeAssm };
+    }));
+    return results;
+  } catch (e) { return []; }
 }
 
-// ── EXPORTS ───────────────────────────────────────────────────
-Object.assign(window, {
-  // State
-  App, SUPA_URL, SUPA_KEY, SB_URL, SB_KEY,
-  // Session
-  getStoredSession, clearSession, logout, doLogout,
-  // DB
-  dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt,
-  // Config
-  PORTALS, ROLE_AR, ROLE_EN, DIVS, LOGO,
-  // Helpers
-  loadHealth, trackAttendance, logAct,
-  // UI
-  startClock, toggleSidebar, toggleLang,
-  buildNav, reg, go,
-  t2, esc, mv, fmtD, fmtN, isOD, confirm2,
-  skR, emptyEl, toast,
-  openModal, closeModal,
-  priBadge, stBadge, progBar,
-  renderTickets, renderAlerts,
-  initCanvas
-});
+/* ── Canvas (unchanged visuals) ──────────────────────────────────── */
+function initCanvas(id, type, color) {
+  const cv = document.getElementById(id); if (!cv) return;
+  const cx = cv.getContext('2d'); let W, H, nodes = [], pts = [], t = 0;
+  function resize() { const r = cv.parentElement.getBoundingClientRect(); W = cv.width = r.width; H = cv.height = r.height; build(); }
+  function build() {
+    nodes = []; pts = [];
+    if (type === 'net') { const n = Math.floor(W * H / 4500); for (let i = 0; i < n; i++) nodes.push({ x: Math.random() * W, y: Math.random() * H, vx: (Math.random() - .5) * .35, vy: (Math.random() - .5) * .35, r: Math.random() * 2.5 + 1, p: Math.random() * 6.28, hub: Math.random() > .8 }); }
+    if (type === 'grid') { const cols = Math.floor(W / 88) + 1, rows = Math.floor(H / 58) + 1; for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) nodes.push({ x: c * 88 + 44, y: r * 58 + 29, hub: Math.random() > .72 }); }
+    if (type === 'city') { for (let i = 0; i < 18; i++) pts.push({ x1: Math.random() * W, y1: Math.random() * H, x2: Math.random() * W, y2: Math.random() * H, ph: Math.random() * Math.PI * 2, sp: .01 + Math.random() * .02 }); }
+    if (type === 'radar') nodes = [{ cx: W / 2, cy: H / 2, R: Math.min(W, H) * .44, angle: 0 }];
+  }
+  const h2 = v => Math.floor(Math.max(0, Math.min(1, v)) * 255).toString(16).padStart(2, '0');
+  function draw() {
+    t += .008; cx.clearRect(0, 0, W, H);
+    if (type === 'net') {
+      nodes.forEach(n => { n.x += n.vx; n.y += n.vy; n.p += .018; if (n.x < 0 || n.x > W) n.vx *= -1; if (n.y < 0 || n.y > H) n.vy *= -1; });
+      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) { const a = nodes[i], b = nodes[j], d = Math.hypot(a.x - b.x, a.y - b.y); if (d > 130) continue; const al = (1 - d / 130) * .22; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.strokeStyle = color + h2(al); cx.lineWidth = .6; cx.stroke(); }
+      nodes.forEach(n => { const g = Math.sin(n.p) * .4 + .6; if (n.hub) { cx.beginPath(); cx.arc(n.x, n.y, n.r * 3, 0, 6.28); cx.strokeStyle = color + h2(.15 * g); cx.lineWidth = 1; cx.stroke(); } cx.beginPath(); cx.arc(n.x, n.y, n.r, 0, 6.28); cx.fillStyle = color + h2(n.hub ? .85 : .6 * g); cx.fill(); });
+    }
+    if (type === 'grid') {
+      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) { const a = nodes[i], b = nodes[j]; if (Math.abs(a.x - b.x) > 90 || Math.abs(a.y - b.y) > 60) continue; cx.beginPath(); cx.moveTo(a.x, a.y); cx.lineTo(b.x, b.y); cx.strokeStyle = color + h2(.18); cx.lineWidth = .6; cx.stroke(); }
+      nodes.forEach(n => { const g = Math.sin(t + n.x * .02) * .5 + .5; if (n.hub) { cx.beginPath(); cx.arc(n.x, n.y, 7, 0, 6.28); cx.fillStyle = color + h2(.1 * g); cx.fill(); } cx.beginPath(); cx.arc(n.x, n.y, n.hub ? 3 : 1.5, 0, 6.28); cx.fillStyle = color + (n.hub ? 'cc' : '66'); cx.fill(); });
+    }
+    if (type === 'city') { pts.forEach(l => { l.ph += l.sp; const a = .04 + .07 * Math.abs(Math.sin(l.ph)); cx.strokeStyle = color + h2(a); cx.lineWidth = .9; cx.beginPath(); cx.moveTo(l.x1, l.y1); cx.lineTo(l.x2, l.y2); cx.stroke(); }); }
+    if (type === 'radar') {
+      const nd = nodes[0]; nd.angle += .013;
+      for (let i = 1; i <= 4; i++) { cx.strokeStyle = color + h2(.1); cx.lineWidth = .7; cx.beginPath(); cx.arc(nd.cx, nd.cy, nd.R * i / 4, 0, 6.28); cx.stroke(); }
+      cx.save(); cx.translate(nd.cx, nd.cy); cx.rotate(nd.angle);
+      const sw = cx.createLinearGradient(0, 0, nd.R, 0); sw.addColorStop(0, color + '00'); sw.addColorStop(1, color + h2(.32));
+      cx.fillStyle = sw; cx.beginPath(); cx.moveTo(0, 0); cx.arc(0, 0, nd.R, -.35, 0); cx.closePath(); cx.fill(); cx.restore();
+    }
+    requestAnimationFrame(draw);
+  }
+  resize(); window.addEventListener('resize', resize); draw();
+}
 
-// ── MOBILE SIDEBAR CSS (injected once) ───────────────────────
-(function() {
+/* ── Mobile Sidebar ───────────────────────────────────────────── */
+function openSidebar() { document.querySelector('.sb')?.classList.add('show'); document.getElementById('sbOverlay')?.classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeSidebar() { document.querySelector('.sb')?.classList.remove('show'); document.getElementById('sbOverlay')?.classList.remove('show'); document.body.style.overflow = ''; }
+function toggleSidebar() { document.querySelector('.sb')?.classList.contains('show') ? closeSidebar() : openSidebar(); }
+(function () {
   if (document.getElementById('_sbMobileCSS')) return;
-  const s = document.createElement('style');
-  s.id = '_sbMobileCSS';
-  s.textContent = `
-    @media (max-width: 768px) {
-      .shell { display: block !important; position: relative; }
-      .sb {
-        position: fixed !important;
-        top: 0; right: 0;
-        height: 100vh;
-        width: 220px !important;
-        z-index: 1000;
-        transform: translateX(100%);
-        transition: transform .25s ease;
-        overflow-y: auto;
-      }
-      .sb.show { transform: translateX(0) !important; }
-      .main { margin-right: 0 !important; width: 100% !important; }
-      .menu-btn { display: flex !important; }
-      .sb-overlay {
-        display: none; position: fixed; inset: 0;
-        background: rgba(0,0,0,.55); z-index: 999;
-      }
-      .sb-overlay.show { display: block; }
-    }
-    @media (min-width: 769px) {
-      .sb { transform: none !important; }
-      .menu-btn { display: none !important; }
-    }
-    /* nav styles handled by styles.css */
-  `;
+  const s = document.createElement('style'); s.id = '_sbMobileCSS';
+  s.textContent = `@media (max-width:768px){.sb{position:fixed!important;top:0;right:0;height:100vh;width:240px!important;z-index:1000;transform:translateX(110%);transition:transform .25s ease;overflow-y:auto}.sb.show{transform:translateX(0)!important}.menu-btn{display:flex!important}.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999}.sb-overlay.show{display:block}}@media(min-width:769px){.sb{transform:none!important}.menu-btn{display:none!important}}`;
   document.head.appendChild(s);
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('sbOverlay')) {
+      const ov = document.createElement('div'); ov.id = 'sbOverlay'; ov.className = 'sb-overlay'; ov.onclick = closeSidebar;
+      document.body.appendChild(ov);
+    }
+  });
 })();
 
-// ── MOBILE SIDEBAR: force-hide on load, show on toggle ───────
-(function initMobileSB() {
-  function apply() {
-    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
-    if (!sb) return;
-    if (window.innerWidth <= 768) {
-      // Force hide unless already shown by user
-      if (!sb.classList.contains('show')) {
-        sb.style.cssText = [
-          'position:fixed', 'top:0', 'right:0', 'height:100vh',
-          'width:240px', 'z-index:1000',
-          'transform:translateX(110%)', 'transition:transform .25s ease',
-          'overflow-y:auto'
-        ].join('!important;') + '!important';
-      }
-    } else {
-      // Desktop: reset inline styles
-      sb.style.cssText = '';
-    }
-  }
+/* ── Router (used by portals) ─────────────────────────────────── */
+const PAGES = {};
+function reg(k, fn) { PAGES[k] = fn; window.PAGES = PAGES; }
+function go(k) {
+  const item = window._currentNav?.find(n => n.k === k);
+  const ptEl = document.getElementById('pgtitle') || document.getElementById('pgTitle');
+  if (ptEl && item) ptEl.textContent = t2(item.ar, item.en);
+  buildNav(window._currentNav || [], k);
+  const ct = document.getElementById('pgContent');
+  if (ct) ct.innerHTML = '<div class="fade" id="pg"></div>';
+  const fn = PAGES[k];
+  if (fn) fn(document.getElementById('pg'));
+  else { const pg = document.getElementById('pg'); if (pg) pg.innerHTML = `<p style="padding:40px;color:var(--t3)">${t2('قيد البناء…', 'Coming soon…')}</p>`; }
+  window.scrollTo(0, 0);
+}
 
-  // Override toggleSidebar to also apply inline style
-  const _orig = window.toggleSidebar;
-  window.toggleSidebar = function() {
-    const sb = document.getElementById('sidebar') || document.querySelector('.sb');
-    if (!sb) return;
-    const isOpen = sb.classList.toggle('show');
-    if (window.innerWidth <= 768) {
-      sb.style.transform = isOpen ? 'translateX(0)' : 'translateX(110%)';
-      // overlay
-      let ov = document.getElementById('sbOv');
-      if (!ov) {
-        ov = document.createElement('div');
-        ov.id = 'sbOv';
-        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999;display:none';
-        ov.onclick = window.toggleSidebar;
-        document.body.appendChild(ov);
-      }
-      ov.style.display = isOpen ? 'block' : 'none';
-    }
-  };
+/* ── Attendance (simplified — no auth token needed) ─────────────── */
+async function trackAttendance() {
+  try {
+    if (!App.profile) return;
+    const today = new Date().toISOString().split('T')[0], now = new Date().toISOString();
+    await fetch(`${SB_URL}/rest/v1/attendance_log`, {
+      method: 'POST',
+      headers: { ..._hdrs(), 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ user_id: App.profile.id, date: today, first_seen: now, last_seen: now })
+    });
+  } catch (e) {}
+}
 
-  // Run on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', apply);
-  } else {
-    apply();
-  }
-  window.addEventListener('resize', apply);
-})();
+/* ── Employee creation helper (shared by all division portals) ──
+   Replaces old signup-based createEmployee — now uses app_create_user RPC.
+*/
+async function createEmployeeShared(division) {
+  const name = mv('ce_n'), empId = mv('ce_id'), pass = mv('ce_pw');
+  if (!name || !empId || !pass) { toast(t2('يرجى تعبئة جميع الحقول', 'Please fill all fields'), 'e'); return; }
+  const username = empId.toLowerCase().replace(/\s+/g, '');
+  const btn = document.getElementById('ceBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span>'; }
+  try {
+    await appCreateUser({ username, password: pass, full_name: name, role: 'employee', division, job_title: null });
+    closeModal();
+    toast(t2('تم إنشاء الحساب ✓', 'Account created ✓'), 's');
+    setTimeout(() => openModal(`<div class="mh"><h3 style="color:var(--success)">✓</h3><button class="mx" onclick="closeModal()">×</button></div>
+      <div class="mbd"><div style="background:#060F1E;border-radius:8px;padding:14px;font-family:var(--mono)">
+        <div style="font-size:10px;color:var(--t3)">${t2('اسم المستخدم', 'Username')}</div>
+        <div style="font-size:15px;color:#60A5FA;margin-bottom:8px">${esc(username)}</div>
+        <div style="font-size:10px;color:var(--t3)">${t2('كلمة المرور', 'Password')}</div>
+        <div style="font-size:15px;color:#FCD34D">${esc(pass)}</div>
+      </div></div>
+      <div class="mf"><button class="btn p" onclick="closeModal()">${t2('تم', 'Done')}</button></div>`), 100);
+  } catch (e) { toast('Error: ' + e.message, 'e'); if (btn) { btn.disabled = false; btn.innerHTML = t2('إنشاء', 'Create'); } }
+}
+function genEmpPW() {
+  const ch = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let p = ''; for (let i = 0; i < 10; i++) p += ch[Math.floor(Math.random() * ch.length)];
+  const el = document.getElementById('ce_pw'); if (el) { el.value = p; navigator.clipboard?.writeText(p).catch(() => {}); }
+}
+
+/* ── Constants ────────────────────────────────────────────────── */
+const LOGO = '<img src="se-logo.png.PNG" alt="Saudi Energy" style="height:32px;width:auto;object-fit:contain;display:block" onerror="this.style.display=\'none\'">';
+
+/* ── Export ───────────────────────────────────────────────────── */
+Object.assign(window, {
+  t2, tl, App, DIVS, PORTALS, ROLE_AR, ROLE_EN, LOCALE_MAP, LOGO,
+  setLang, toggleLang, doLogout, requireAuth, _renderBadge, startClock,
+  toast, openModal, closeModal, mv, ms,
+  dbList, dbGet, dbIns, dbUpd, dbDel, dbCnt,
+  fmtD, fmtN, esc, isOD, priBadge, stBadge, progBar, skR, emptyEl,
+  initCanvas, loadHealth, buildNav, confirm2, logAct, go, reg, PAGES,
+  getStoredSession, storeSession, clearSession,
+  openSidebar, closeSidebar, toggleSidebar, trackAttendance,
+  rpc, appLogin, appListUsers, appCreateUser, appResetPassword, appUpdateUser, appToggleActive, appListByDivision,
+  createEmployeeShared, genEmpPW,
+});

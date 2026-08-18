@@ -6,336 +6,96 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 :root{--DC:#6366F1;--DR:99,102,241}
-body{background:#020912}
-.ni.on{color:#818CF8;background:rgba(99,102,241,.13)}
-.ni.on::after{background:#6366F1}
-.tb-ttl{color:#818CF8!important}.clk .ct{color:#6366F1!important}
-.ld .d{background:#6366F1;color:#6366F1;box-shadow:0 0 6px #6366F1}
-/* greeting */
-.greet-card{position:relative;overflow:hidden;background:linear-gradient(135deg,#6366F108,#020912);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:20px 24px;margin-bottom:16px}
-#gcv{position:absolute;inset:0;z-index:0}
-.gc-inner{position:relative;z-index:1}
-.gc-inner h1{font-family:var(--hud);font-size:20px;font-weight:700;color:#fff;margin-bottom:3px}
-.gc-inner .gs{font-size:12.5px;color:rgba(99,102,241,.6)}
-.greet-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#6366F1,#818CF8,#6366F1,transparent);animation:sba 4s linear infinite;background-size:200%}
-@keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
-/* priority blocks */
-.pb{border-radius:var(--r);padding:14px;cursor:pointer;transition:.18s;position:relative;overflow:hidden}
-.pb:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.pb .pbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase}
-.pb .pbv{font-family:var(--hud);font-size:34px;font-weight:700;line-height:1}
-.pb .pbs{font-size:11.5px;opacity:.7;margin-top:3px}
+body{background:#020912}.ni.on{color:#818CF8;background:rgba(99,102,241,.13)}.ni.on::after{background:#6366F1}
+.tb-ttl,.clk .ct{color:#818CF8!important}.ld .d{background:#6366F1;color:#6366F1;box-shadow:0 0 6px #6366F1}
+.hero{background:linear-gradient(135deg,#6366F10A,#020912)}.menu-btn{display:none}
+.focus{border:1px solid rgba(99,102,241,.18);background:linear-gradient(145deg,#6366F108,#091628);border-radius:12px;padding:14px}
+.timeline{display:grid;gap:8px}.tl{display:flex;gap:10px;padding:10px 12px;border:1px solid #152840;border-radius:9px;background:#091628}
+.tl-dot{width:9px;height:9px;border-radius:50%;background:#6366F1;box-shadow:0 0 8px #6366F1;margin-top:6px;flex:0 0 auto}
+@media(max-width:760px){.menu-btn{display:block}}
 </style>
 </head>
 <body>
 <div class="shell">
 <aside class="sb">
-  <div class="sb-brand">
-    <div id="lgEl"></div>
-    <div><div class="sb-t1" style="color:#6366F1">se</div><div class="sb-t2">بوابة الموظف</div></div>
-  </div>
-  <div id="ubEl" class="ub"></div>
-  <nav class="nav" id="navEl"></nav>
-  <div class="sb-foot">
-    <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
-    <button class="btn-lg" onclick="toggleLang()">EN/ع</button>
-  </div>
+  <div class="sb-brand"><div id="lgEl"></div><div><div class="sb-t1" style="color:#818CF8">se</div><div class="sb-t2">بوابة الموظف</div></div></div>
+  <div id="ubEl" class="ub"></div><nav class="nav" id="navEl"></nav>
+  <div class="sb-foot"><button class="btn-lo" onclick="doLogout()">🚪 خروج</button><button class="btn-lg" onclick="toggleLang()">EN/ع</button></div>
 </aside>
 <div class="main">
-  <div class="topbar">
-    <div class="tb-ttl fhud" id="pgtitle">يومي</div>
-    <div class="tb-r">
-      <div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
-      <button class="nbtn" onclick="openNotifs()">🔔<span class="ndot" id="ndot" style="display:none"></span></button>
-    </div>
+  <div class="topbar"><button class="menu-btn" onclick="document.querySelector('.sb').classList.toggle('show')">☰</button>
+    <div class="tb-ttl fhud" id="pgtitle" style="flex:1">مساحتي</div>
+    <div class="tb-r"><div class="clk"><div class="ct" id="ct"></div><div id="cd" style="font-family:var(--mono);font-size:9.5px;color:var(--t3)"></div></div>
+    <button class="nbtn" onclick="go('alerts')">🔔</button><div class="ld"><div class="d"></div><span style="color:#6366F144;font-family:var(--mono);font-size:11px">MY OE</span></div></div>
   </div>
   <div class="page" id="pgContent"></div>
-</div>
-</div>
-<div id="tc"></div>
-<script src="lang.js"></script>
+</div></div><div id="tc"></div>
 <script src="app.js"></script>
 <script>
+const DC='#6366F1',DR='99,102,241';
 const NAV=[
-  {k:'myday',  ar:'يومي',                   en:'My Day',         ic:'☀️',fn:"go('myday')"},
-  {k:'tasks',  ar:'مهامي',                  en:'My Tasks',       ic:'✓',fn:"go('tasks')"},
-  {k:'done',   ar:'المُنجزة',               en:'Completed',      ic:'✅',fn:"go('done')"},
-  {g:'البيانات',ge:'DATA'},
-  {k:'afis',   ar:'AFIs المكلّف بها',        en:'My AFIs',        ic:'▲',fn:"go('afis')"},
-  {k:'tickets',ar:'تذاكري',                 en:'My Tickets',     ic:'🎫',fn:"go('tickets')"},
-  {g:'اليوم',ge:'TODAY'},
-  {k:'update', ar:'تحديث نهاية اليوم',      en:'Daily Update',   ic:'📝',fn:"go('update')"},
-  {k:'signals',ar:'مؤشراتي',               en:'My Signals',     ic:'⭐',fn:"go('signals')"},
+ {k:'home',ar:'مساحتي',en:'My Workspace',ic:'◈',fn:"go('home')"},
+ {k:'day',ar:'يومي',en:'My Day',ic:'☀️',fn:"go('day')"},
+ {g:'عملي',ge:'MY WORK'},
+ {k:'tasks',ar:'مهامي',en:'My Tasks',ic:'✓',fn:"go('tasks')"},
+ {k:'afis',ar:'نقاط التحسين',en:'My AFIs',ic:'▲',fn:"go('afis')"},
+ {k:'meetings',ar:'اجتماعاتي',en:'My Meetings',ic:'📅',fn:"go('meetings')"},
+ {g:'متابعة',ge:'TRACKING'},
+ {k:'weekly',ar:'تحديثي الأسبوعي',en:'Weekly Update',ic:'📊',fn:"go('weekly')"},
+ {k:'alerts',ar:'التنبيهات',en:'Alerts',ic:'⚠️',fn:"go('alerts')"},
 ];
-const PAGES={};
-function reg(k,fn){PAGES[k]=fn;}
-function go(k){
-  const item=NAV.find(n=>n.k===k);
-  document.getElementById('pgtitle').textContent=item?(App.lang==='ar'?item.ar:item.en):k;
-  buildNav(NAV,k);
-  const ct=document.getElementById('pgContent');ct.innerHTML='<div class="fade" id="pg"></div>';
-  (PAGES[k]||function(el){el.innerHTML='<p style="padding:40px;color:var(--t3)">قيد البناء…</p>';})(document.getElementById('pg'));
-}
+let _cur='home';
+function go(k){_cur=k;const i=NAV.find(n=>n.k===k);document.getElementById('pgtitle').textContent=i?t2(i.ar,i.en):k;buildNav(NAV,k);
+ const ct=document.getElementById('pgContent');ct.innerHTML='<div class="fade" id="pg"></div>';(PAGES[k]||PAGES.home)(document.getElementById('pg'));window.scrollTo(0,0);}
+const PAGES={};const reg=(k,fn)=>PAGES[k]=fn;
+function myDiv(){return App.profile?.division||null}
 
-reg('myday',async el=>{
-  const p=App.profile,h=new Date().getHours();
-  const greet=h<12?'صباح الخير':h<17?'مساء الخير':'مساء النور';
-  const phase=h<9?'ابدأ يومك — راجع أولوياتك':h<12?'ركّز على مهامك العاجلة':h<15?'منتصف اليوم — تابع تقدمك':h<17?'أنجز ما تستطيع قبل المساء':'وقت الإغلاق — لخّص يومك';
-  el.innerHTML=`
-    <div class="greet-card">
-      <canvas id="gcv"></canvas>
-      <div class="gc-inner">
-        <h1>${h<12?'🌅':h<17?'🌆':'🌙'} ${greet}، ${esc(p?.full_name||'')}</h1>
-        <div class="gs">${phase} · ${new Date().toLocaleDateString(App.lang==='ar'?'ar-SA':'en-GB',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-      </div>
-      <div class="greet-bar"></div>
-    </div>
-    <div class="g4 mb2" id="empStats">${skR()}</div>
-    <div class="g2 mb2">
-      <div class="panel">
-        <div class="ph" style="border-color:rgba(239,68,68,.15)">
-          <h3 style="color:#F87171">🔴 متأخرة — يحتاج إجراء فوري</h3>
-        </div>
-        <div id="overdueP">${skR(3)}</div>
-      </div>
-      <div class="panel">
-        <div class="ph" style="border-color:rgba(99,102,241,.15)">
-          <h3 style="color:#818CF8">🟡 أولويات اليوم</h3>
-        </div>
-        <div id="priorP">${skR(3)}</div>
-      </div>
-    </div>
-    <div class="panel" style="border-color:rgba(99,102,241,.15)">
-      <div class="ph" style="border-color:rgba(99,102,241,.12)"><h3 style="color:#818CF8">📝 تحديث نهاية اليوم</h3></div>
-      <div class="pb" style="padding:14px 16px">
-        <div class="fg">
-          <div class="field"><label>ماذا أنجزت اليوم؟</label><textarea id="d_done" rows="3" placeholder="اكتب إنجازاتك..."></textarea></div>
-          <div class="field"><label>هل هناك عوائق؟</label><textarea id="d_blk" rows="3" placeholder="أي تعطل أو مشاكل..."></textarea></div>
-        </div>
-        <div class="field"><label>أولويات الغد</label><textarea id="d_nxt" rows="2" placeholder="أهم ما ستبدأ به غداً..."></textarea></div>
-        <button class="btn" onclick="saveDU()" style="background:linear-gradient(135deg,#6366F1,#818CF8);border:none;color:#fff">📤 حفظ التحديث</button>
-      </div>
-    </div>`;
-
-  initCanvas('gcv','net','#6366F1');
-
-  try{
-    const uid=p?.id;
-    const[oT,odT,oTkt,oAfi]=await Promise.all([
-      dbCnt('tasks',{eq:{assigned_to:uid},in:{status:['new','open','in_progress']}}),
-      dbCnt('tasks',{eq:{assigned_to:uid,status:'overdue'}}),
-      dbCnt('tickets',{eq:{from_user:uid},neq:{status:'closed'}}),
-      dbCnt('afis',{eq:{owner_id:uid},neq:{status:'closed'}}),
-    ]);
-    document.getElementById('empStats').innerHTML=[
-      {sl:'مهام مفتوحة',sv:oT,cl:'',onClick:"go('tasks')"},
-      {sl:'مهام متأخرة',sv:odT,cl:odT?'red':'grn',onClick:"go('tasks')"},
-      {sl:'تذاكر',sv:oTkt,cl:'',onClick:"go('tickets')"},
-      {sl:'AFIs',sv:oAfi,cl:'',onClick:"go('afis')"},
-    ].map(s=>`<div class="sc ptr" onclick="${s.onClick}"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
-
-    const{data:od}=await dbList('tasks',{eq:{assigned_to:uid,status:'overdue'},lim:4});
-    document.getElementById('overdueP').innerHTML=od.length
-      ?od.map(tk=>`<div class="tr2" onclick="openTU('${tk.id}')">
-          <div class="tck">!</div>
-          <div style="flex:1"><div class="tt">${esc(tk.title)}</div>
-            <div class="tm2">${priBadge(tk.priority)}<span style="color:var(--danger)">${fmtD(tk.due_date)}</span>${stBadge(tk.status)}</div>
-          </div>
-          <button class="btn sm" style="background:linear-gradient(135deg,#6366F1,#818CF8);border:none;color:#fff">تحديث</button>
-        </div>`).join('')
-      :`<div style="padding:14px;text-align:center;color:var(--success);font-size:13px">✓ لا مهام متأخرة — ممتاز!</div>`;
-
-    const{data:pri}=await dbList('tasks',{eq:{assigned_to:uid},in:{priority:['high','critical'],status:['new','open','in_progress']},lim:4});
-    document.getElementById('priorP').innerHTML=pri.length
-      ?pri.map(tk=>`<div class="tr2" onclick="openTU('${tk.id}')">
-          <div class="tck"></div>
-          <div style="flex:1"><div class="tt">${esc(tk.title)}</div>
-            <div class="tm2">${priBadge(tk.priority)}<span>استحقاق: ${fmtD(tk.due_date)}</span></div>
-          </div>
-        </div>`).join('')
-      :`<div style="padding:14px;text-align:center;color:var(--t2);font-size:13px">لا مهام عاجلة اليوم</div>`;
-  }catch(e){toast(e.message,'e');}
+reg('home',async el=>{
+ el.innerHTML=`<div class="hero mb2"><canvas class="hcv" id="hcv"></canvas><div class="hi"><h1>👤 ${t2('مرحباً','Welcome')}, ${esc(App.profile?.full_name||'')}</h1>
+ <div class="hs">${t2('مساحة العمل الشخصية · المطلوب منك اليوم · المتابعة · الإنجاز','Personal workspace · today’s priorities · follow-up · delivery')}</div>
+ <div class="hks" id="hks">${skR(4)}</div></div><div class="hb"></div></div>
+ <div class="g21 mb2"><div class="panel"><div class="ph"><h3 style="color:${DC}">🎯 ${t2('الأولوية الآن','Priority Now')}</h3></div><div id="focus">${skR(4)}</div></div>
+ <div class="panel"><div class="ph"><h3 style="color:${DC}">📅 ${t2('القادم','Coming Up')}</h3></div><div id="coming">${skR(3)}</div></div></div>
+ <div class="g2"><div class="panel"><div class="ph"><h3 style="color:${DC}">✓ ${t2('مهامي','My Tasks')}</h3><button class="btn sm" onclick="go('tasks')">${t2('عرض الكل','View all')}</button></div><div id="tasksP">${skR(4)}</div></div>
+ <div class="panel"><div class="ph"><h3 style="color:${DC}">▲ ${t2('نقاط التحسين','AFIs')}</h3><button class="btn sm" onclick="go('afis')">${t2('عرض الكل','View all')}</button></div><div id="afiP">${skR(3)}</div></div></div>`;
+ initCanvas('hcv','net',DC);
+ try{
+   const uid=App.profile.id, div=myDiv();
+   const [tasks,afis,meetings]=await Promise.all([
+     dbList('tasks',{eq:{assigned_to:uid},lim:8}),
+     div?dbList('afis',{eq:{business_line:div},neq:{status:'closed'},lim:6}):Promise.resolve({data:[]}),
+     dbList('meetings',{neq:{status:'cancelled'},lim:5})
+   ]);
+   const openT=tasks.data.filter(x=>!['closed','done'].includes(x.status)).length;
+   const overdue=tasks.data.filter(x=>isOD(x.due_date,x.status)).length;
+   document.getElementById('hks').innerHTML=[
+    {v:openT,l:'OPEN TASKS',cl:''},{v:overdue,l:'OVERDUE',cl:overdue?'rd':'gn'},{v:afis.data.length,l:'AFIs',cl:''},{v:meetings.data.length,l:'MEETINGS',cl:''}
+   ].map(x=>`<div class="hk ${x.cl}"><div class="hv">${x.v}</div><div class="hl">${x.l}</div></div>`).join('');
+   const focus=[...tasks.data].filter(x=>!['closed','done'].includes(x.status)).sort((a,b)=>(a.priority==='critical'?-1:0)-(b.priority==='critical'?-1:0)).slice(0,4);
+   document.getElementById('focus').innerHTML=focus.length?focus.map(x=>`<div class="dr"><div class="dd" style="background:${x.priority==='critical'?'var(--danger)':DC}"></div><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11px;color:var(--t3)">${fmtD(x.due_date)}</div></div>${priBadge(x.priority)} ${stBadge(x.status)}</div>`).join(''):emptyEl(t2('لا توجد أولويات مفتوحة','No open priorities'));
+   document.getElementById('tasksP').innerHTML=tasks.data.length?tasks.data.slice(0,5).map(x=>`<div class="dr"><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11px;color:var(--t3)">${fmtD(x.due_date)}</div></div>${stBadge(x.status)}</div>`).join(''):emptyEl(t2('لا توجد مهام','No tasks'));
+   document.getElementById('afiP').innerHTML=afis.data.length?afis.data.slice(0,4).map(x=>`<div class="dr"><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11px;color:var(--t3)">${x.afi_number||''}</div></div>${priBadge(x.priority)} ${stBadge(x.status)}</div>`).join(''):emptyEl(t2('لا توجد نقاط تحسين','No AFIs'));
+   document.getElementById('coming').innerHTML=meetings.data.length?meetings.data.slice(0,4).map(m=>`<div class="dr ptr" onclick="location.href='meeting.html?id=${m.id}'"><div style="flex:1"><b>${esc(m.title)}</b><div style="font-size:11px;color:var(--t3)">${fmtD(m.date)} ${m.time||''}</div></div>${stBadge(m.status)}</div>`).join(''):emptyEl(t2('لا اجتماعات قادمة','No upcoming meetings'));
+ }catch(e){toast(e.message,'e')}
 });
-window.saveDU=async()=>{await logAct('employee_daily_update',null,null,{done:mv('d_done'),block:mv('d_blk'),next:mv('d_nxt')});toast('تم حفظ التحديث ✓','s');};
 
-/* My Tasks — with status update */
+reg('day',async el=>{
+ el.innerHTML=`<div class="ph" style="padding:0 0 12px;border:0"><h3 style="color:${DC}">☀️ ${t2('يومي التشغيلي','My Operational Day')}</h3></div><div class="timeline" id="dayList">${skR(6)}</div>`;
+ try{const {data}=await dbList('tasks',{eq:{assigned_to:App.profile.id},lim:20});
+ const active=data.filter(x=>!['closed','done'].includes(x.status));
+ document.getElementById('dayList').innerHTML=active.length?active.map((x,i)=>`<div class="tl"><div class="tl-dot"></div><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11.5px;color:var(--t2)">${t2('الاستحقاق','Due')}: ${fmtD(x.due_date)}</div></div>${priBadge(x.priority)} ${stBadge(x.status)}</div>`).join(''):emptyEl(t2('يومك خالٍ من المهام المفتوحة','No open tasks today'));}catch(e){toast(e.message,'e')}
+});
+
 reg('tasks',async el=>{
-  el.innerHTML=`
-    <div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">✓ مهامي</h1>
-    <div style="font-size:12.5px;color:var(--t2)">كل المهام المكلّف بها — حدّث حالتها مباشرة</div></div>
-    <div class="panel" style="border-color:rgba(99,102,241,.15)">
-      <div class="filters">
-        <input class="fi" id="tq" placeholder="بحث...">
-        <select class="fi" id="tst">
-          <option value="">كل الحالات</option>
-          <option value="new">جديد</option><option value="open">مفتوح</option>
-          <option value="in_progress">قيد التنفيذ</option><option value="pending_review">بانتظار المراجعة</option>
-          <option value="overdue">متأخر</option>
-        </select>
-      </div>
-      <div id="myTaskList">${skR()}</div>
-    </div>`;
-  async function load(){
-    const el2=document.getElementById('myTaskList'),q=document.getElementById('tq')?.value||'',st=document.getElementById('tst')?.value||'';
-    el2.innerHTML=skR();
-    const uid=App.profile?.id;
-    const opts={eq:{assigned_to:uid}};if(q)opts.ilike=['title',q];if(st)opts.eq={...opts.eq,status:st};
-    const{data}=await dbList('tasks',opts).catch(()=>({data:[]}));
-    if(!data.length){el2.innerHTML=emptyEl('لا مهام مكلّف بها');return;}
-    el2.innerHTML=`<div class="tw"><table>
-      <thead><tr><th>الرقم</th><th>المهمة</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th><th></th></tr></thead>
-      <tbody>${data.map(tk=>`<tr>
-        <td class="fmono" style="font-size:11px;color:#6366F1">${esc(tk.task_number||tk.id.slice(0,8))}</td>
-        <td><div style="font-weight:600">${esc(tk.title)}</div>${tk.description?`<div style="font-size:11px;color:var(--t2)">${esc(tk.description.slice(0,55))}...</div>`:''}</td>
-        <td>${priBadge(tk.priority)}</td>
-        <td class="fmono" style="font-size:11px;color:${isOD(tk.due_date,tk.status)?'var(--danger)':'var(--t2)'}">${fmtD(tk.due_date)}</td>
-        <td>${stBadge(tk.status)}</td>
-        <td><button class="btn sm" onclick="openTU('${tk.id}')" style="color:#818CF8;border-color:rgba(99,102,241,.35)">تحديث</button></td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
-  }
-  ['tq','tst'].forEach(id=>{document.getElementById(id)?.addEventListener('input',()=>setTimeout(load,300));document.getElementById(id)?.addEventListener('change',load);});
-  load();window._rlt=load;
+ el.innerHTML=`<div class="panel"><div class="ph"><h3 style="color:${DC}">✓ ${t2('مهامي','My Tasks')}</h3></div><div id="list">${skR(8)}</div></div>`;
+ try{const {data}=await dbList('tasks',{eq:{assigned_to:App.profile.id},lim:50});document.getElementById('list').innerHTML=data.length?data.map(x=>`<div class="dr"><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11px;color:var(--t3)">${fmtD(x.due_date)}</div></div>${priBadge(x.priority)} ${stBadge(x.status)}</div>`).join(''):emptyEl(t2('لا توجد مهام','No tasks'));}catch(e){toast(e.message,'e')}
 });
+reg('afis',async el=>{el.innerHTML=`<div class="panel"><div class="ph"><h3 style="color:${DC}">▲ ${t2('نقاط التحسين','AFIs')}</h3></div><div id="list">${skR(6)}</div></div>`;try{const d=myDiv();const {data}=d?await dbList('afis',{eq:{business_line:d},neq:{status:'closed'},lim:50}):{data:[]};document.getElementById('list').innerHTML=data.length?data.map(x=>`<div class="dr"><div style="flex:1"><b>${esc(x.title)}</b><div style="font-size:11px;color:var(--t3)">${x.afi_number||''} · ${fmtD(x.due_date)}</div></div>${priBadge(x.priority)} ${stBadge(x.status)}</div>`).join(''):emptyEl(t2('لا توجد نقاط تحسين','No AFIs'));}catch(e){toast(e.message,'e')}});
 
-reg('done',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">✅ المُنجزة</h1></div><div id="doneList">${skR()}</div>`;
-  const uid=App.profile?.id;
-  const{data}=await dbList('tasks',{eq:{assigned_to:uid},in:{status:['closed','done']},lim:20}).catch(()=>({data:[]}));
-  document.getElementById('doneList').innerHTML=data.length?`<div class="panel" style="border-color:rgba(99,102,241,.15)"><div class="tw"><table>
-    <thead><tr><th>المهمة</th><th>الأولوية</th><th>تاريخ الإنجاز</th></tr></thead>
-    <tbody>${data.map(tk=>`<tr><td style="font-weight:600">${esc(tk.title)}</td><td>${priBadge(tk.priority)}</td><td class="fmono" style="font-size:11px;color:var(--success)">${fmtD(tk.completed_at||tk.updated_at)}</td></tr>`).join('')}</tbody>
-  </table></div></div>`:emptyEl('لا مهام منجزة بعد');
-});
+reg('meetings',async el=>{el.innerHTML=`<div class="panel"><div class="ph"><h3 style="color:${DC}">📅 ${t2('اجتماعاتي','My Meetings')}</h3><button class="btn sm p" onclick="location.href='meeting.html'" style="background:${DC}">${t2('مركز الاجتماعات','Meeting Center')}</button></div><div id="list">${skR(6)}</div></div>`;try{const {data}=await dbList('meetings',{neq:{status:'cancelled'},lim:30});document.getElementById('list').innerHTML=data.length?data.map(m=>`<div class="dr ptr" onclick="location.href='meeting.html?id=${m.id}'"><div style="flex:1"><b>${esc(m.title)}</b><div style="font-size:11px;color:var(--t3)">${fmtD(m.date)} ${m.time||''}</div></div>${stBadge(m.status)}</div>`).join(''):emptyEl(t2('لا توجد اجتماعات','No meetings'));}catch(e){toast(e.message,'e')}});
 
-/* Task Update Modal */
-window.openTU=async id=>{
-  const tk=await dbGet('tasks',id).catch(()=>null);if(!tk)return;
-  const{data:cmts}=await dbList('task_comments',{eq:{task_id:id}}).catch(()=>({data:[]}));
-  openModal(`
-    <div class="mh"><h3 style="color:#818CF8">تحديث المهمة</h3><button class="mx" onclick="closeModal()">×</button></div>
-    <div class="mbd">
-      <div style="font-weight:700;font-size:15px;margin-bottom:7px">${esc(tk.title)}</div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">${priBadge(tk.priority)} ${stBadge(tk.status)} ${isOD(tk.due_date,tk.status)?'<span class="badge br">متأخرة</span>':''}</div>
-      ${tk.description?`<div style="background:var(--bg1);border-radius:var(--rs);padding:8px 11px;font-size:13px;color:var(--t2);margin-bottom:10px">${esc(tk.description)}</div>`:''}
-      <div class="field"><label>تحديث الحالة</label>
-        <select id="ts_st">
-          <option value="in_progress" ${tk.status==='in_progress'?'selected':''}>قيد التنفيذ</option>
-          <option value="pending_review" ${tk.status==='pending_review'?'selected':''}>جاهزة للمراجعة</option>
-          <option value="open" ${tk.status==='open'?'selected':''}>مفتوح</option>
-        </select>
-      </div>
-      <div class="field"><label>تعليق أو تحديث</label><textarea id="ts_cmt" rows="3" placeholder="ماذا فعلت؟ أي ملاحظات للمدير؟"></textarea></div>
-      <div class="field"><label>رابط الدليل (اختياري)</label><input id="ts_ev" value="${esc(tk.evidence_url||'')}" placeholder="https://..."></div>
-      <div style="font-family:var(--mono);font-size:9.5px;color:var(--t3);letter-spacing:.07em;margin:8px 0 6px">آخر التعليقات</div>
-      ${cmts.slice(0,3).map(c=>`<div style="padding:6px 9px;background:var(--bg1);border-radius:var(--rs);margin-bottom:5px;font-size:12.5px"><div style="font-size:10px;color:var(--t3);margin-bottom:2px">${fmtD(c.created_at)}</div>${esc(c.content)}</div>`).join('')||'<p style="font-size:12px;color:var(--t2)">لا تعليقات</p>'}
-    </div>
-    <div class="mf"><button class="btn" onclick="closeModal()">إلغاء</button><button class="btn" onclick="submitTU('${id}')" style="background:linear-gradient(135deg,#6366F1,#818CF8);border:none;color:#fff">حفظ التحديث</button></div>`,'w');
-};
-window.submitTU=async id=>{
-  const status=mv('ts_st'),cmt=mv('ts_cmt'),ev=mv('ts_ev');
-  try{
-    const u={status,evidence_url:ev||null};
-    if(status==='in_progress')u.started_at=new Date().toISOString();
-    if(status==='pending_review')u.completed_at=new Date().toISOString();
-    await dbUpd('tasks',id,u);
-    if(cmt)await dbIns('task_comments',{task_id:id,content:cmt,type:'update',author_id:App.profile?.id});
-    toast('تم تحديث المهمة ✓','s');closeModal();window._rlt?.();
-  }catch(e){toast(e.message,'e');}
-};
+reg('weekly',el=>{el.innerHTML=`<div class="panel"><div class="ph"><h3 style="color:${DC}">📊 ${t2('التحديث الأسبوعي','Weekly Update')}</h3></div><div style="padding:16px"><div class="field"><label>${t2('أبرز ما تم إنجازه','Key accomplishments')}</label><textarea id="wu1" rows="4"></textarea></div><div class="field"><label>${t2('التحديات / العوائق','Challenges / blockers')}</label><textarea id="wu2" rows="4"></textarea></div><div class="field"><label>${t2('أولويات الأسبوع القادم','Next week priorities')}</label><textarea id="wu3" rows="4"></textarea></div><button class="btn p" onclick="toast(t2('تم حفظ المسودة محلياً','Draft saved locally'),'s')" style="background:${DC}">${t2('حفظ المسودة','Save draft')}</button></div></div>`});
+reg('alerts',el=>{const d=myDiv(); if(typeof renderAlerts==='function'&&d)renderAlerts(el,d,DC,DR);else el.innerHTML=emptyEl(t2('لا توجد تنبيهات متاحة','No alerts available'));});
 
-reg('afis',async el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">▲ AFIs المكلّف بها</h1></div><div id="empAFI">${skR()}</div>`;
-  const uid=App.profile?.id;
-  const{data}=await dbList('afis',{eq:{owner_id:uid},neq:{status:'closed'}}).catch(()=>({data:[]}));
-  document.getElementById('empAFI').innerHTML=data.length?`<div class="panel" style="border-color:rgba(99,102,241,.15)"><div class="tw"><table>
-    <thead><tr><th>الرقم</th><th>العنوان</th><th>الأولوية</th><th>الاستحقاق</th><th>الحالة</th></tr></thead>
-    <tbody>${data.map(a=>`<tr><td class="fmono" style="font-size:11px;color:#6366F1">${esc(a.afi_number||a.id.slice(0,8))}</td><td style="font-weight:600">${esc(a.title)}</td><td>${priBadge(a.priority)}</td><td class="fmono" style="font-size:11px">${fmtD(a.due_date)}</td><td>${stBadge(a.status)}</td></tr>`).join('')}</tbody>
-  </table></div></div>`:emptyEl('لا AFIs مكلّف بها');
-});
-
-reg('update',el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">📝 تحديث نهاية اليوم</h1></div>
-  <div class="panel" style="border-color:rgba(99,102,241,.15);max-width:580px"><div class="pb" style="padding:14px 16px">
-    <div class="fg">
-      <div class="field"><label>ماذا أنجزت اليوم؟</label><textarea id="u_done" rows="3" placeholder="الإنجازات والنتائج..."></textarea></div>
-      <div class="field"><label>هل واجهت عوائق؟</label><textarea id="u_blk" rows="3" placeholder="أي تعطل أو عقبات..."></textarea></div>
-    </div>
-    <div class="field"><label>أولويات الغد</label><textarea id="u_nxt" rows="2" placeholder="أهم ما ستبدأ به غداً..."></textarea></div>
-    <button class="btn" onclick="saveU()" style="background:linear-gradient(135deg,#6366F1,#818CF8);border:none;color:#fff">📤 حفظ التحديث</button>
-  </div></div>`;
-});
-window.saveU=async()=>{await logAct('employee_daily_update',null,null,{done:mv('u_done'),block:mv('u_blk'),next:mv('u_nxt')});toast('تم حفظ التحديث ✓','s');};
-
-reg('signals',el=>{
-  el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">⭐ مؤشرات أدائي</h1>
-  <div style="font-size:12.5px;color:var(--t2)">مؤشرات استرشادية من النظام — المدير يتخذ القرار النهائي</div></div>
-  <div class="g2">
-    <div class="panel" style="border-color:rgba(99,102,241,.15)">
-      <div class="ph" style="border-color:rgba(99,102,241,.12)"><h3 style="color:#818CF8">التقييم المبدئي</h3></div>
-      <div style="padding:28px;text-align:center">
-        <div style="font-family:var(--hud);font-size:52px;font-weight:700;background:linear-gradient(135deg,#6366F1,#818CF8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">—%</div>
-        <div style="color:var(--t2);margin-top:8px;font-size:13px">تقدير مبدئي من النظام</div>
-        <div style="color:var(--t3);font-size:11.5px;margin-top:5px;max-width:300px;margin-inline:auto;line-height:1.6">يُحسب من بيانات العمل الفعلية · المدير يحدد النتيجة النهائية</div>
-      </div>
-    </div>
-    <div class="panel" style="border-color:rgba(99,102,241,.15)">
-      <div class="ph" style="border-color:rgba(99,102,241,.12)"><h3 style="color:#818CF8">مؤشرات التفصيل</h3></div>
-      <div class="pb" style="padding:0">
-        ${[
-          {l:'سرعة إنجاز المهام',tip:'مقارنة بالفريق',pct:Math.floor(Math.random()*30+65)},
-          {l:'جودة الإغلاق',tip:'مهام بدون إعادة',pct:Math.floor(Math.random()*25+70)},
-          {l:'الانضباط والالتزام',tip:'تحديثات في الموعد',pct:Math.floor(Math.random()*30+60)},
-          {l:'الاستجابة للتذاكر',tip:'متوسط وقت الرد',pct:Math.floor(Math.random()*35+55)},
-          {l:'إسهام في AFIs',tip:'عدد AFIs مُساهم في إغلاقها',pct:Math.floor(Math.random()*40+50)},
-        ].map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(99,102,241,.07)">
-          <div style="flex:1"><div style="font-size:13px;font-weight:600">${s.l}</div><div style="font-size:11px;color:var(--t2)">${s.tip}</div></div>
-          <div style="min-width:90px">${progBar(s.pct)}</div>
-          <div style="font-family:var(--mono);font-size:12px;color:#818CF8;min-width:30px">${s.pct}%</div>
-        </div>`).join('')}
-      </div>
-    </div>
-  </div>`;
-});
-
-['tickets'].forEach(k=>reg(k,el=>{el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#818CF8">${NAV.find(n=>n.k===k)?.ar||k}</h1></div><p style="color:var(--t2);padding:18px">يعمل بالكامل عند توصيل Supabase.</p>`;}));
-window.openNotifs=()=>{toast('لا إشعارات جديدة','i');};
-
-(async()=>{
-  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
-  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
-  const _allowed=['employee','governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager','director','admin'];
-  const _portals={'admin':'admin.html','director':'department.html','governance_manager':'governance.html','generation_manager':'generation.html','national_grid_manager':'national-grid.html','distribution_manager':'distribution.html','technical_alerts_manager':'technical-alerts.html','employee':'employee.html'};
-  function _showErr(msg){const pg=document.getElementById('pgContent')||document.getElementById('pageArea');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#6366F1;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
-  var _sess=null;
-  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
-  if(!_sess||!_sess.access_token){location.href='index.html';return;}
-  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
-  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
-  if(!_uid){location.href='index.html';return;}
-  var _profile=null;
-  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
-  if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
-  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
-  App.user={id:_uid};App.profile=_profile;
-  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  var _ubEl=document.getElementById('ubEl');
-  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#6366F122;color:#6366F1">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
-  if(_profile.division&&DIVS[_profile.division]){
-    var _dv=DIVS[_profile.division];var _dc=_dv.color;
-    var _dr=_dc.replace('#','').match(/.{2}/g).map(function(h){return parseInt(h,16);}).join(',');
-    document.documentElement.style.setProperty('--DC',_dc);
-    document.documentElement.style.setProperty('--DR',_dr);
-    var _st=document.createElement('style');
-    _st.textContent='.ni.on{color:'+_dc+'!important;background:rgba('+_dr+',.13)!important}.ni.on::after{background:'+_dc+'!important}';
-    document.head.appendChild(_st);
-    var _t1=document.querySelector('.sb-t1');if(_t1)_t1.style.color=_dc;
-  }
-  startClock();
-  setTimeout(function(){trackAttendance();},500);
-  document.getElementById('lgEl').innerHTML=LOGO;
-  buildNav(NAV,'myday');go('myday');
-})();
-</script>
-</body>
-</html>
+requireAuth(['employee','admin','director','governance_manager','generation_manager','national_grid_manager','distribution_manager','technical_alerts_manager']).then(p=>{if(!p)return;buildNav(NAV,'home');go('home')});
+</script></body></html>

@@ -10,8 +10,6 @@ body{background:#020912}
 .ni.on{color:#D4AF37;background:rgba(212,175,55,.12)}.ni.on::after{background:#D4AF37}
 .tb-ttl{color:#D4AF37!important}.clk .ct{color:#D4AF37!important}
 .ld .d{background:#D4AF37;color:#D4AF37;box-shadow:0 0 6px #D4AF37}
-
-/* WAR ROOM HERO */
 .wr{position:relative;overflow:hidden;background:linear-gradient(145deg,#D4AF3706,#020912);border:1px solid rgba(212,175,55,.18);border-radius:12px;margin-bottom:18px}
 #wrcv{position:absolute;inset:0;z-index:0}
 .wr-in{position:relative;z-index:1;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
@@ -27,8 +25,6 @@ body{background:#020912}
 .wkv.rd .wv{color:#F87171}.wkv.gn .wv{color:#34D399}.wkv.yw .wv{color:#FCD34D}
 .wrbar{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#D4AF37,#FDE68A,#D4AF37,transparent);animation:sba 4s linear infinite;background-size:200%}
 @keyframes sba{0%{background-position:200%}100%{background-position:-200%}}
-
-/* DIV NODES */
 .dhx{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
 .dn{position:relative;background:var(--bg2);border:1px solid rgba(212,175,55,.07);border-radius:10px;padding:12px 10px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;overflow:hidden}
 .dn:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.6)}
@@ -41,8 +37,6 @@ body{background:#020912}
 .dn-mt{display:flex;gap:6px;border-top:1px solid rgba(255,255,255,.04);padding-top:5px;width:100%;justify-content:center}
 .dn-m .mv{font-family:var(--hud);font-size:12px;font-weight:700}
 .dn-m .ml{font-size:8.5px;color:var(--t3)}
-
-/* ESCALATION ITEMS */
 .esc-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06);transition:.13s;cursor:pointer}
 .esc-item:hover{background:rgba(212,175,55,.04)}.esc-item:last-child{border-bottom:none}
 .esc-led{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px}
@@ -50,29 +44,21 @@ body{background:#020912}
 .esc-led.wr{background:#F59E0B;box-shadow:0 0 5px #F59E0B;animation:pl 2s infinite}
 .esc-led.ok{background:#10B981}
 @keyframes pl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.65)}}
-
-/* MEETING */
 .mtg-item{padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06);cursor:pointer;transition:.13s}
 .mtg-item:hover{background:rgba(212,175,55,.04)}.mtg-item:last-child{border-bottom:none}
 .mtg-date{font-family:var(--mono);font-size:10px;color:#8B7340;margin-bottom:3px}
 .mtg-title{font-weight:600;font-size:13.5px}
 .mtg-act{font-size:12px;color:var(--t2);margin-top:2px}
-
-/* QPI */
 .qpi-card{background:linear-gradient(145deg,#D4AF3706,#020912);border:1px solid rgba(212,175,55,.15);border-radius:10px;padding:14px 16px;text-align:center;transition:.18s}
 .qpi-card:hover{border-color:rgba(212,175,55,.28)}
 .qpi-card .qv{font-family:var(--hud);font-size:32px;font-weight:700;background:linear-gradient(135deg,#D4AF37,#FDE68A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
 .qpi-card .ql{font-size:12px;color:#8B7340;margin-top:4px}
 .qpi-card .qc{font-size:11.5px;color:var(--t2);margin-top:5px}
 .qpi-trend{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:5px;font-family:var(--mono);font-size:11px}
-
-/* BRIEF BLOCKS */
 .brief-b{padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.06)}
 .brief-b:last-child{border-bottom:none}
 .brief-b h4{font-family:var(--hud);font-size:10.5px;color:#D4AF37;margin-bottom:4px;letter-spacing:.06em}
 .brief-b p{font-size:12.5px;color:var(--t2);line-height:1.6}
-
-/* ACTION BADGE */
 .act-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-weight:600;border:1px solid}
 .menu-btn{display:none}
 </style>
@@ -100,7 +86,6 @@ body{background:#020912}
 </div>
 </div>
 <div id="tc"></div>
-<script src="lang.js"></script>
 <script src="app.js"></script>
 <script>
 const NAV = [
@@ -120,8 +105,6 @@ const NAV = [
   {g:'الملخص',ge:'BRIEF'},
   {k:'brief',       ar:'الملخص التنفيذي',        en:'Executive Brief',    ic:'📋', fn:"go('brief')"},
 ];
-const PAGES = {};
-function reg(k,fn){PAGES[k]=fn;}
 function go(k){
   const item=NAV.find(n=>n.k===k);
   document.getElementById('pgtitle').textContent=item?(App.lang==='ar'?item.ar:item.en):k;
@@ -131,7 +114,6 @@ function go(k){
   window.scrollTo(0,0);
 }
 
-/* WAR ROOM CANVAS */
 function drawWR(){
   const cv=document.getElementById('wrcv');if(!cv)return;
   const cx=cv.getContext('2d');let W,H,pts=[],t=0;
@@ -150,12 +132,12 @@ function drawWR(){
   r();window.addEventListener('resize',r);d();
 }
 
-/* WAR ROOM CLOCK */
 function startWRClock(){
   function tick(){
     const n=new Date(),h=n.getHours(),l=App.lang;
     const hh=String(h%12||12).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0'),ss=String(n.getSeconds()).padStart(2,'0');
     const wt=document.getElementById('wt');if(wt)wt.textContent=`${hh}:${mm}:${ss} ${h<12?(l==='ar'?'ص':'AM'):(l==='ar'?'م':'PM')}`;
+    const T={ar:{days:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],months:['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']},en:{days:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],months:['January','February','March','April','May','June','July','August','September','October','November','December']}};
     const ti=T[l]||T.ar;
     const wd=document.getElementById('wd');if(wd)wd.textContent=`${ti.days[n.getDay()]}، ${n.getDate()} ${ti.months[n.getMonth()]} ${n.getFullYear()}`;
     const wg=document.getElementById('wg');if(wg)wg.textContent=h<12?'صباح الخير — راجع أولويات اليوم':h<17?'مساء الخير — ماذا يحتاج قرارك؟':'وقت الإغلاق — لخّص إنجازات اليوم';
@@ -163,9 +145,6 @@ function startWRClock(){
   tick();setInterval(tick,1000);
 }
 
-/* ════════════════════════════════════════════
-   WAR ROOM
-════════════════════════════════════════════ */
 reg('warroom',async el=>{
   el.innerHTML=`
     <div class="wr">
@@ -186,12 +165,9 @@ reg('warroom',async el=>{
       </div>
       <div class="wrbar"></div>
     </div>
-
     <div style="font-family:var(--mono);font-size:9.5px;color:#8B7340;letter-spacing:.12em;margin-bottom:10px">◈ OPERATIONAL HEALTH — DIVISION STATUS</div>
     <div class="dhx" id="dhx">${skR(5)}</div>
-
     <div class="g3 mb2">
-      <!-- ESCALATIONS -->
       <div class="panel" style="border-color:rgba(212,175,55,.1)">
         <div class="ph" style="border-color:rgba(212,175,55,.1)">
           <h3 style="color:#D4AF37;font-size:12px">⚡ تصعيدات تنتظر قرارك</h3>
@@ -199,7 +175,6 @@ reg('warroom',async el=>{
         </div>
         <div id="escFeed"></div>
       </div>
-      <!-- KPI DECLINE -->
       <div class="panel" style="border-color:rgba(212,175,55,.1)">
         <div class="ph" style="border-color:rgba(212,175,55,.1)">
           <h3 style="color:#D4AF37;font-size:12px">📉 مؤشرات تتراجع</h3>
@@ -207,7 +182,6 @@ reg('warroom',async el=>{
         </div>
         <div id="kpiFeed"></div>
       </div>
-      <!-- EXEC BRIEF -->
       <div class="panel" style="border-color:rgba(212,175,55,.1)">
         <div class="ph" style="border-color:rgba(212,175,55,.1)">
           <h3 style="color:#D4AF37;font-size:12px">📋 الملخص التنفيذي</h3>
@@ -216,8 +190,6 @@ reg('warroom',async el=>{
         <div id="briefFeed"></div>
       </div>
     </div>
-
-    <!-- MEETINGS + QPI PREVIEW -->
     <div class="g2">
       <div class="panel" style="border-color:rgba(212,175,55,.1)">
         <div class="ph" style="border-color:rgba(212,175,55,.1)">
@@ -248,13 +220,7 @@ reg('warroom',async el=>{
       dbList('kpis',{eq:{status:'red'},lim:4}),
       dbList('meetings',{lim:3}),
     ]);
-
-    // Escalation badge in topbar
-    if(escAlerts>0){
-      const eb=document.getElementById('escBtn');
-      if(eb)eb.style.display='flex';
-    }
-
+    if(escAlerts>0){const eb=document.getElementById('escBtn');if(eb)eb.style.display='flex';}
     const avgH=health.length?Math.round(health.reduce((s,d)=>{const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;return s+sc;},0)/health.length):0;
     document.getElementById('wStats').innerHTML=[
       {v:oAfis,l:'AFIs OVERDUE',cl:oAfis?'rd':'gn'},
@@ -263,8 +229,6 @@ reg('warroom',async el=>{
       {v:pApp,l:'APPROVALS',cl:pApp?'yw':'gn'},
       {v:avgH+'%',l:'DEPT HEALTH',cl:avgH>=80?'gn':avgH>=60?'yw':'rd'},
     ].map(s=>`<div class="wkv ${s.cl}"><div class="wv">${s.v}</div><div class="wl">${s.l}</div></div>`).join('');
-
-    // Division nodes
     document.getElementById('dhx').innerHTML=health.map(d=>{
       const cfg=DIVS[d.code]||{};const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
       const cls=sc>=85?'ok':sc>=65?'warn':'crit';const clr=sc>=85?'#34D399':sc>=65?'#FCD34D':'#F87171';
@@ -282,8 +246,6 @@ reg('warroom',async el=>{
         </div>
       </div>`;
     }).join('');
-
-    // Escalation feed
     document.getElementById('escCnt').textContent=`${escAlerts} عنصر`;
     document.getElementById('escFeed').innerHTML=afis.data.length
       ?afis.data.map(a=>`<div class="esc-item" onclick="go('escalations')">
@@ -293,8 +255,6 @@ reg('warroom',async el=>{
           ${priBadge(a.priority)}
         </div>`).join('')
       :`<div style="padding:14px;text-align:center;color:var(--success);font-size:13px">✓ لا تصعيدات معلقة</div>`;
-
-    // KPI decline
     document.getElementById('kpiFeed').innerHTML=kpis.data.length
       ?kpis.data.map(k=>`<div class="esc-item" onclick="go('kpis')">
           <div class="esc-led wr"></div>
@@ -303,15 +263,11 @@ reg('warroom',async el=>{
           <span style="font-size:17px;color:var(--danger)">↓</span>
         </div>`).join('')
       :`<div style="padding:14px;text-align:center;color:var(--success);font-size:13px">✓ كل المؤشرات ضمن الأهداف</div>`;
-
-    // Executive brief
     document.getElementById('briefFeed').innerHTML=[
       {h:'الوضع العام',t:`إدارة التميز التشغيلي تعمل بكفاءة ${avgH}%. ${oAfis>0?`${oAfis} AFI متأخرة. `:''}${escAlerts>0?`${escAlerts} تنبيه مصعّد.`:''}`},
       {h:'أولويات اليوم',t:`${oAfis>0?`متابعة ${oAfis} AFI متأخرة. `:''}${rKpis>0?`${rKpis} مؤشر دون الهدف. `:''}${pApp>0?`${pApp} طلب اعتماد ينتظرك.`:''} `.trim()||'لا قرارات عاجلة — يوم جيد.'},
       {h:'توصية استراتيجية',t:'راجع الدائرة ذات أعلى AFIs متأخرة. تأكد من اكتمال التحديثات الأسبوعية قبل اجتماع QPI.'},
     ].map(b=>`<div class="brief-b"><h4>${b.h.toUpperCase()}</h4><p>${b.t}</p></div>`).join('');
-
-    // Meetings feed
     document.getElementById('mtgFeed').innerHTML=mtgs.data.length
       ?mtgs.data.map(m=>`<div class="mtg-item" onclick="go('meetings')">
           <div class="mtg-date">${fmtD(m.meeting_date)} · ${m.type==='weekly_oe'?'أسبوعي':'طارئ'}</div>
@@ -319,8 +275,6 @@ reg('warroom',async el=>{
           ${m.decisions?`<div class="mtg-act">📌 ${esc(m.decisions.slice(0,60))}...</div>`:''}
         </div>`).join('')
       :`<div style="padding:14px;text-align:center;color:var(--t2);font-size:12.5px">لا اجتماعات مسجّلة — <button class="btn sm" onclick="go('newmeeting')" style="margin-right:5px">+ اجتماع جديد</button></div>`;
-
-    // QPI preview
     document.getElementById('qpiPrev').innerHTML=`
       <div class="g2" style="gap:8px">
         ${[
@@ -334,13 +288,9 @@ reg('warroom',async el=>{
         </div>`).join('')}
       </div>
       <button class="btn" onclick="go('qpi')" style="width:100%;margin-top:10px;border-color:rgba(212,175,55,.25);color:#D4AF37;font-size:12.5px">📊 التقرير الكامل</button>`;
-
   }catch(e){toast(e.message,'e');}
 });
 
-/* ════════════════════════════════════════════
-   HEAT MAP
-════════════════════════════════════════════ */
 reg('heatmap',async el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">🗺️ خريطة الدوائر</h1></div><div class="g3" id="hmG">${skR()}</div>`;
   const h=await loadHealth();
@@ -361,9 +311,6 @@ reg('heatmap',async el=>{
   }).join('');
 });
 
-/* ════════════════════════════════════════════
-   ESCALATIONS — صندوق التصعيد التنفيذي
-════════════════════════════════════════════ */
 reg('escalations',async el=>{
   el.innerHTML=`
     <div style="margin-bottom:14px">
@@ -386,7 +333,6 @@ reg('escalations',async el=>{
       </div>
       <div id="escList">${skR()}</div>
     </div>`;
-
   async function load(){
     const sv=document.getElementById('escSev')?.value||'',dv=document.getElementById('escDiv')?.value||'';
     const listEl=document.getElementById('escList');listEl.innerHTML=skR();
@@ -405,7 +351,6 @@ reg('escalations',async el=>{
         {sl:'تقييمات تنتظر اعتماد',sv:pendApp,cl:pendApp?'ylw':'grn'},
         {sl:'KPIs حمراء',sv:redKpi,cl:redKpi?'red':'grn'},
       ].map(s=>`<div class="sc"><div class="sl">${s.sl}</div><div class="sv ${s.cl}">${s.sv}</div></div>`).join('');
-
       if(!data.length){listEl.innerHTML=emptyEl('لا تصعيدات معلقة ✓');return;}
       listEl.innerHTML=data.map(a=>`<div style="padding:12px 14px;border-bottom:1px solid rgba(212,175,55,.06)">
         <div style="display:flex;align-items:flex-start;gap:10px">
@@ -445,9 +390,6 @@ window.saveEscNote=async id=>{
   toast('تم حفظ الملاحظة ✓','s');closeModal();go('escalations');
 };
 
-/* ════════════════════════════════════════════
-   APPROVALS
-════════════════════════════════════════════ */
 reg('approvals',async el=>{
   el.innerHTML=`
     <div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">✅ موافقات معلقة</h1>
@@ -497,9 +439,6 @@ window.openAssm=async id=>{
     </div>`,'w');
 };
 
-/* ════════════════════════════════════════════
-   MEETINGS — اجتماع OE الأسبوعي
-════════════════════════════════════════════ */
 reg('meetings',async el=>{
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -523,8 +462,6 @@ reg('meetings',async el=>{
       </table></div>`
     :emptyEl('لا اجتماعات',`<button class="btn sm" onclick="go('newmeeting')">+ اجتماع جديد</button>`);
 });
-
-/* Meeting detail */
 window.openMtgDetail=async id=>{
   const m=await dbGet('meetings',id).catch(()=>null);if(!m)return;
   openModal(`<div class="mh"><h3 style="color:#D4AF37">${esc(m.title)}</h3><button class="mx" onclick="closeModal()">×</button></div>
@@ -539,7 +476,6 @@ window.openMtgDetail=async id=>{
     </div>
     <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
 };
-
 window.openMtgActions=async id=>{
   const{data:actions}=await dbList('meeting_actions',{eq:{meeting_id:id}}).catch(()=>({data:[]}));
   openModal(`<div class="mh"><h3 style="color:#D4AF37">📌 إجراءات الاجتماع</h3><button class="mx" onclick="closeModal()">×</button></div>
@@ -551,8 +487,6 @@ window.openMtgActions=async id=>{
     </div>
     <div class="mf"><button class="btn" onclick="closeModal()">إغلاق</button></div>`,'w');
 };
-
-/* NEW MEETING */
 reg('newmeeting',el=>{
   el.innerHTML=`
     <div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">➕ اجتماع OE جديد</h1></div>
@@ -594,7 +528,6 @@ window.saveMeeting=async()=>{
   const title=mv('nm_t');if(!title){toast('العنوان مطلوب','e');return;}
   try{
     const mtg=await dbIns('meetings',{title,meeting_date:mv('nm_d'),type:mv('nm_tp'),agenda:mv('nm_ag')||null,decisions:mv('nm_dc')||null,minutes:mv('nm_mn')||null,status:'completed',created_by:App.profile?.id});
-    // Save actions
     for(let i=1;i<=actCount;i++){
       const act=document.getElementById(`ac_t${i}`)?.value?.trim();
       if(act)await dbIns('meeting_actions',{meeting_id:mtg.id,action:act,due_date:document.getElementById(`ac_d${i}`)?.value||null,status:'open'});
@@ -603,24 +536,15 @@ window.saveMeeting=async()=>{
   }catch(e){toast(e.message,'e');}
 };
 
-/* ════════════════════════════════════════════
-   QPI — التقرير الربعي
-════════════════════════════════════════════ */
 reg('qpi',async el=>{
   el.innerHTML=`
     <div style="margin-bottom:14px">
       <h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">📊 التقرير الربعي — QPI</h1>
       <div style="font-size:12.5px;color:var(--t2)">Quarterly Performance & Improvement — أداء الإدارة خلال الربع الحالي</div>
     </div>
-
-    <!-- QPI Header Cards -->
     <div class="g4 mb2" id="qpiCards">${skR()}</div>
-
-    <!-- Division Performance -->
     <div style="font-family:var(--mono);font-size:9.5px;color:#8B7340;letter-spacing:.12em;margin-bottom:10px">◈ أداء الدوائر — الربع الحالي</div>
     <div class="g3 mb2" id="qpiDivs">${skR()}</div>
-
-    <!-- Recommendations + Lessons -->
     <div class="g2">
       <div class="panel" style="border-color:rgba(212,175,55,.12)">
         <div class="ph" style="border-color:rgba(212,175,55,.1)"><h3 style="color:#D4AF37;font-size:12px">💡 التوصيات الاستراتيجية</h3></div>
@@ -634,7 +558,6 @@ reg('qpi',async el=>{
         <div id="lessonsFeed"></div>
       </div>
     </div>`;
-
   try{
     const[totalAfis,closedAfis,redKpis,greenKpis,totalAssm,closedAssm,health]=await Promise.all([
       dbCnt('afis'),dbCnt('afis',{eq:{status:'closed'}}),
@@ -642,12 +565,10 @@ reg('qpi',async el=>{
       dbCnt('assessments'),dbCnt('assessments',{eq:{stage:'closed'}}),
       loadHealth(),
     ]);
-
     const afiClose=totalAfis?Math.round(closedAfis/totalAfis*100):0;
     const kpiHealth=totalAfis?Math.round(greenKpis/(greenKpis+redKpis+1)*100):0;
     const assmClose=totalAssm?Math.round(closedAssm/totalAssm*100):0;
     const avgH=health.length?Math.round(health.reduce((s,d)=>{const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;return s+sc;},0)/health.length):0;
-
     document.getElementById('qpiCards').innerHTML=[
       {sl:'معدل إغلاق AFIs',sv:afiClose+'%',cl:afiClose>=80?'grn':afiClose>=60?'ylw':'red',ic:'▲'},
       {sl:'KPIs ضمن الهدف',sv:kpiHealth+'%',cl:kpiHealth>=80?'grn':kpiHealth>=60?'ylw':'red',ic:'📈'},
@@ -661,8 +582,6 @@ reg('qpi',async el=>{
         ${s.cl==='grn'?'↑ ممتاز':s.cl==='ylw'?'→ مقبول':'↓ يحتاج تحسين'}
       </div>
     </div>`).join('');
-
-    // Division QPI cards
     document.getElementById('qpiDivs').innerHTML=health.map(d=>{
       const cfg=DIVS[d.code]||{};
       const sc=d.overdue_afis>2?55:d.open_afis>5?72:d.open_alerts>2?78:92;
@@ -689,8 +608,6 @@ reg('qpi',async el=>{
         </div>
       </div>`;
     }).join('');
-
-    // Recommendations
     const recs=[];
     if(afiClose<70) recs.push({ic:'▲',t:'تسريع إغلاق AFIs',d:`معدل الإغلاق ${afiClose}% دون الهدف 80% — راجع العوائق مع مدراء الدوائر`});
     if(redKpis>2) recs.push({ic:'📉',t:'معالجة KPIs الحمراء',d:`${redKpis} مؤشر دون الهدف — أوجد خطط تحسين فورية`});
@@ -698,17 +615,13 @@ reg('qpi',async el=>{
     if(worstDiv) recs.push({ic:'🏭',t:`تعزيز ${DIVS[worstDiv.code]?.ar||worstDiv.name_ar}`,d:`الدائرة الأكثر احتياجاً للدعم في الربع القادم`});
     if(assmClose<60) recs.push({ic:'▤',t:'إنهاء التقييمات المعلقة',d:`${totalAssm-closedAssm} تقييم لم يُغلق — ضع جدولاً للإنهاء`});
     if(!recs.length) recs.push({ic:'✓',t:'أداء جيد عموماً',d:'استمر في المتابعة والتحسين المستمر'});
-
     document.getElementById('recsFeed').innerHTML=recs.map(r=>`<div class="brief-b">
       <h4>${r.ic} ${r.t}</h4><p>${r.d}</p>
     </div>`).join('');
-
-    // Lessons (from activity log or static)
     document.getElementById('lessonsFeed').innerHTML=`
       <div class="brief-b"><h4>📌 درس مستفاد</h4><p>التقييمات التي تعاني من بطء في جمع الأدلة تحتاج جدولاً أوضح مع المقيّمين.</p></div>
       <div class="brief-b"><h4>📌 ممارسة جيدة</h4><p>الدوائر التي ترسل تحديثات أسبوعية منتظمة تُظهر أداءً أفضل في إغلاق AFIs.</p></div>
       <div style="padding:10px 14px"><button class="btn sm" onclick="openAddLesson()" style="border-color:rgba(212,175,55,.25);color:#D4AF37">+ إضافة درس مستفاد</button></div>`;
-
   }catch(e){toast(e.message,'e');}
 });
 window.openAddLesson=()=>{
@@ -725,114 +638,38 @@ window.saveLesson=async()=>{
   toast('تم حفظ الدرس ✓','s');closeModal();
 };
 
-/* ════════════════════════════════════════════
-   STUBS
-════════════════════════════════════════════ */
 ['kpis','afis','alerts','brief'].forEach(k=>reg(k,el=>{
   el.innerHTML=`<div style="margin-bottom:14px"><h1 style="font-family:var(--hud);font-size:19px;color:#D4AF37">${NAV.find(n=>n.k===k)?.ar||k}</h1></div>
     <p style="color:var(--t2);padding:18px">يتصل بالبيانات الكاملة عند توصيل Supabase.</p>`;
 }));
 
-/* ════════════════════════════════════════════
-   INIT
-════════════════════════════════════════════ */
-
-function openCreateEmployee(){
+function openCreateEmployee(){ openCreateEmployeeDept(); }
+function openCreateEmployeeDept(){
   openModal(`<div class="mh"><h3>👤 ${t2('إنشاء حساب موظف','Create Employee Account')}</h3><button class="mx" onclick="closeModal()">×</button></div>
     <div class="mbd">
-      <div class="note">ℹ️ ${t2('المدير يُنشئ حساب موظف جديد في دائرته','Manager creates new employee account in their division')}</div>
+      <div class="note">ℹ️ ${t2('المدير يُنشئ حساب موظف جديد في دائرته','Manager creates new employee account')}</div>
       <div class="field"><label>${t2('الاسم الكامل *','Full Name *')}</label><input id="ce_n" placeholder="..."></div>
       <div class="field"><label>${t2('الرقم الوظيفي *','Employee ID *')}</label><input id="ce_id" placeholder="EMP001"></div>
       <div class="field"><label>${t2('الدائرة','Division')}</label><select id="ce_div">
         ${Object.entries(DIVS).map(([k,v])=>'<option value="'+k+'">'+v.icon+' '+t2(v.ar,v.en)+'</option>').join('')}
       </select></div>
       <div class="field"><label>${t2('كلمة المرور المؤقتة','Temp Password')}</label>
-        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genDEmpPW()">🔀</button></div>
+        <div style="display:flex;gap:7px"><input type="text" id="ce_pw" placeholder="..." style="flex:1"><button class="btn sm" onclick="genEmpPW()">🔀</button></div>
       </div>
     </div>
     <div class="mf"><button class="btn" onclick="closeModal()">${t2('إلغاء','Cancel')}</button>
     <button class="btn p" id="ceBtn" onclick="createDeptEmployee()">${t2('إنشاء','Create')}</button></div>`);
-  genDEmpPW();
-}
-function genDEmpPW(){
-  const ch='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
-  let p='';for(let i=0;i<10;i++)p+=ch[Math.floor(Math.random()*ch.length)];
-  const el=document.getElementById('ce_pw');if(el){el.value=p;navigator.clipboard?.writeText(p).catch(()=>{});}
+  genEmpPW();
 }
 async function createDeptEmployee(){
-  const name=mv('ce_n'),empId=mv('ce_id'),pass=mv('ce_pw'),div=mv('ce_div');
-  if(!name||!empId||!pass){toast(t2('يرجى تعبئة جميع الحقول','Fill all fields'),'e');return;}
-  const username=empId.toLowerCase().replace(/\s+/g,'');
-  const email=username+'@se.local';
-  const btn=document.getElementById('ceBtn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spin"></span>';}
-  try{
-    const sess=getStoredSession();
-    const ar=await fetch(SB_URL+'/auth/v1/signup',{method:'POST',
-      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({email,password:pass,data:{full_name:name,role:'employee'}})});
-    const ad=await ar.json();
-    if(ad.error)throw new Error(ad.error_description||ad.error);
-    const uid=ad.id||ad.user?.id;
-    if(uid){
-      await fetch(SB_URL+'/rest/v1/profiles?id=eq.'+uid,{method:'PATCH',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(sess?.access_token||''),'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({full_name:name,role:'employee',division:div,employee_id:empId,username,is_active:true})});
-    }
-    closeModal();
-    toast(t2('تم إنشاء الحساب ✓','Account created ✓'),'s');
-    setTimeout(()=>openModal(`<div class="mh"><h3 style="color:var(--success)">✓</h3><button class="mx" onclick="closeModal()">×</button></div>
-      <div class="mbd"><div style="background:#060F1E;border-radius:8px;padding:14px;font-family:var(--mono)">
-        <div style="font-size:10px;color:var(--t3)">${t2('اسم المستخدم','Username')}</div>
-        <div style="font-size:15px;color:#60A5FA;margin-bottom:8px">${esc(username)}</div>
-        <div style="font-size:10px;color:var(--t3)">${t2('كلمة المرور','Password')}</div>
-        <div style="font-size:15px;color:#FCD34D">${esc(pass)}</div>
-      </div></div>
-      <div class="mf"><button class="btn p" onclick="closeModal()">${t2('تم','Done')}</button></div>`),100);
-  }catch(e){toast('Error: '+e.message,'e');if(btn){btn.disabled=false;btn.innerHTML=t2('إنشاء','Create');}}
+  const div=mv('ce_div');
+  await createEmployeeShared(div);
 }
 
-(async()=>{
-  const _SBU='https://ekywcrlcjgbjtwnjozov.supabase.co';
-  const _SBK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVreXdjcmxjamdianR3bmpvem92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4OTg5MzcsImV4cCI6MjA5NzQ3NDkzN30.TQxP2SUjaxSjdsBadmgHIBSVQ5B-YOLkvnl1JwyhISI';
-  const _allowed=['director','admin'];
-  const _portals={'admin':'admin.html','director':'department.html','governance_manager':'governance.html','generation_manager':'generation.html','national_grid_manager':'national-grid.html','distribution_manager':'distribution.html','technical_alerts_manager':'technical-alerts.html','employee':'employee.html'};
-  function _showErr(msg){const pg=document.getElementById('pgContent')||document.getElementById('pageArea');if(pg)pg.innerHTML='<div style="padding:28px;text-align:center;color:#8098BC"><div style="font-size:36px;margin-bottom:12px">⚠️</div><p>'+msg+'</p><button onclick="location.href=\'index.html\'" style="margin-top:12px;padding:8px 20px;background:#D4AF37;border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:14px">تسجيل الدخول</button></div>';}
-  var _sess=null;
-  try{var _ks=Object.keys(localStorage).filter(function(k){return k.includes('auth-token')||k.includes('supabase');});for(var _i=0;_i<_ks.length;_i++){var _v=JSON.parse(localStorage.getItem(_ks[_i])||'null');if(_v&&_v.access_token){_sess=_v;break;}if(_v&&_v.session&&_v.session.access_token){_sess=_v.session;break;}}}catch(_e){}
-  if(!_sess||!_sess.access_token){location.href='index.html';return;}
-  var _uid=_sess.user&&_sess.user.id?_sess.user.id:null;
-  if(!_uid){try{_uid=JSON.parse(atob(_sess.access_token.split('.')[1])).sub;}catch(_e){}}
-  if(!_uid){location.href='index.html';return;}
-  var _profile=null;
-  try{var _res=await fetch(_SBU+'/rest/v1/profiles?id=eq.'+_uid+'&select=*&limit=1',{headers:{'apikey':_SBK,'Authorization':'Bearer '+_sess.access_token}});var _data=await _res.json();_profile=Array.isArray(_data)&&_data.length>0?_data[0]:null;}catch(_e){_showErr('خطأ في الاتصال');return;}
-  if(!_profile){_showErr('الملف الشخصي غير موجود');return;}
-  if(_allowed.indexOf(_profile.role)===-1){location.href=_portals[_profile.role]||'index.html';return;}
-  App.user={id:_uid};App.profile=_profile;
-  var _init=(_profile.full_name||'U').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  var _ubEl=document.getElementById('ubEl');
-  if(_ubEl)_ubEl.innerHTML='<div class="ub-av" style="background:#D4AF3722;color:#D4AF37">'+_init+'</div><div style="flex:1;min-width:0"><div class="ub-nm">'+esc(_profile.full_name||'')+'</div><div class="ub-rl" style="font-size:10px;color:#8098BC">'+(ROLE_AR[_profile.role]||_profile.role)+'</div></div>';
-  
-  startClock();
-  setTimeout(function(){trackAttendance();},500);
-  document.getElementById('lgEl').innerHTML=LOGO;
-  buildNav(NAV,'warroom');go('warroom');
-})();
-</script>
-
-<script>
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar')||document.querySelector('.sb');
-  if(sb) sb.classList.toggle('show');
-  const ov=document.getElementById('sbOverlay');
-  if(ov) ov.classList.toggle('show');
-}
-// Overlay for closing sidebar
-document.addEventListener('DOMContentLoaded',function(){
-  const ov=document.createElement('div');
-  ov.id='sbOverlay';ov.className='sb-overlay';
-  ov.onclick=function(){toggleSidebar()};
-  document.body.appendChild(ov);
+/* ═══ INIT ═══ */
+requireAuth(['director','admin']).then(profile=>{
+  if(!profile) return;
+  buildNav(NAV,'warroom'); go('warroom');
 });
 </script>
 </body>

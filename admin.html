@@ -117,11 +117,11 @@ button,input,select{font-family:inherit}
     </div>
     <nav class="nav">
       <div class="ng">الإدارة</div>
-      <button class="ni on" onclick="showPage('users')"><span class="ic">👥</span> إدارة المستخدمين</button>
-      <button class="ni" onclick="showPage('divs')"><span class="ic">🏛️</span> الدوائر</button>
+      <button class="ni on" onclick="showPage('users',this)"><span class="ic">👥</span> إدارة المستخدمين</button>
+      <button class="ni" onclick="showPage('divs',this)"><span class="ic">🏛️</span> الدوائر</button>
       <div class="ng">الإعدادات</div>
-      <button class="ni" onclick="showPage('myaccount')"><span class="ic">⚙️</span> حسابي</button>
-      <button class="ni" onclick="showPage('health')"><span class="ic">💡</span> صحة النظام</button>
+      <button class="ni" onclick="showPage('myaccount',this)"><span class="ic">⚙️</span> حسابي</button>
+      <button class="ni" onclick="showPage('health',this)"><span class="ic">💡</span> صحة النظام</button>
     </nav>
     <div class="sb-foot">
       <button class="btn-lo" onclick="doLogout()">🚪 خروج</button>
@@ -153,9 +153,9 @@ const RCL = {admin:'rgba(239,68,68,.15)',director:'rgba(212,175,55,.12)',governa
 
 function toggleSidebar(){const sb=document.getElementById('sidebar');if(!sb)return;const show=sb.classList.toggle('show');let ov=document.getElementById('sbOv');if(!ov){ov=document.createElement('div');ov.id='sbOv';ov.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,9,18,.75);z-index:9998';ov.onclick=toggleSidebar;document.body.appendChild(ov);}ov.style.display=show?'block':'none';}
 
-function showPage(name){
+function showPage(name, btn){
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
-  event?.target?.closest('.ni')?.classList.add('on');
+  if(btn) btn.classList.add('on');
   const titles={users:'إدارة المستخدمين',divs:'الدوائر',myaccount:'حسابي',health:'صحة النظام'};
   document.getElementById('pgTitle').textContent=titles[name]||name;
   const area=document.getElementById('pageArea');
@@ -491,11 +491,22 @@ function copyT(t){navigator.clipboard?.writeText(t).then(function(){toast('تم 
 
 /* ═══ INIT ═══ */
 (async function init(){
-  const profile = await requireAuth(['admin']);
-  if(!profile) return;
-  document.getElementById('ubAv').textContent=(profile.full_name||'A').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-  document.getElementById('ubNm').textContent=profile.full_name||'Admin';
-  renderUsers();
+  try{
+    const profile = await requireAuth(['admin']);
+    if(!profile) return;
+    // requireAuth() already renders the user badge into #ubEl.
+    // Do not access #ubAv/#ubNm here because _renderBadge() replaces those original nodes.
+    await renderUsers();
+  }catch(e){
+    console.error('Admin init failed:', e);
+    const area=document.getElementById('pageArea');
+    if(area){
+      area.innerHTML='<div style="max-width:620px;margin:40px auto;padding:18px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.07);border-radius:12px">'+
+        '<div style="font-size:16px;font-weight:700;color:#FCA5A5;margin-bottom:7px">تعذر تحميل لوحة الأدمن</div>'+ 
+        '<div style="font-size:12.5px;color:#8098BC;word-break:break-word;margin-bottom:12px">'+esc(e.message||String(e))+'</div>'+ 
+        '<button class="btn sm" onclick="location.reload()">إعادة المحاولة</button></div>';
+    }
+  }
 })();
 </script>
 </body>
